@@ -16,6 +16,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -23,6 +24,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.capabilities.Capability;
@@ -128,7 +130,13 @@ public class MatterManipulatorItem extends Item {
             return InteractionResultHolder.success(stack);
         }
 
-        ActionStartResult result = startRemoveSelection(stack, player, level);
+        ActionStartResult result = switch (state.mode()) {
+            case EXCHANGING -> startExchangeSelection(stack, player, level, state);
+            case GEOMETRY, CABLES -> startRemoveSelection(stack, player, level, state);
+            case COPYING, MOVING -> ActionStartResult.error(
+                    Component.translatable("message.matter_manipulator.mode.not_implemented",
+                            state.mode().displayName()));
+        };
         player.displayClientMessage(result.message(), true);
         return result.started() ? InteractionResultHolder.success(stack) : InteractionResultHolder.fail(stack);
     }
@@ -267,8 +275,7 @@ public class MatterManipulatorItem extends Item {
         }
     }
 
-    private ActionStartResult startRemoveSelection(ItemStack stack, Player player, Level level) {
-        MMState state = getState(stack);
+    private ActionStartResult startRemoveSelection(ItemStack stack, Player player, Level level, MMState state) {
         if (!state.hasCapability(tier, MMCapability.ALLOW_REMOVING)) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.no_capability"));
         }
@@ -292,9 +299,42 @@ public class MatterManipulatorItem extends Item {
                 selection.describe()));
     }
 
+    private ActionStartResult startExchangeSelection(ItemStack stack, Player player, Level level, MMState state) {
+        if (!state.hasCapability(tier, MMCapability.ALLOW_EXCHANGING)) {
+            return ActionStartResult.error(
+                    Component.translatable("message.matter_manipulator.exchange.no_capability"));
+        }
+
+        MMSelection selection = state.selection();
+        if (selection == null) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.no_selection"));
+        }
+        if (!selection.dimension().equals(level.dimension().location())) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
+        }
+        if (!selection.isInPlayerRange(player, tier.maxRange())) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
+                    tier.maxRange()));
+        }
+
+        ItemStack replacement = player.getOffhandItem();
+        if (!(replacement.getItem() instanceof BlockItem)) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.exchange.no_block"));
+        }
+        if (!player.isCreative() && replacement.getCount() <= 0) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.exchange.no_items"));
+        }
+
+        PendingAction action = new PendingAction(PendingActionType.EXCHANGE, selection, replacement.copyWithCount(1));
+        state.startPendingAction(action);
+        setState(stack, state);
+        return new ActionStartResult(true, Component.translatable("message.matter_manipulator.exchange.started",
+                selection.describe(), replacement.getHoverName()));
+    }
+
     private ActionTickResult tickPendingAction(ItemStack stack, Player player, Level level, MMState state,
                                                PendingAction action) {
-        if (action.type() != PendingActionType.REMOVE) {
+        if (action.type() != PendingActionType.REMOVE && action.type() != PendingActionType.EXCHANGE) {
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.pending.unknown"));
         }
         if (!action.selection().dimension().equals(level.dimension().location())) {
@@ -331,24 +371,86 @@ public class MatterManipulatorItem extends Item {
                 continue;
             }
 
-            long euCost = removalCost(level, player, pos, blockState, state);
-            if (!consumeEnergy(stack, player, euCost)) {
-                action.incrementOutOfPower();
-                return ActionTickResult
-                        .finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
-            }
-
-            if (level.destroyBlock(pos, true, player)) {
-                action.incrementRemoved();
-            } else {
-                action.incrementBlocked();
+            ActionTickResult result = switch (action.type()) {
+                case REMOVE -> removeBlock(stack, player, level, pos, blockState, state, action);
+                case EXCHANGE -> exchangeBlock(stack, player, level, pos, blockState, state, action);
+            };
+            if (result.finished()) {
+                return result;
             }
         }
 
         return action.isComplete() ? ActionTickResult.finished(action.resultText()) : ActionTickResult.running();
     }
 
-    private long removalCost(Level level, Player player, BlockPos pos, BlockState blockState, MMState state) {
+    private ActionTickResult removeBlock(ItemStack stack, Player player, Level level, BlockPos pos,
+                                         BlockState blockState, MMState state, PendingAction action) {
+        long euCost = operationCost(level, player, pos, blockState, state);
+        if (!consumeEnergy(stack, player, euCost)) {
+            action.incrementOutOfPower();
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
+        }
+        if (level.destroyBlock(pos, true, player)) {
+            action.incrementRemoved();
+        } else {
+            action.incrementBlocked();
+        }
+        return ActionTickResult.running();
+    }
+
+    private ActionTickResult exchangeBlock(ItemStack stack, Player player, Level level, BlockPos pos,
+                                           BlockState blockState, MMState state, PendingAction action) {
+        ItemStack replacement = action.replacement();
+        if (!(replacement.getItem() instanceof BlockItem blockItem)) {
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.exchange.no_block"));
+        }
+        if (level.getBlockEntity(pos) != null) {
+            action.incrementBlocked();
+            return ActionTickResult.running();
+        }
+
+        ItemStack paymentStack = player.isCreative() ? replacement : findMatchingStack(player, replacement);
+        if (!player.isCreative() && paymentStack.isEmpty()) {
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.exchange.no_items"));
+        }
+
+        BlockState replacementState = blockItem.getBlock().defaultBlockState();
+        if (!replacementState.canSurvive(level, pos) || !level.getFluidState(pos).is(Fluids.EMPTY)) {
+            action.incrementBlocked();
+            return ActionTickResult.running();
+        }
+
+        long euCost = operationCost(level, player, pos, blockState, state);
+        if (!consumeEnergy(stack, player, euCost)) {
+            action.incrementOutOfPower();
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
+        }
+        if (!level.destroyBlock(pos, true, player)) {
+            action.incrementBlocked();
+            return ActionTickResult.running();
+        }
+        if (!level.setBlock(pos, replacementState, 3)) {
+            action.incrementBlocked();
+            return ActionTickResult.running();
+        }
+        if (!player.isCreative()) {
+            paymentStack.shrink(1);
+        }
+        action.incrementRemoved();
+        return ActionTickResult.running();
+    }
+
+    private ItemStack findMatchingStack(Player player, ItemStack wanted) {
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack candidate = player.getInventory().getItem(i);
+            if (ItemStack.isSameItemSameTags(candidate, wanted)) {
+                return candidate;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private long operationCost(Level level, Player player, BlockPos pos, BlockState blockState, MMState state) {
         int hardness = Mth.clamp((int) blockState.getDestroySpeed(level, pos), 0, 999);
         double euUsage = EU_PER_BLOCK * (1.0D + Math.sqrt(hardness));
         if (level.getBlockEntity(pos) != null) {
