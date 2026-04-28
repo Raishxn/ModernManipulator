@@ -98,7 +98,7 @@ public class MMState {
         if (coordA == null || coordB == null) {
             return null;
         }
-        return MMSelection.from(coordA, coordB);
+        return MMSelection.from(coordA, coordB, shape);
     }
 
     public @Nullable PendingAction pendingAction() {
@@ -226,7 +226,7 @@ public class MMState {
             this.serializedName = serializedName;
         }
 
-        private static Shape byName(String name) {
+        public static Shape byName(String name) {
             for (Shape shape : values()) {
                 if (shape.serializedName.equals(name)) {
                     return shape;
@@ -237,6 +237,10 @@ public class MMState {
 
         public Component displayName() {
             return Component.translatable("matter_manipulator.shape." + serializedName);
+        }
+
+        public String serializedName() {
+            return serializedName;
         }
     }
 
@@ -351,11 +355,11 @@ public class MMState {
         }
 
         public boolean isComplete() {
-            return cursor >= selection.volume();
+            return cursor >= selection.scanVolume();
         }
 
         public Component progressText() {
-            return Component.translatable("message.matter_manipulator.pending.progress", cursor, selection.volume(),
+            return Component.translatable("message.matter_manipulator.pending.progress", cursor, selection.scanVolume(),
                     removed, skipped, blocked, outOfPower);
         }
 
@@ -373,6 +377,7 @@ public class MMState {
             tag.putInt("maxX", selection.max().getX());
             tag.putInt("maxY", selection.max().getY());
             tag.putInt("maxZ", selection.max().getZ());
+            tag.putString("shape", selection.shape().serializedName());
             return tag;
         }
 
@@ -383,7 +388,7 @@ public class MMState {
             }
             BlockPos min = new BlockPos(tag.getInt("minX"), tag.getInt("minY"), tag.getInt("minZ"));
             BlockPos max = new BlockPos(tag.getInt("maxX"), tag.getInt("maxY"), tag.getInt("maxZ"));
-            return new MMSelection(dimension, min, max);
+            return new MMSelection(dimension, min, max, Shape.byName(tag.getString("shape")));
         }
     }
 
