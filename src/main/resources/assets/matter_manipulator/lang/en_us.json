@@ -72,7 +72,9 @@
   "tooltip.matter_manipulator.shape": "Shape: %s",
   "tooltip.matter_manipulator.coord_a": "Coord A: %s",
   "tooltip.matter_manipulator.coord_b": "Coord B: %s",
+  "tooltip.matter_manipulator.coord_c": "Coord C: %s",
   "tooltip.matter_manipulator.coord_unset": "unset",
+  "tooltip.matter_manipulator.blueprint": "Blueprint: %sx%sx%s, %s blocks",
   "tooltip.matter_manipulator.selection": "Selection: %s",
   "tooltip.matter_manipulator.selection_dimension_mismatch": "Selection is split across dimensions",
   "tooltip.matter_manipulator.max_range": "Max range: %s blocks",
@@ -84,6 +86,7 @@
   "tooltip.matter_manipulator.pending": "Pending action: %s / %s blocks",
   "message.matter_manipulator.coord_a_set": "Coord A set to %s (%s)",
   "message.matter_manipulator.coord_b_set": "Coord B set to %s (%s)",
+  "message.matter_manipulator.coord_c_set": "Coord C set to %s (%s)",
   "message.matter_manipulator.mode_set": "Mode set to %s.",
   "message.matter_manipulator.shape_set": "Shape set to %s.",
   "message.matter_manipulator.coords_cleared": "Manipulator coordinates cleared.",
@@ -104,5 +107,13 @@
   "message.matter_manipulator.exchange.no_block": "Put the replacement block in your offhand.",
   "message.matter_manipulator.exchange.no_items": "No replacement blocks available.",
   "message.matter_manipulator.exchange.started": "Started exchanging %s with %s.",
-  "message.matter_manipulator.exchange.finished": "Finished. Exchanged %s blocks. Skipped %s, blocked %s, no EU %s."
+  "message.matter_manipulator.exchange.finished": "Finished. Exchanged %s blocks. Skipped %s, blocked %s, no EU %s.",
+  "message.matter_manipulator.copy.no_capability": "This manipulator cannot copy blocks.",
+  "message.matter_manipulator.copy.copied": "Copied %s blocks from %s.",
+  "message.matter_manipulator.move.no_capability": "This manipulator cannot move blocks.",
+  "message.matter_manipulator.move.copied": "Stored %s blocks from %s. Removing source...",
+  "message.matter_manipulator.paste.no_blueprint": "No copied blueprint stored.",
+  "message.matter_manipulator.paste.no_coord_c": "Set Coord C first.",
+  "message.matter_manipulator.paste.started": "Started pasting %s blocks at %s.",
+  "message.matter_manipulator.paste.finished": "Finished. Pasted %s blocks. Skipped %s, blocked %s, no EU %s."
 }

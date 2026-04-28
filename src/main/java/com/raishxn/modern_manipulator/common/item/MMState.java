@@ -1,14 +1,21 @@
 package com.raishxn.modern_manipulator.common.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class MMState {
 
@@ -16,17 +23,21 @@ public class MMState {
 
     private static final String TAG_COORD_A = "coordA";
     private static final String TAG_COORD_B = "coordB";
+    private static final String TAG_COORD_C = "coordC";
     private static final String TAG_MODE = "mode";
     private static final String TAG_SHAPE = "shape";
     private static final String TAG_INSTALLED_UPGRADES = "installedUpgrades";
     private static final String TAG_PENDING_ACTION = "pendingAction";
+    private static final String TAG_BLUEPRINT = "blueprint";
 
     private @Nullable MarkedPosition coordA;
     private @Nullable MarkedPosition coordB;
+    private @Nullable MarkedPosition coordC;
     private ToolMode mode = ToolMode.GEOMETRY;
     private Shape shape = Shape.CUBE;
     private int installedUpgrades;
     private @Nullable PendingAction pendingAction;
+    private @Nullable Blueprint blueprint;
 
     public static MMState getOrCreate(CompoundTag root) {
         if (!root.contains(TAG_NAME, Tag.TAG_COMPOUND)) {
@@ -45,11 +56,17 @@ public class MMState {
         if (tag.contains(TAG_COORD_B, Tag.TAG_COMPOUND)) {
             state.coordB = MarkedPosition.load(tag.getCompound(TAG_COORD_B));
         }
+        if (tag.contains(TAG_COORD_C, Tag.TAG_COMPOUND)) {
+            state.coordC = MarkedPosition.load(tag.getCompound(TAG_COORD_C));
+        }
         state.mode = ToolMode.byName(tag.getString(TAG_MODE));
         state.shape = Shape.byName(tag.getString(TAG_SHAPE));
         state.installedUpgrades = tag.getInt(TAG_INSTALLED_UPGRADES);
         if (tag.contains(TAG_PENDING_ACTION, Tag.TAG_COMPOUND)) {
             state.pendingAction = PendingAction.load(tag.getCompound(TAG_PENDING_ACTION));
+        }
+        if (tag.contains(TAG_BLUEPRINT, Tag.TAG_COMPOUND)) {
+            state.blueprint = Blueprint.load(tag.getCompound(TAG_BLUEPRINT));
         }
         return state;
     }
@@ -62,11 +79,17 @@ public class MMState {
         if (coordB != null) {
             tag.put(TAG_COORD_B, coordB.save());
         }
+        if (coordC != null) {
+            tag.put(TAG_COORD_C, coordC.save());
+        }
         tag.putString(TAG_MODE, mode.serializedName);
         tag.putString(TAG_SHAPE, shape.serializedName);
         tag.putInt(TAG_INSTALLED_UPGRADES, installedUpgrades);
         if (pendingAction != null) {
             tag.put(TAG_PENDING_ACTION, pendingAction.save());
+        }
+        if (blueprint != null) {
+            tag.put(TAG_BLUEPRINT, blueprint.save());
         }
         return tag;
     }
@@ -81,6 +104,10 @@ public class MMState {
 
     public @Nullable MarkedPosition coordB() {
         return coordB;
+    }
+
+    public @Nullable MarkedPosition coordC() {
+        return coordC;
     }
 
     public ToolMode mode() {
@@ -104,6 +131,10 @@ public class MMState {
 
     public @Nullable PendingAction pendingAction() {
         return pendingAction;
+    }
+
+    public @Nullable Blueprint blueprint() {
+        return blueprint;
     }
 
     public void startPendingAction(PendingAction pendingAction) {
@@ -143,9 +174,14 @@ public class MMState {
         this.coordB = coordB;
     }
 
+    public void setCoordC(MarkedPosition coordC) {
+        this.coordC = coordC;
+    }
+
     public void clearCoords() {
         this.coordA = null;
         this.coordB = null;
+        this.coordC = null;
     }
 
     public void setMode(ToolMode mode) {
@@ -154,6 +190,71 @@ public class MMState {
 
     public void setShape(Shape shape) {
         this.shape = shape;
+    }
+
+    public void setBlueprint(@Nullable Blueprint blueprint) {
+        this.blueprint = blueprint;
+    }
+
+    public record Blueprint(int sizeX, int sizeY, int sizeZ, List<BlueprintBlock> blocks) {
+
+        private static final String TAG_SIZE_X = "sizeX";
+        private static final String TAG_SIZE_Y = "sizeY";
+        private static final String TAG_SIZE_Z = "sizeZ";
+        private static final String TAG_BLOCKS = "blocks";
+
+        public CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt(TAG_SIZE_X, sizeX);
+            tag.putInt(TAG_SIZE_Y, sizeY);
+            tag.putInt(TAG_SIZE_Z, sizeZ);
+            ListTag blockList = new ListTag();
+            for (BlueprintBlock block : blocks) {
+                blockList.add(block.save());
+            }
+            tag.put(TAG_BLOCKS, blockList);
+            return tag;
+        }
+
+        public static Blueprint load(CompoundTag tag) {
+            List<BlueprintBlock> blocks = new java.util.ArrayList<>();
+            ListTag blockList = tag.getList(TAG_BLOCKS, Tag.TAG_COMPOUND);
+            for (int i = 0; i < blockList.size(); i++) {
+                blocks.add(BlueprintBlock.load(blockList.getCompound(i)));
+            }
+            return new Blueprint(tag.getInt(TAG_SIZE_X), tag.getInt(TAG_SIZE_Y), tag.getInt(TAG_SIZE_Z),
+                    List.copyOf(blocks));
+        }
+
+        public long volume() {
+            return blocks.size();
+        }
+    }
+
+    public record BlueprintBlock(int x, int y, int z, BlockState state) {
+
+        private static final String TAG_X = "x";
+        private static final String TAG_Y = "y";
+        private static final String TAG_Z = "z";
+        private static final String TAG_STATE = "state";
+
+        public CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt(TAG_X, x);
+            tag.putInt(TAG_Y, y);
+            tag.putInt(TAG_Z, z);
+            tag.put(TAG_STATE, NbtUtils.writeBlockState(state));
+            return tag;
+        }
+
+        public static BlueprintBlock load(CompoundTag tag) {
+            BlockState blockState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(),
+                    tag.getCompound(TAG_STATE));
+            if (blockState.isAir()) {
+                blockState = Blocks.AIR.defaultBlockState();
+            }
+            return new BlueprintBlock(tag.getInt(TAG_X), tag.getInt(TAG_Y), tag.getInt(TAG_Z), blockState);
+        }
     }
 
     public record MarkedPosition(ResourceLocation dimension, BlockPos pos) {
@@ -381,8 +482,11 @@ public class MMState {
         }
 
         public Component resultText() {
-            String key = type == PendingActionType.EXCHANGE ? "message.matter_manipulator.exchange.finished" :
-                    "message.matter_manipulator.remove.finished";
+            String key = switch (type) {
+                case EXCHANGE -> "message.matter_manipulator.exchange.finished";
+                case PASTE -> "message.matter_manipulator.paste.finished";
+                case REMOVE -> "message.matter_manipulator.remove.finished";
+            };
             return Component.translatable(key, removed, skipped, blocked, outOfPower);
         }
 
@@ -413,7 +517,8 @@ public class MMState {
     public enum PendingActionType {
 
         REMOVE("remove"),
-        EXCHANGE("exchange");
+        EXCHANGE("exchange"),
+        PASTE("paste");
 
         private final String serializedName;
 
