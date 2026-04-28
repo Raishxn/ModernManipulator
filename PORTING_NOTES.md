@@ -27,6 +27,7 @@ The local GTCEu Modern 7.5.2 source reference is at:
 - Added a special crafting recipe for installing manipulator upgrades.
 - Added the first operational block action: remove selected blocks with GTNH-like EU cost scaling.
 - Changed removal into a persisted pending action processed over time using tier `placeSpeed` and `placeTicks`.
+- Added a client-side wireframe preview for the selected A/B region.
 
 ## Next Port Targets
 
