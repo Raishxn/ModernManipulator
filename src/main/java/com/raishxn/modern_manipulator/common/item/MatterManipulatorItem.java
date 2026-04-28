@@ -170,6 +170,10 @@ public class MatterManipulatorItem extends Item {
         action.setTickCooldown(Math.max(1, tier.placeTicks()) - 1);
         if (result.finished()) {
             Component message = result.message() == null ? action.resultText() : result.message();
+            if (action.type() == PendingActionType.PASTE && state.blueprint() != null &&
+                    !state.blueprint().consumesItems()) {
+                state.setBlueprint(null);
+            }
             state.clearPendingAction();
             player.displayClientMessage(message, true);
         } else if (level.getGameTime() % 20 == 0) {
@@ -402,7 +406,7 @@ public class MatterManipulatorItem extends Item {
             }
         }
         Blueprint blueprint = new Blueprint(selection.sizeX(), selection.sizeY(), selection.sizeZ(),
-                List.copyOf(blocks));
+                List.copyOf(blocks), !moving);
         state.setBlueprint(blueprint);
         setState(stack, state);
         return new ActionStartResult(true, Component.translatable(
@@ -578,6 +582,18 @@ public class MatterManipulatorItem extends Item {
             action.incrementBlocked();
             return ActionTickResult.running();
         }
+        ItemStack paymentStack = ItemStack.EMPTY;
+        if (blueprint.consumesItems() && !player.isCreative()) {
+            ItemStack wanted = new ItemStack(blueprintBlock.state().getBlock());
+            if (wanted.isEmpty()) {
+                action.incrementBlocked();
+                return ActionTickResult.running();
+            }
+            paymentStack = findMatchingStack(player, wanted);
+            if (paymentStack.isEmpty()) {
+                return ActionTickResult.finished(Component.translatable("message.matter_manipulator.paste.no_items"));
+            }
+        }
         long euCost = operationCost(level, player, pos, blueprintBlock.state(), state);
         if (!consumeEnergy(stack, player, euCost)) {
             action.incrementOutOfPower();
@@ -587,6 +603,9 @@ public class MatterManipulatorItem extends Item {
             level.destroyBlock(pos, true, player);
         }
         if (level.setBlock(pos, blueprintBlock.state(), 3)) {
+            if (!paymentStack.isEmpty()) {
+                paymentStack.shrink(1);
+            }
             action.incrementRemoved();
         } else {
             action.incrementBlocked();

@@ -56,6 +56,16 @@ public record ManipulatorConfigPacket(Action action) {
             case SET_SHAPE_CUBE -> setShape(player, stack, state, Shape.CUBE);
             case SET_SHAPE_SPHERE -> setShape(player, stack, state, Shape.SPHERE);
             case SET_SHAPE_CYLINDER -> setShape(player, stack, state, Shape.CYLINDER);
+            case PREPARE_COPY -> prepareCopy(player, stack, manipulator, state);
+            case PREPARE_MOVE -> prepareMove(player, stack, manipulator, state);
+            case PREPARE_PASTE -> preparePaste(player, stack, state);
+            case RESET -> {
+                state.clearCoords();
+                state.clearBlueprint();
+                state.clearPendingAction();
+                MatterManipulatorItem.setState(stack, state);
+                player.displayClientMessage(Component.translatable("message.matter_manipulator.reset"), true);
+            }
             case CLEAR_COORDS -> {
                 state.clearCoords();
                 MatterManipulatorItem.setState(stack, state);
@@ -63,6 +73,39 @@ public record ManipulatorConfigPacket(Action action) {
                         true);
             }
         }
+    }
+
+    private static void prepareCopy(ServerPlayer player, ItemStack stack, MatterManipulatorItem manipulator,
+                                    MMState state) {
+        if (!canUseMode(state, manipulator.tier(), ToolMode.COPYING)) {
+            return;
+        }
+        state.setMode(ToolMode.COPYING);
+        state.clearCoordC();
+        state.clearBlueprint();
+        MatterManipulatorItem.setState(stack, state);
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.copy.prepare"), true);
+    }
+
+    private static void prepareMove(ServerPlayer player, ItemStack stack, MatterManipulatorItem manipulator,
+                                    MMState state) {
+        if (!canUseMode(state, manipulator.tier(), ToolMode.MOVING)) {
+            return;
+        }
+        state.setMode(ToolMode.MOVING);
+        state.clearCoordC();
+        state.clearBlueprint();
+        MatterManipulatorItem.setState(stack, state);
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.move.prepare"), true);
+    }
+
+    private static void preparePaste(ServerPlayer player, ItemStack stack, MMState state) {
+        if (state.mode() != ToolMode.MOVING) {
+            state.setMode(ToolMode.COPYING);
+        }
+        state.clearCoordC();
+        MatterManipulatorItem.setState(stack, state);
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.paste.prepare"), true);
     }
 
     private static void setMode(ServerPlayer player, ItemStack stack, MatterManipulatorItem manipulator, MMState state,
@@ -144,6 +187,10 @@ public record ManipulatorConfigPacket(Action action) {
         SET_SHAPE_CUBE,
         SET_SHAPE_SPHERE,
         SET_SHAPE_CYLINDER,
+        PREPARE_COPY,
+        PREPARE_MOVE,
+        PREPARE_PASTE,
+        RESET,
         CLEAR_COORDS
     }
 }
