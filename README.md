@@ -22,6 +22,7 @@ Implemented so far:
 - Coord A / Coord B marking through block interaction
 - Upgrade capability gates and upgrade installation recipe
 - Pending selection removal action with EU cost, range checks, and per-tier throughput
+- Client-side selection preview box
 - Basic tooltips and charge bar
 
 ## Reference Repositories
