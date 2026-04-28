@@ -142,6 +142,19 @@ public class MMState {
         this.coordB = coordB;
     }
 
+    public void clearCoords() {
+        this.coordA = null;
+        this.coordB = null;
+    }
+
+    public void setMode(ToolMode mode) {
+        this.mode = mode;
+    }
+
+    public void setShape(Shape shape) {
+        this.shape = shape;
+    }
+
     public record MarkedPosition(ResourceLocation dimension, BlockPos pos) {
 
         private static final String TAG_DIMENSION = "dimension";

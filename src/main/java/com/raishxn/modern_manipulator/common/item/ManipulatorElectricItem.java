@@ -17,4 +17,22 @@ public class ManipulatorElectricItem extends ElectricItem {
     public long getTransferLimit() {
         return transferLimit;
     }
+
+    @Override
+    public long charge(long amount, int chargerTier, boolean ignoreTransferLimit, boolean simulate) {
+        if (itemStack.getCount() != 1 || !chargeable() || amount <= 0L) {
+            return 0L;
+        }
+
+        long canReceive = getMaxCharge() - getCharge();
+        if (!ignoreTransferLimit) {
+            amount = Math.min(amount, getTransferLimit());
+        }
+
+        long charged = Math.min(amount, canReceive);
+        if (!simulate) {
+            setCharge(getCharge() + charged);
+        }
+        return charged;
+    }
 }
