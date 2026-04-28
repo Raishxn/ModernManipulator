@@ -4,9 +4,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -19,6 +22,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.raishxn.modern_manipulator.ModernManipulator;
 import com.raishxn.modern_manipulator.common.item.MMSelection;
 import com.raishxn.modern_manipulator.common.item.MMState;
+import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
 import com.raishxn.modern_manipulator.common.item.MatterManipulatorItem;
 
 @Mod.EventBusSubscriber(modid = ModernManipulator.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -44,26 +48,71 @@ public final class MMSelectionRenderer {
         }
 
         MMState state = MatterManipulatorItem.getState(stack);
-        MMSelection selection = state.selection();
-        if (selection == null || !selection.dimension().equals(player.level().dimension().location())) {
-            return;
-        }
-
         Vec3 cameraPosition = event.getCamera().getPosition();
-        AABB bounds = new AABB(selection.min(), selection.max().offset(1, 1, 1)).move(
-                -cameraPosition.x,
-                -cameraPosition.y,
-                -cameraPosition.z);
-
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
         VertexConsumer lineBuffer = bufferSource.getBuffer(RenderType.lines());
 
         RenderSystem.disableDepthTest();
         RenderSystem.lineWidth(2.0F);
-        LevelRenderer.renderLineBox(poseStack, lineBuffer, bounds, 0.2F, 0.85F, 1.0F, 0.95F);
+        renderFinalSelection(player, state, cameraPosition, poseStack, lineBuffer);
+        renderLiveSelection(minecraft, player, state, cameraPosition, poseStack, lineBuffer);
         RenderSystem.enableDepthTest();
         bufferSource.endBatch(RenderType.lines());
+    }
+
+    private static void renderFinalSelection(Player player, MMState state, Vec3 cameraPosition, PoseStack poseStack,
+                                             VertexConsumer lineBuffer) {
+        MMSelection selection = state.selection();
+        if (selection == null || !selection.dimension().equals(player.level().dimension().location())) {
+            return;
+        }
+
+        renderBlockRange(selection.min(), selection.max(), cameraPosition, poseStack, lineBuffer,
+                0.2F, 0.85F, 1.0F, 0.95F);
+    }
+
+    private static void renderLiveSelection(Minecraft minecraft, Player player, MMState state, Vec3 cameraPosition,
+                                            PoseStack poseStack, VertexConsumer lineBuffer) {
+        if (!(minecraft.hitResult instanceof BlockHitResult blockHitResult) ||
+                blockHitResult.getType() != HitResult.Type.BLOCK) {
+            return;
+        }
+
+        BlockPos lookingAt = blockHitResult.getBlockPos();
+        MarkedPosition coordA = state.coordA();
+        MarkedPosition coordB = state.coordB();
+        if (coordA == null) {
+            renderBlockRange(lookingAt, lookingAt, cameraPosition, poseStack, lineBuffer,
+                    0.75F, 0.5F, 0.15F, 0.85F);
+            return;
+        }
+        if (!coordA.dimension().equals(player.level().dimension().location())) {
+            return;
+        }
+
+        if (coordB == null || player.isShiftKeyDown()) {
+            BlockPos min = new BlockPos(Math.min(coordA.pos().getX(), lookingAt.getX()),
+                    Math.min(coordA.pos().getY(), lookingAt.getY()),
+                    Math.min(coordA.pos().getZ(), lookingAt.getZ()));
+            BlockPos max = new BlockPos(Math.max(coordA.pos().getX(), lookingAt.getX()),
+                    Math.max(coordA.pos().getY(), lookingAt.getY()),
+                    Math.max(coordA.pos().getZ(), lookingAt.getZ()));
+            renderBlockRange(min, max, cameraPosition, poseStack, lineBuffer,
+                    0.15F, 0.6F, 0.75F, 0.75F);
+        }
+
+        renderBlockRange(coordA.pos(), coordA.pos(), cameraPosition, poseStack, lineBuffer,
+                0.2F, 1.0F, 0.35F, 0.95F);
+    }
+
+    private static void renderBlockRange(BlockPos min, BlockPos max, Vec3 cameraPosition, PoseStack poseStack,
+                                         VertexConsumer lineBuffer, float red, float green, float blue, float alpha) {
+        AABB bounds = new AABB(min, max.offset(1, 1, 1)).move(
+                -cameraPosition.x,
+                -cameraPosition.y,
+                -cameraPosition.z);
+        LevelRenderer.renderLineBox(poseStack, lineBuffer, bounds, red, green, blue, alpha);
     }
 
     private static ItemStack selectedManipulator(Player player) {

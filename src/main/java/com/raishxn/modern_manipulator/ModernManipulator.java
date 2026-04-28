@@ -11,6 +11,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import com.raishxn.modern_manipulator.common.item.MMCreativeTabs;
 import com.raishxn.modern_manipulator.common.item.MMItems;
+import com.raishxn.modern_manipulator.common.network.MMNetwork;
 import com.raishxn.modern_manipulator.common.recipe.MMRecipes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +38,10 @@ public class ModernManipulator {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> LOGGER.info("Matter Manipulator modern port initialized."));
+        event.enqueueWork(() -> {
+            MMNetwork.register();
+            LOGGER.info("Matter Manipulator modern port initialized.");
+        });
     }
 
     public static ResourceLocation id(String path) {
