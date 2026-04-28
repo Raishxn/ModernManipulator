@@ -21,6 +21,7 @@ Implemented so far:
 - EU capacity and voltage tiers matching the original mod
 - Coord A / Coord B marking through block interaction
 - Upgrade capability gates and upgrade installation recipe
+- Basic selection removal action with EU cost and range checks
 - Basic tooltips and charge bar
 
 ## Reference Repositories

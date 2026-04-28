@@ -50,6 +50,10 @@ public record MMSelection(ResourceLocation dimension, BlockPos min, BlockPos max
                 player.blockPosition().distSqr(max) <= maxRangeSquared;
     }
 
+    public Iterable<BlockPos> positions() {
+        return BlockPos.betweenClosed(min, max);
+    }
+
     public String describe() {
         return "dX=" + sizeX() + " dY=" + sizeY() + " dZ=" + sizeZ() + " V=" + volume();
     }
