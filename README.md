@@ -1,36 +1,64 @@
-# GregTech Addon Template
-## Template for GregTech Modern addons on 1.20.1
+# Modern Manipulator
 
- Original template by [screret](https://github.com/screret), maintained by [JuiceyBeans](https://github.com/JuiceyBeans)
+Modern Manipulator is a Minecraft 1.20.1 / Forge port of the GregTech: New Horizons Matter Manipulator, targeting GTCEu Modern 7.5.2+.
 
-<hr>
+The goal is a faithful 1:1 gameplay port where possible, while replacing the old Minecraft 1.7.10, IC2, GTNH, and Forge APIs with their modern GTCEu equivalents.
 
-## How do I make an addon for GregTech Modern?
-Well for one, you WILL need to know Java to make an addon. There's no getting around this. A good starting point would be [MOOC](https://java-programming.mooc.fi/) or [W3Schools](https://www.w3schools.com/java/
-)
+## Current Status
 
-Unfortunately, there isn't any official documentation so far for making GregTech Modern addons. There are a couple of mods you can look at to reference though!
+This project is in early porting work.
 
-Repositories for other addons:
+Implemented so far:
 
-- [GT Community Additions](https://github.com/mordgren/GTCA)
-- [MoniLabs](https://github.com/NegaNote/MoniLabs)
+- GTCEu addon template converted into the Modern Manipulator project
+- `matter_manipulator` mod id and `com.raishxn.modern_manipulator` Java package
+- Four manipulator tiers registered
+- Original component/upgrades registered as modern items
+- Original item textures and initial uplink textures copied into modern resource paths
+- Dedicated Matter Manipulator creative tab
+- Basic manipulator NBT state
+- GTCEu electric item capability
+- EU capacity and voltage tiers matching the original mod
+- Coord A / Coord B marking through block interaction
+- Basic tooltips and charge bar
 
-Additionally, you may be able to find help on the [GregTech CEu Discord](https://discord.gg/bWSWuYvURP)!
+## Reference Repositories
 
-<hr>
+- Original GTNH mod: https://github.com/GTNewHorizons/MatterManipulator
+- GTCEu addon template: https://github.com/GregTechCEu/GregTech-Addon-Template
+- Local GTCEu 7.5.2 source reference: `C:\Users\erick\OneDrive\Documents\GregTech-Modern-7.5.2-1.20.1`
 
-## This template comes packaged with [Spotless](https://github.com/diffplug/spotless)!
+## Development
 
-### 1. What is Spotless?
-- Spotless keeps your code neatly formatted. It's essentially a grammar check for your code!
-### 2. Can I choose not to use Spotless?
-- Yes! Spotless is completely optional and will not affect your project by default
-### 3. How do I run Spotless?
-- You can run Spotless anytime by:
-  - Running the `spotlessApply` task from the Gradle tab in IntelliJ
-  - Installing the [Spotless Gradle plugin for IntelliJ](https://plugins.jetbrains.com/plugin/18321-spotless-gradle)
-  - Typing in `gradlew.bat :spotlessApply` if you're on Windows
-  - Typing in `bash gradlew :spotlessApply` if you're on Linux
-### 4. So how do I check if Spotless has been applied to my code?
-- Running `spotlessApply` will format all files for you automatically! If you want GitHub to check each commit for if Spotless has been run, you can add [this](https://github.com/Frontiers-PackForge/CosmicCore/blob/main-1.20.1-forge/.github/workflows/spotless.yml) and [this](https://github.com/Frontiers-PackForge/CosmicCore/blob/main-1.20.1-forge/.github/actions/build_setup/action.yml) to your project
+Build:
+
+```powershell
+.\gradlew.bat build
+```
+
+Format:
+
+```powershell
+.\gradlew.bat spotlessApply
+```
+
+Generated jar:
+
+```text
+build/libs/modern-manipulator-0.1.0.jar
+```
+
+## Porting Roadmap
+
+- Tier capability gates and upgrade installation
+- Range validation and area selection
+- Geometry, removing, copying, exchanging, moving, and cable modes
+- Client selection preview rendering
+- Networking and GUI
+- Quantum Uplink GTCEu machine
+- AE2 and inventory integration
+- Full GTCEu recipe chains
+
+## License
+
+LGPL-3.0, following the template and original project licensing.
