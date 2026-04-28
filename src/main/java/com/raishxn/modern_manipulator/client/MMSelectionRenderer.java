@@ -22,6 +22,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.raishxn.modern_manipulator.ModernManipulator;
 import com.raishxn.modern_manipulator.common.item.MMSelection;
 import com.raishxn.modern_manipulator.common.item.MMState;
+import com.raishxn.modern_manipulator.common.item.MMState.Blueprint;
 import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
 import com.raishxn.modern_manipulator.common.item.MMState.Shape;
 import com.raishxn.modern_manipulator.common.item.MatterManipulatorItem;
@@ -59,6 +60,7 @@ public final class MMSelectionRenderer {
         RenderSystem.disableDepthTest();
         RenderSystem.lineWidth(2.0F);
         renderFinalSelection(player, state, cameraPosition, poseStack, lineBuffer);
+        renderBlueprintPaste(player, state, cameraPosition, poseStack, lineBuffer);
         renderLiveSelection(minecraft, player, state, cameraPosition, poseStack, lineBuffer);
         RenderSystem.enableDepthTest();
         bufferSource.endBatch(RenderType.lines());
@@ -108,6 +110,23 @@ public final class MMSelectionRenderer {
 
         renderBlockRange(coordA.pos(), coordA.pos(), cameraPosition, poseStack, lineBuffer,
                 0.2F, 1.0F, 0.35F, 0.95F);
+    }
+
+    private static void renderBlueprintPaste(Player player, MMState state, Vec3 cameraPosition, PoseStack poseStack,
+                                             VertexConsumer lineBuffer) {
+        Blueprint blueprint = state.blueprint();
+        MarkedPosition coordC = state.coordC();
+        if (blueprint == null || coordC == null ||
+                !coordC.dimension().equals(player.level().dimension().location())) {
+            return;
+        }
+
+        BlockPos min = coordC.pos();
+        BlockPos max = min.offset(blueprint.sizeX() - 1, blueprint.sizeY() - 1, blueprint.sizeZ() - 1);
+        renderBlockRange(min, max, cameraPosition, poseStack, lineBuffer,
+                1.0F, 0.55F, 0.15F, 0.95F);
+        renderBlockRange(min, min, cameraPosition, poseStack, lineBuffer,
+                1.0F, 0.9F, 0.2F, 0.95F);
     }
 
     private static void renderSelectionShape(MMSelection selection, Vec3 cameraPosition, PoseStack poseStack,
