@@ -23,10 +23,13 @@ import com.raishxn.modern_manipulator.ModernManipulator;
 import com.raishxn.modern_manipulator.common.item.MMSelection;
 import com.raishxn.modern_manipulator.common.item.MMState;
 import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
+import com.raishxn.modern_manipulator.common.item.MMState.Shape;
 import com.raishxn.modern_manipulator.common.item.MatterManipulatorItem;
 
 @Mod.EventBusSubscriber(modid = ModernManipulator.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class MMSelectionRenderer {
+
+    private static final long MAX_DETAILED_SHAPE_SCAN = 4096L;
 
     private MMSelectionRenderer() {}
 
@@ -68,7 +71,7 @@ public final class MMSelectionRenderer {
             return;
         }
 
-        renderBlockRange(selection.min(), selection.max(), cameraPosition, poseStack, lineBuffer,
+        renderSelectionShape(selection, cameraPosition, poseStack, lineBuffer,
                 0.2F, 0.85F, 1.0F, 0.95F);
     }
 
@@ -98,12 +101,29 @@ public final class MMSelectionRenderer {
             BlockPos max = new BlockPos(Math.max(coordA.pos().getX(), lookingAt.getX()),
                     Math.max(coordA.pos().getY(), lookingAt.getY()),
                     Math.max(coordA.pos().getZ(), lookingAt.getZ()));
-            renderBlockRange(min, max, cameraPosition, poseStack, lineBuffer,
+            renderSelectionShape(new MMSelection(player.level().dimension().location(), min, max, state.shape()),
+                    cameraPosition, poseStack, lineBuffer,
                     0.15F, 0.6F, 0.75F, 0.75F);
         }
 
         renderBlockRange(coordA.pos(), coordA.pos(), cameraPosition, poseStack, lineBuffer,
                 0.2F, 1.0F, 0.35F, 0.95F);
+    }
+
+    private static void renderSelectionShape(MMSelection selection, Vec3 cameraPosition, PoseStack poseStack,
+                                             VertexConsumer lineBuffer, float red, float green, float blue,
+                                             float alpha) {
+        if (selection.shape() == Shape.CUBE || selection.scanVolume() > MAX_DETAILED_SHAPE_SCAN) {
+            renderBlockRange(selection.min(), selection.max(), cameraPosition, poseStack, lineBuffer,
+                    red, green, blue, alpha);
+            return;
+        }
+
+        for (BlockPos pos : selection.positions()) {
+            if (selection.contains(pos)) {
+                renderBlockRange(pos, pos, cameraPosition, poseStack, lineBuffer, red, green, blue, alpha);
+            }
+        }
     }
 
     private static void renderBlockRange(BlockPos min, BlockPos max, Vec3 cameraPosition, PoseStack poseStack,

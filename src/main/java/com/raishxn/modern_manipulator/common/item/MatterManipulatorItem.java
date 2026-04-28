@@ -313,6 +313,9 @@ public class MatterManipulatorItem extends Item {
             BlockPos pos = action.selection().positionAt(action.cursor());
             action.advanceCursor();
             attemptedThisTick++;
+            if (!action.selection().contains(pos)) {
+                continue;
+            }
 
             if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
                 action.incrementSkipped();
