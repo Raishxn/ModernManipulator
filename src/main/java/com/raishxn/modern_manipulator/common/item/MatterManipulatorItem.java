@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -29,6 +30,8 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 
 import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
+import com.raishxn.modern_manipulator.common.item.MMState.PendingAction;
+import com.raishxn.modern_manipulator.common.item.MMState.PendingActionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +45,7 @@ public class MatterManipulatorItem extends Item {
     private static final double EU_PER_BLOCK = 128.0;
     private static final double BLOCK_ENTITY_PENALTY = 16.0;
     private static final double EU_DISTANCE_EXPONENT = 1.25;
-    private static final int MK3_IMMEDIATE_ACTION_LIMIT = 1024;
+    private static final int MK3_BLOCKS_PER_OPERATION = 256;
 
     private final ManipulatorTier tier;
 
@@ -73,6 +76,7 @@ public class MatterManipulatorItem extends Item {
         appendCoordTooltip(tooltip, "tooltip.matter_manipulator.coord_a", state.coordA());
         appendCoordTooltip(tooltip, "tooltip.matter_manipulator.coord_b", state.coordB());
         appendSelectionTooltip(state, tooltip);
+        appendPendingTooltip(state, tooltip);
         appendUpgradeTooltip(state, tooltip);
         appendCapabilityTooltip(state, tooltip);
     }
@@ -115,9 +119,47 @@ public class MatterManipulatorItem extends Item {
             return InteractionResultHolder.success(stack);
         }
 
-        RemovalStats stats = removeSelection(stack, player, level);
-        player.displayClientMessage(stats.message(), true);
-        return stats.changedWorld() ? InteractionResultHolder.success(stack) : InteractionResultHolder.fail(stack);
+        MMState state = getState(stack);
+        PendingAction pendingAction = state.pendingAction();
+        if (pendingAction != null) {
+            state.clearPendingAction();
+            setState(stack, state);
+            player.displayClientMessage(Component.translatable("message.matter_manipulator.pending.cancelled"), true);
+            return InteractionResultHolder.success(stack);
+        }
+
+        ActionStartResult result = startRemoveSelection(stack, player, level);
+        player.displayClientMessage(result.message(), true);
+        return result.started() ? InteractionResultHolder.success(stack) : InteractionResultHolder.fail(stack);
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        if (level.isClientSide || !isSelected || !(entity instanceof Player player)) {
+            return;
+        }
+
+        MMState state = getState(stack);
+        PendingAction action = state.pendingAction();
+        if (action == null) {
+            return;
+        }
+        if (action.tickCooldown() > 0) {
+            action.decrementTickCooldown();
+            setState(stack, state);
+            return;
+        }
+
+        ActionTickResult result = tickPendingAction(stack, player, level, state, action);
+        action.setTickCooldown(Math.max(1, tier.placeTicks()) - 1);
+        if (result.finished()) {
+            Component message = result.message() == null ? action.resultText() : result.message();
+            state.clearPendingAction();
+            player.displayClientMessage(message, true);
+        } else if (level.getGameTime() % 20 == 0) {
+            player.displayClientMessage(action.progressText(), true);
+        }
+        setState(stack, state);
     }
 
     @Override
@@ -192,6 +234,14 @@ public class MatterManipulatorItem extends Item {
         }
     }
 
+    private void appendPendingTooltip(MMState state, List<Component> tooltip) {
+        PendingAction pendingAction = state.pendingAction();
+        if (pendingAction != null) {
+            tooltip.add(Component.translatable("tooltip.matter_manipulator.pending", pendingAction.cursor(),
+                    pendingAction.selection().volume()).withStyle(ChatFormatting.YELLOW));
+        }
+    }
+
     private void appendCapabilityTooltip(MMState state, List<Component> tooltip) {
         tooltip.add(Component.translatable("tooltip.matter_manipulator.capabilities").withStyle(ChatFormatting.GRAY));
         for (MMCapability capability : MMCapability.values()) {
@@ -217,67 +267,82 @@ public class MatterManipulatorItem extends Item {
         }
     }
 
-    private RemovalStats removeSelection(ItemStack stack, Player player, Level level) {
+    private ActionStartResult startRemoveSelection(ItemStack stack, Player player, Level level) {
         MMState state = getState(stack);
         if (!state.hasCapability(tier, MMCapability.ALLOW_REMOVING)) {
-            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.no_capability"));
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.no_capability"));
         }
 
         MMSelection selection = state.selection();
         if (selection == null) {
-            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.no_selection"));
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.no_selection"));
         }
         if (!selection.dimension().equals(level.dimension().location())) {
-            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
         }
         if (!selection.isInPlayerRange(player, tier.maxRange())) {
-            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
                     tier.maxRange()));
         }
 
-        int actionLimit = tier.placeSpeed() < 0 ? MK3_IMMEDIATE_ACTION_LIMIT : tier.placeSpeed();
-        int removed = 0;
-        int skipped = 0;
-        int blocked = 0;
-        int outOfPower = 0;
+        PendingAction action = new PendingAction(PendingActionType.REMOVE, selection);
+        state.startPendingAction(action);
+        setState(stack, state);
+        return new ActionStartResult(true, Component.translatable("message.matter_manipulator.remove.started",
+                selection.describe()));
+    }
 
-        for (BlockPos pos : selection.positions()) {
-            if (removed >= actionLimit) {
-                break;
-            }
+    private ActionTickResult tickPendingAction(ItemStack stack, Player player, Level level, MMState state,
+                                               PendingAction action) {
+        if (action.type() != PendingActionType.REMOVE) {
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.pending.unknown"));
+        }
+        if (!action.selection().dimension().equals(level.dimension().location())) {
+            return ActionTickResult
+                    .finished(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
+        }
+        if (!action.selection().isInPlayerRange(player, tier.maxRange())) {
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_range",
+                    tier.maxRange()));
+        }
+
+        int actionLimit = tier.placeSpeed() < 0 ? MK3_BLOCKS_PER_OPERATION : tier.placeSpeed();
+        int attemptedThisTick = 0;
+
+        while (attemptedThisTick < actionLimit && !action.isComplete()) {
+            BlockPos pos = action.selection().positionAt(action.cursor());
+            action.advanceCursor();
+            attemptedThisTick++;
+
             if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
-                skipped++;
+                action.incrementSkipped();
                 continue;
             }
-
             BlockState blockState = level.getBlockState(pos);
             if (blockState.isAir()) {
-                skipped++;
+                action.incrementSkipped();
                 continue;
             }
             if (blockState.getDestroySpeed(level, pos) < 0.0F || !player.mayInteract(level, pos)) {
-                blocked++;
+                action.incrementBlocked();
                 continue;
             }
 
             long euCost = removalCost(level, player, pos, blockState, state);
             if (!consumeEnergy(stack, player, euCost)) {
-                outOfPower++;
-                break;
+                action.incrementOutOfPower();
+                return ActionTickResult
+                        .finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
             }
 
             if (level.destroyBlock(pos, true, player)) {
-                removed++;
+                action.incrementRemoved();
             } else {
-                blocked++;
+                action.incrementBlocked();
             }
         }
 
-        if (removed == 0 && outOfPower > 0) {
-            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.out_of_power"));
-        }
-        return new RemovalStats(removed > 0, Component.translatable("message.matter_manipulator.remove.result",
-                removed, skipped, blocked, outOfPower, actionLimit));
+        return action.isComplete() ? ActionTickResult.finished(action.resultText()) : ActionTickResult.running();
     }
 
     private long removalCost(Level level, Player player, BlockPos pos, BlockState blockState, MMState state) {
@@ -463,10 +528,21 @@ public class MatterManipulatorItem extends Item {
         }
     }
 
-    private record RemovalStats(boolean changedWorld, Component message) {
+    private record ActionStartResult(boolean started, Component message) {
 
-        private static RemovalStats error(Component message) {
-            return new RemovalStats(false, message);
+        private static ActionStartResult error(Component message) {
+            return new ActionStartResult(false, message);
+        }
+    }
+
+    private record ActionTickResult(boolean finished, @Nullable Component message) {
+
+        private static ActionTickResult running() {
+            return new ActionTickResult(false, null);
+        }
+
+        private static ActionTickResult finished(Component message) {
+            return new ActionTickResult(true, message);
         }
     }
 }
