@@ -20,6 +20,7 @@ Implemented so far:
 - GTCEu electric item capability
 - EU capacity and voltage tiers matching the original mod
 - Coord A / Coord B marking through block interaction
+- Upgrade capability gates and upgrade installation recipe
 - Basic tooltips and charge bar
 
 ## Reference Repositories

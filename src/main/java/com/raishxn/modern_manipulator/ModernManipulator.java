@@ -11,6 +11,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import com.raishxn.modern_manipulator.common.item.MMCreativeTabs;
 import com.raishxn.modern_manipulator.common.item.MMItems;
+import com.raishxn.modern_manipulator.common.recipe.MMRecipes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,6 +28,7 @@ public class ModernManipulator {
 
         MMItems.ITEMS.register(modEventBus);
         MMCreativeTabs.TABS.register(modEventBus);
+        MMRecipes.SERIALIZERS.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 

@@ -23,6 +23,8 @@ The local GTCEu Modern 7.5.2 source reference is at:
 - Registered the original 28 meta items as first-class 1.20 item registry entries.
 - Copied original item textures and uplink overlay textures into a valid 1.20 resource namespace.
 - Converted the initial item names from `en_US.lang` to `en_us.json`.
+- Ported the original tier capability flags and upgrade bit state.
+- Added a special crafting recipe for installing manipulator upgrades.
 
 ## Next Port Targets
 

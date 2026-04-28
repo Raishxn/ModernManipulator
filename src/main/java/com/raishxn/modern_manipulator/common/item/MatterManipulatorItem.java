@@ -24,7 +24,10 @@ import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class MatterManipulatorItem extends Item {
 
@@ -56,6 +59,9 @@ public class MatterManipulatorItem extends Item {
                 .withStyle(ChatFormatting.GRAY));
         appendCoordTooltip(tooltip, "tooltip.matter_manipulator.coord_a", state.coordA());
         appendCoordTooltip(tooltip, "tooltip.matter_manipulator.coord_b", state.coordB());
+        appendSelectionTooltip(state, tooltip);
+        appendUpgradeTooltip(state, tooltip);
+        appendCapabilityTooltip(state, tooltip);
     }
 
     @Override
@@ -72,11 +78,15 @@ public class MatterManipulatorItem extends Item {
                 state.setCoordA(markedPosition);
             }
             setState(stack, state);
+            MMSelection selection = state.selection();
+            Component selectionInfo = selection == null ?
+                    Component.translatable("message.matter_manipulator.selection_incomplete") :
+                    Component.literal(selection.describe());
             context.getPlayer()
                     .displayClientMessage(Component.translatable(
                             setCoordB ? "message.matter_manipulator.coord_b_set" :
                                     "message.matter_manipulator.coord_a_set",
-                            markedPosition.shortText()), true);
+                            markedPosition.shortText(), selectionInfo), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
@@ -133,6 +143,51 @@ public class MatterManipulatorItem extends Item {
         tooltip.add(Component.translatable(translationKey, value).withStyle(ChatFormatting.DARK_GRAY));
     }
 
+    private void appendSelectionTooltip(MMState state, List<Component> tooltip) {
+        MMSelection selection = state.selection();
+        if (selection == null) {
+            if (state.coordA() != null && state.coordB() != null) {
+                tooltip.add(Component.translatable("tooltip.matter_manipulator.selection_dimension_mismatch")
+                        .withStyle(ChatFormatting.RED));
+            }
+            return;
+        }
+        tooltip.add(Component.translatable("tooltip.matter_manipulator.selection", selection.describe())
+                .withStyle(ChatFormatting.AQUA));
+        if (tier.maxRange() >= 0) {
+            tooltip.add(Component.translatable("tooltip.matter_manipulator.max_range", tier.maxRange())
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        } else {
+            tooltip.add(Component.translatable("tooltip.matter_manipulator.max_range_unlimited")
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
+    }
+
+    private void appendCapabilityTooltip(MMState state, List<Component> tooltip) {
+        tooltip.add(Component.translatable("tooltip.matter_manipulator.capabilities").withStyle(ChatFormatting.GRAY));
+        for (MMCapability capability : MMCapability.values()) {
+            if (state.hasCapability(tier, capability)) {
+                tooltip.add(
+                        Component.literal("  ").append(capability.displayName()).withStyle(ChatFormatting.DARK_GRAY));
+            }
+        }
+    }
+
+    private void appendUpgradeTooltip(MMState state, List<Component> tooltip) {
+        boolean hasAny = false;
+        for (MMUpgrade upgrade : MMUpgrade.values()) {
+            if (!state.hasUpgrade(upgrade)) {
+                continue;
+            }
+            if (!hasAny) {
+                tooltip.add(Component.translatable("tooltip.matter_manipulator.installed_upgrades")
+                        .withStyle(ChatFormatting.GRAY));
+                hasAny = true;
+            }
+            tooltip.add(Component.literal("  ").append(upgrade.displayName()).withStyle(ChatFormatting.DARK_GRAY));
+        }
+    }
+
     private long getCharge(ItemStack stack) {
         IElectricItem electricItem = GTCapabilityHelper.getElectricItem(stack);
         return electricItem == null ? 0L : electricItem.getCharge();
@@ -147,23 +202,93 @@ public class MatterManipulatorItem extends Item {
 
     public enum ManipulatorTier {
 
-        PROTOTYPE("prototype", 0, 32, 3, 10_000_000L),
-        MK1("mk1", 1, 64, 5, 100_000_000L),
-        MK2("mk2", 2, 128, 6, 1_000_000_000L),
-        MK3("mk3", 3, -1, 7, 10_000_000_000L);
+        PROTOTYPE(
+                "prototype",
+                0,
+                32,
+                16,
+                20,
+                3,
+                10_000_000L,
+                EnumSet.of(MMCapability.ALLOW_GEOMETRY),
+                EnumSet.of(MMUpgrade.MINING, MMUpgrade.SPEED, MMUpgrade.POWER_EFFICIENCY)),
+        MK1(
+                "mk1",
+                1,
+                64,
+                32,
+                10,
+                5,
+                100_000_000L,
+                EnumSet.of(
+                        MMCapability.ALLOW_GEOMETRY,
+                        MMCapability.CONNECTS_TO_AE,
+                        MMCapability.ALLOW_REMOVING,
+                        MMCapability.ALLOW_EXCHANGING,
+                        MMCapability.ALLOW_CONFIGURING,
+                        MMCapability.ALLOW_CABLES),
+                EnumSet.of(MMUpgrade.SPEED, MMUpgrade.POWER_EFFICIENCY)),
+        MK2(
+                "mk2",
+                2,
+                128,
+                64,
+                5,
+                6,
+                1_000_000_000L,
+                EnumSet.of(
+                        MMCapability.ALLOW_GEOMETRY,
+                        MMCapability.CONNECTS_TO_AE,
+                        MMCapability.ALLOW_REMOVING,
+                        MMCapability.ALLOW_EXCHANGING,
+                        MMCapability.ALLOW_CONFIGURING,
+                        MMCapability.ALLOW_CABLES,
+                        MMCapability.ALLOW_COPYING,
+                        MMCapability.ALLOW_MOVING),
+                EnumSet.of(MMUpgrade.SPEED, MMUpgrade.POWER_EFFICIENCY)),
+        MK3(
+                "mk3",
+                3,
+                -1,
+                -1,
+                5,
+                7,
+                10_000_000_000L,
+                EnumSet.of(
+                        MMCapability.ALLOW_GEOMETRY,
+                        MMCapability.CONNECTS_TO_AE,
+                        MMCapability.ALLOW_REMOVING,
+                        MMCapability.ALLOW_EXCHANGING,
+                        MMCapability.ALLOW_CONFIGURING,
+                        MMCapability.ALLOW_CABLES,
+                        MMCapability.ALLOW_COPYING,
+                        MMCapability.ALLOW_MOVING,
+                        MMCapability.CONNECTS_TO_UPLINK,
+                        MMCapability.ALLOW_SMART_COPY),
+                EnumSet.of(MMUpgrade.POWER_EFFICIENCY, MMUpgrade.POWER_P2P));
 
         private final String serializedName;
         private final int originalTier;
         private final int maxRange;
+        private final int placeSpeed;
+        private final int placeTicks;
         private final int voltageTier;
         private final long maxCharge;
+        private final Set<MMCapability> baseCapabilities;
+        private final Set<MMUpgrade> allowedUpgrades;
 
-        ManipulatorTier(String serializedName, int originalTier, int maxRange, int voltageTier, long maxCharge) {
+        ManipulatorTier(String serializedName, int originalTier, int maxRange, int placeSpeed, int placeTicks,
+                        int voltageTier, long maxCharge, Set<MMCapability> baseCapabilities,
+                        Set<MMUpgrade> allowedUpgrades) {
             this.serializedName = serializedName;
             this.originalTier = originalTier;
             this.maxRange = maxRange;
+            this.placeSpeed = placeSpeed;
+            this.placeTicks = placeTicks;
             this.voltageTier = voltageTier;
             this.maxCharge = maxCharge;
+            this.baseCapabilities = baseCapabilities;
+            this.allowedUpgrades = allowedUpgrades;
         }
 
         public String serializedName() {
@@ -178,6 +303,14 @@ public class MatterManipulatorItem extends Item {
             return maxRange;
         }
 
+        public int placeSpeed() {
+            return placeSpeed;
+        }
+
+        public int placeTicks() {
+            return placeTicks;
+        }
+
         public int voltageTier() {
             return voltageTier;
         }
@@ -188,6 +321,20 @@ public class MatterManipulatorItem extends Item {
 
         public long transferLimit() {
             return GTValues.V[voltageTier] * 16L;
+        }
+
+        public boolean hasBaseCapability(MMCapability capability) {
+            return baseCapabilities.contains(capability);
+        }
+
+        public Set<MMUpgrade> allowedUpgrades() {
+            return allowedUpgrades;
+        }
+
+        public List<MMCapability> baseCapabilities() {
+            return Arrays.asList(MMCapability.values()).stream()
+                    .filter(baseCapabilities::contains)
+                    .toList();
         }
 
         public Component displayName() {

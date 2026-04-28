@@ -49,12 +49,14 @@ public final class MMItems {
     public static final RegistryObject<Item> ME_DOWNLINK = registerComponent("me_downlink");
     public static final RegistryObject<Item> QUANTUM_DOWNLINK = registerComponent("quantum_downlink");
     public static final RegistryObject<Item> BLANK_UPGRADE = registerComponent("blank_upgrade");
-    public static final RegistryObject<Item> ENERGY_TUNNEL_UPGRADE = registerComponent("energy_tunnel_upgrade");
-    public static final RegistryObject<Item> EXCAVATION_UPGRADE = registerComponent("excavation_upgrade");
+    public static final RegistryObject<Item> ENERGY_TUNNEL_UPGRADE = registerComponent("energy_tunnel_upgrade",
+            MMUpgrade.POWER_P2P);
+    public static final RegistryObject<Item> EXCAVATION_UPGRADE = registerComponent("excavation_upgrade",
+            MMUpgrade.MINING);
     public static final RegistryObject<Item> AUXILIARY_TELEPORTER_UPGRADE = registerComponent(
-            "auxiliary_teleporter_upgrade");
+            "auxiliary_teleporter_upgrade", MMUpgrade.SPEED);
     public static final RegistryObject<Item> ADAPTIVE_WIRING_HARNESS_UPGRADE = registerComponent(
-            "adaptive_wiring_harness_upgrade");
+            "adaptive_wiring_harness_upgrade", MMUpgrade.POWER_EFFICIENCY);
 
     private static final List<RegistryObject<Item>> MANIPULATORS = List.of(
             PROTOTYPE_MATTER_MANIPULATOR,
@@ -109,6 +111,10 @@ public final class MMItems {
     }
 
     private static RegistryObject<Item> registerComponent(String name) {
-        return ITEMS.register(name, () -> new Item(new Item.Properties()));
+        return registerComponent(name, null);
+    }
+
+    private static RegistryObject<Item> registerComponent(String name, MMUpgrade upgrade) {
+        return ITEMS.register(name, () -> new MMComponentItem(upgrade));
     }
 }
