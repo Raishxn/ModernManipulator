@@ -25,6 +25,8 @@ public final class MMKeyMappings {
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY);
     public static final KeyMapping CLEAR_COORDS = new KeyMapping("key.matter_manipulator.clear_coords",
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, CATEGORY);
+    public static final KeyMapping OPEN_RADIAL_MENU = new KeyMapping("key.matter_manipulator.open_radial_menu",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY);
 
     private MMKeyMappings() {}
 
@@ -35,5 +37,6 @@ public final class MMKeyMappings {
         event.register(NEXT_SHAPE);
         event.register(PREVIOUS_SHAPE);
         event.register(CLEAR_COORDS);
+        event.register(OPEN_RADIAL_MENU);
     }
 }

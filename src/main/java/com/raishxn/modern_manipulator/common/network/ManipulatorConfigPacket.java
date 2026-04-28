@@ -47,6 +47,15 @@ public record ManipulatorConfigPacket(Action action) {
             case PREVIOUS_MODE -> setMode(player, stack, manipulator, state, -1);
             case NEXT_SHAPE -> setShape(player, stack, state, 1);
             case PREVIOUS_SHAPE -> setShape(player, stack, state, -1);
+            case SET_MODE_GEOMETRY -> setMode(player, stack, manipulator, state, ToolMode.GEOMETRY);
+            case SET_MODE_COPYING -> setMode(player, stack, manipulator, state, ToolMode.COPYING);
+            case SET_MODE_EXCHANGING -> setMode(player, stack, manipulator, state, ToolMode.EXCHANGING);
+            case SET_MODE_MOVING -> setMode(player, stack, manipulator, state, ToolMode.MOVING);
+            case SET_MODE_CABLES -> setMode(player, stack, manipulator, state, ToolMode.CABLES);
+            case SET_SHAPE_LINE -> setShape(player, stack, state, Shape.LINE);
+            case SET_SHAPE_CUBE -> setShape(player, stack, state, Shape.CUBE);
+            case SET_SHAPE_SPHERE -> setShape(player, stack, state, Shape.SPHERE);
+            case SET_SHAPE_CYLINDER -> setShape(player, stack, state, Shape.CYLINDER);
             case CLEAR_COORDS -> {
                 state.clearCoords();
                 MatterManipulatorItem.setState(stack, state);
@@ -54,6 +63,17 @@ public record ManipulatorConfigPacket(Action action) {
                         true);
             }
         }
+    }
+
+    private static void setMode(ServerPlayer player, ItemStack stack, MatterManipulatorItem manipulator, MMState state,
+                                ToolMode mode) {
+        if (!canUseMode(state, manipulator.tier(), mode)) {
+            return;
+        }
+        state.setMode(mode);
+        MatterManipulatorItem.setState(stack, state);
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.mode_set",
+                mode.displayName()), true);
     }
 
     private static void setMode(ServerPlayer player, ItemStack stack, MatterManipulatorItem manipulator, MMState state,
@@ -70,6 +90,13 @@ public record ManipulatorConfigPacket(Action action) {
                 return;
             }
         }
+    }
+
+    private static void setShape(ServerPlayer player, ItemStack stack, MMState state, Shape shape) {
+        state.setShape(shape);
+        MatterManipulatorItem.setState(stack, state);
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.shape_set",
+                shape.displayName()), true);
     }
 
     private static void setShape(ServerPlayer player, ItemStack stack, MMState state, int direction) {
@@ -108,6 +135,15 @@ public record ManipulatorConfigPacket(Action action) {
         PREVIOUS_MODE,
         NEXT_SHAPE,
         PREVIOUS_SHAPE,
+        SET_MODE_GEOMETRY,
+        SET_MODE_COPYING,
+        SET_MODE_EXCHANGING,
+        SET_MODE_MOVING,
+        SET_MODE_CABLES,
+        SET_SHAPE_LINE,
+        SET_SHAPE_CUBE,
+        SET_SHAPE_SPHERE,
+        SET_SHAPE_CYLINDER,
         CLEAR_COORDS
     }
 }

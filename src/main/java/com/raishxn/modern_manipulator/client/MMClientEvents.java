@@ -26,6 +26,9 @@ public final class MMClientEvents {
             return;
         }
 
+        while (MMKeyMappings.OPEN_RADIAL_MENU.consumeClick()) {
+            minecraft.setScreen(new MMRadialMenuScreen(selectedManipulator(minecraft.player)));
+        }
         sendWhilePressed(MMKeyMappings.NEXT_MODE, Action.NEXT_MODE);
         sendWhilePressed(MMKeyMappings.PREVIOUS_MODE, Action.PREVIOUS_MODE);
         sendWhilePressed(MMKeyMappings.NEXT_SHAPE, Action.NEXT_SHAPE);
