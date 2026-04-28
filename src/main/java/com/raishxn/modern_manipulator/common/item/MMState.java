@@ -17,11 +17,13 @@ public class MMState {
     private static final String TAG_COORD_B = "coordB";
     private static final String TAG_MODE = "mode";
     private static final String TAG_SHAPE = "shape";
+    private static final String TAG_INSTALLED_UPGRADES = "installedUpgrades";
 
     private @Nullable MarkedPosition coordA;
     private @Nullable MarkedPosition coordB;
     private ToolMode mode = ToolMode.GEOMETRY;
     private Shape shape = Shape.CUBE;
+    private int installedUpgrades;
 
     public static MMState getOrCreate(CompoundTag root) {
         if (!root.contains(TAG_NAME, Tag.TAG_COMPOUND)) {
@@ -42,6 +44,7 @@ public class MMState {
         }
         state.mode = ToolMode.byName(tag.getString(TAG_MODE));
         state.shape = Shape.byName(tag.getString(TAG_SHAPE));
+        state.installedUpgrades = tag.getInt(TAG_INSTALLED_UPGRADES);
         return state;
     }
 
@@ -55,6 +58,7 @@ public class MMState {
         }
         tag.putString(TAG_MODE, mode.serializedName);
         tag.putString(TAG_SHAPE, shape.serializedName);
+        tag.putInt(TAG_INSTALLED_UPGRADES, installedUpgrades);
         return tag;
     }
 
@@ -76,6 +80,38 @@ public class MMState {
 
     public Shape shape() {
         return shape;
+    }
+
+    public int installedUpgrades() {
+        return installedUpgrades;
+    }
+
+    public @Nullable MMSelection selection() {
+        if (coordA == null || coordB == null) {
+            return null;
+        }
+        return MMSelection.from(coordA, coordB);
+    }
+
+    public boolean hasUpgrade(MMUpgrade upgrade) {
+        return (installedUpgrades & upgrade.mask()) != 0;
+    }
+
+    public void installUpgrade(MMUpgrade upgrade) {
+        installedUpgrades |= upgrade.mask();
+    }
+
+    public boolean hasCapability(MatterManipulatorItem.ManipulatorTier tier, MMCapability capability) {
+        if (tier.hasBaseCapability(capability)) {
+            return true;
+        }
+        for (MMUpgrade upgrade : MMUpgrade.values()) {
+            if (hasUpgrade(upgrade) && upgrade.isAllowedOn(tier) &&
+                    upgrade.providedCapabilities().contains(capability)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setCoordA(MarkedPosition coordA) {
