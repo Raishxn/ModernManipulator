@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import org.jetbrains.annotations.Nullable;
@@ -254,9 +255,11 @@ public class MMState {
         private static final String TAG_BLOCKED = "blocked";
         private static final String TAG_OUT_OF_POWER = "outOfPower";
         private static final String TAG_TICK_COOLDOWN = "tickCooldown";
+        private static final String TAG_REPLACEMENT = "replacement";
 
         private final PendingActionType type;
         private final MMSelection selection;
+        private final ItemStack replacement;
         private long cursor;
         private int removed;
         private int skipped;
@@ -265,13 +268,20 @@ public class MMState {
         private int tickCooldown;
 
         public PendingAction(PendingActionType type, MMSelection selection) {
+            this(type, selection, ItemStack.EMPTY);
+        }
+
+        public PendingAction(PendingActionType type, MMSelection selection, ItemStack replacement) {
             this.type = type;
             this.selection = selection;
+            this.replacement = replacement.copy();
         }
 
         public static PendingAction load(CompoundTag tag) {
             PendingAction action = new PendingAction(PendingActionType.byName(tag.getString(TAG_TYPE)),
-                    loadSelection(tag.getCompound(TAG_SELECTION)));
+                    loadSelection(tag.getCompound(TAG_SELECTION)),
+                    tag.contains(TAG_REPLACEMENT, Tag.TAG_COMPOUND) ?
+                            ItemStack.of(tag.getCompound(TAG_REPLACEMENT)) : ItemStack.EMPTY);
             action.cursor = tag.getLong(TAG_CURSOR);
             action.removed = tag.getInt(TAG_REMOVED);
             action.skipped = tag.getInt(TAG_SKIPPED);
@@ -285,6 +295,9 @@ public class MMState {
             CompoundTag tag = new CompoundTag();
             tag.putString(TAG_TYPE, type.serializedName);
             tag.put(TAG_SELECTION, saveSelection(selection));
+            if (!replacement.isEmpty()) {
+                tag.put(TAG_REPLACEMENT, replacement.save(new CompoundTag()));
+            }
             tag.putLong(TAG_CURSOR, cursor);
             tag.putInt(TAG_REMOVED, removed);
             tag.putInt(TAG_SKIPPED, skipped);
@@ -300,6 +313,10 @@ public class MMState {
 
         public MMSelection selection() {
             return selection;
+        }
+
+        public ItemStack replacement() {
+            return replacement.copy();
         }
 
         public long cursor() {
@@ -364,8 +381,9 @@ public class MMState {
         }
 
         public Component resultText() {
-            return Component.translatable("message.matter_manipulator.remove.finished", removed, skipped, blocked,
-                    outOfPower);
+            String key = type == PendingActionType.EXCHANGE ? "message.matter_manipulator.exchange.finished" :
+                    "message.matter_manipulator.remove.finished";
+            return Component.translatable(key, removed, skipped, blocked, outOfPower);
         }
 
         private static CompoundTag saveSelection(MMSelection selection) {
@@ -394,7 +412,8 @@ public class MMState {
 
     public enum PendingActionType {
 
-        REMOVE("remove");
+        REMOVE("remove"),
+        EXCHANGE("exchange");
 
         private final String serializedName;
 

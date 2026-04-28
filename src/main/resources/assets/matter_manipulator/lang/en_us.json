@@ -89,6 +89,7 @@
   "message.matter_manipulator.pending.cancelled": "Pending action cancelled.",
   "message.matter_manipulator.pending.progress": "Progress %s / %s. Removed %s, skipped %s, blocked %s, no EU %s.",
   "message.matter_manipulator.pending.unknown": "Unknown pending action.",
+  "message.matter_manipulator.mode.not_implemented": "%s mode is not ported yet.",
   "message.matter_manipulator.remove.no_capability": "This manipulator cannot remove blocks.",
   "message.matter_manipulator.remove.no_selection": "Set Coord A and Coord B first.",
   "message.matter_manipulator.remove.wrong_dimension": "Selection is in another dimension.",
@@ -96,5 +97,10 @@
   "message.matter_manipulator.remove.out_of_power": "Matter Manipulator ran out of EU.",
   "message.matter_manipulator.remove.started": "Started removing %s.",
   "message.matter_manipulator.remove.finished": "Finished. Removed %s blocks. Skipped %s, blocked %s, no EU %s.",
-  "message.matter_manipulator.remove.result": "Removed %s blocks. Skipped %s, blocked %s, no EU %s. Limit %s/use."
+  "message.matter_manipulator.remove.result": "Removed %s blocks. Skipped %s, blocked %s, no EU %s. Limit %s/use.",
+  "message.matter_manipulator.exchange.no_capability": "This manipulator cannot exchange blocks.",
+  "message.matter_manipulator.exchange.no_block": "Put the replacement block in your offhand.",
+  "message.matter_manipulator.exchange.no_items": "No replacement blocks available.",
+  "message.matter_manipulator.exchange.started": "Started exchanging %s with %s.",
+  "message.matter_manipulator.exchange.finished": "Finished. Exchanged %s blocks. Skipped %s, blocked %s, no EU %s."
 }
