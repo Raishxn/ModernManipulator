@@ -18,12 +18,14 @@ public class MMState {
     private static final String TAG_MODE = "mode";
     private static final String TAG_SHAPE = "shape";
     private static final String TAG_INSTALLED_UPGRADES = "installedUpgrades";
+    private static final String TAG_PENDING_ACTION = "pendingAction";
 
     private @Nullable MarkedPosition coordA;
     private @Nullable MarkedPosition coordB;
     private ToolMode mode = ToolMode.GEOMETRY;
     private Shape shape = Shape.CUBE;
     private int installedUpgrades;
+    private @Nullable PendingAction pendingAction;
 
     public static MMState getOrCreate(CompoundTag root) {
         if (!root.contains(TAG_NAME, Tag.TAG_COMPOUND)) {
@@ -45,6 +47,9 @@ public class MMState {
         state.mode = ToolMode.byName(tag.getString(TAG_MODE));
         state.shape = Shape.byName(tag.getString(TAG_SHAPE));
         state.installedUpgrades = tag.getInt(TAG_INSTALLED_UPGRADES);
+        if (tag.contains(TAG_PENDING_ACTION, Tag.TAG_COMPOUND)) {
+            state.pendingAction = PendingAction.load(tag.getCompound(TAG_PENDING_ACTION));
+        }
         return state;
     }
 
@@ -59,6 +64,9 @@ public class MMState {
         tag.putString(TAG_MODE, mode.serializedName);
         tag.putString(TAG_SHAPE, shape.serializedName);
         tag.putInt(TAG_INSTALLED_UPGRADES, installedUpgrades);
+        if (pendingAction != null) {
+            tag.put(TAG_PENDING_ACTION, pendingAction.save());
+        }
         return tag;
     }
 
@@ -91,6 +99,18 @@ public class MMState {
             return null;
         }
         return MMSelection.from(coordA, coordB);
+    }
+
+    public @Nullable PendingAction pendingAction() {
+        return pendingAction;
+    }
+
+    public void startPendingAction(PendingAction pendingAction) {
+        this.pendingAction = pendingAction;
+    }
+
+    public void clearPendingAction() {
+        this.pendingAction = null;
     }
 
     public boolean hasUpgrade(MMUpgrade upgrade) {
@@ -204,6 +224,173 @@ public class MMState {
 
         public Component displayName() {
             return Component.translatable("matter_manipulator.shape." + serializedName);
+        }
+    }
+
+    public static class PendingAction {
+
+        private static final String TAG_TYPE = "type";
+        private static final String TAG_SELECTION = "selection";
+        private static final String TAG_CURSOR = "cursor";
+        private static final String TAG_REMOVED = "removed";
+        private static final String TAG_SKIPPED = "skipped";
+        private static final String TAG_BLOCKED = "blocked";
+        private static final String TAG_OUT_OF_POWER = "outOfPower";
+        private static final String TAG_TICK_COOLDOWN = "tickCooldown";
+
+        private final PendingActionType type;
+        private final MMSelection selection;
+        private long cursor;
+        private int removed;
+        private int skipped;
+        private int blocked;
+        private int outOfPower;
+        private int tickCooldown;
+
+        public PendingAction(PendingActionType type, MMSelection selection) {
+            this.type = type;
+            this.selection = selection;
+        }
+
+        public static PendingAction load(CompoundTag tag) {
+            PendingAction action = new PendingAction(PendingActionType.byName(tag.getString(TAG_TYPE)),
+                    loadSelection(tag.getCompound(TAG_SELECTION)));
+            action.cursor = tag.getLong(TAG_CURSOR);
+            action.removed = tag.getInt(TAG_REMOVED);
+            action.skipped = tag.getInt(TAG_SKIPPED);
+            action.blocked = tag.getInt(TAG_BLOCKED);
+            action.outOfPower = tag.getInt(TAG_OUT_OF_POWER);
+            action.tickCooldown = tag.getInt(TAG_TICK_COOLDOWN);
+            return action;
+        }
+
+        public CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putString(TAG_TYPE, type.serializedName);
+            tag.put(TAG_SELECTION, saveSelection(selection));
+            tag.putLong(TAG_CURSOR, cursor);
+            tag.putInt(TAG_REMOVED, removed);
+            tag.putInt(TAG_SKIPPED, skipped);
+            tag.putInt(TAG_BLOCKED, blocked);
+            tag.putInt(TAG_OUT_OF_POWER, outOfPower);
+            tag.putInt(TAG_TICK_COOLDOWN, tickCooldown);
+            return tag;
+        }
+
+        public PendingActionType type() {
+            return type;
+        }
+
+        public MMSelection selection() {
+            return selection;
+        }
+
+        public long cursor() {
+            return cursor;
+        }
+
+        public void advanceCursor() {
+            cursor++;
+        }
+
+        public int removed() {
+            return removed;
+        }
+
+        public int skipped() {
+            return skipped;
+        }
+
+        public int blocked() {
+            return blocked;
+        }
+
+        public int outOfPower() {
+            return outOfPower;
+        }
+
+        public int tickCooldown() {
+            return tickCooldown;
+        }
+
+        public void setTickCooldown(int tickCooldown) {
+            this.tickCooldown = tickCooldown;
+        }
+
+        public void decrementTickCooldown() {
+            tickCooldown--;
+        }
+
+        public void incrementRemoved() {
+            removed++;
+        }
+
+        public void incrementSkipped() {
+            skipped++;
+        }
+
+        public void incrementBlocked() {
+            blocked++;
+        }
+
+        public void incrementOutOfPower() {
+            outOfPower++;
+        }
+
+        public boolean isComplete() {
+            return cursor >= selection.volume();
+        }
+
+        public Component progressText() {
+            return Component.translatable("message.matter_manipulator.pending.progress", cursor, selection.volume(),
+                    removed, skipped, blocked, outOfPower);
+        }
+
+        public Component resultText() {
+            return Component.translatable("message.matter_manipulator.remove.finished", removed, skipped, blocked,
+                    outOfPower);
+        }
+
+        private static CompoundTag saveSelection(MMSelection selection) {
+            CompoundTag tag = new CompoundTag();
+            tag.putString("dimension", selection.dimension().toString());
+            tag.putInt("minX", selection.min().getX());
+            tag.putInt("minY", selection.min().getY());
+            tag.putInt("minZ", selection.min().getZ());
+            tag.putInt("maxX", selection.max().getX());
+            tag.putInt("maxY", selection.max().getY());
+            tag.putInt("maxZ", selection.max().getZ());
+            return tag;
+        }
+
+        private static MMSelection loadSelection(CompoundTag tag) {
+            ResourceLocation dimension = ResourceLocation.tryParse(tag.getString("dimension"));
+            if (dimension == null) {
+                dimension = Level.OVERWORLD.location();
+            }
+            BlockPos min = new BlockPos(tag.getInt("minX"), tag.getInt("minY"), tag.getInt("minZ"));
+            BlockPos max = new BlockPos(tag.getInt("maxX"), tag.getInt("maxY"), tag.getInt("maxZ"));
+            return new MMSelection(dimension, min, max);
+        }
+    }
+
+    public enum PendingActionType {
+
+        REMOVE("remove");
+
+        private final String serializedName;
+
+        PendingActionType(String serializedName) {
+            this.serializedName = serializedName;
+        }
+
+        private static PendingActionType byName(String name) {
+            for (PendingActionType type : values()) {
+                if (type.serializedName.equals(name)) {
+                    return type;
+                }
+            }
+            return REMOVE;
         }
     }
 }

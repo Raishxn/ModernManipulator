@@ -54,6 +54,15 @@ public record MMSelection(ResourceLocation dimension, BlockPos min, BlockPos max
         return BlockPos.betweenClosed(min, max);
     }
 
+    public BlockPos positionAt(long index) {
+        long layerSize = (long) sizeX() * sizeZ();
+        long yOffset = index / layerSize;
+        long layerIndex = index % layerSize;
+        long zOffset = layerIndex / sizeX();
+        long xOffset = layerIndex % sizeX();
+        return new BlockPos(min.getX() + (int) xOffset, min.getY() + (int) yOffset, min.getZ() + (int) zOffset);
+    }
+
     public String describe() {
         return "dX=" + sizeX() + " dY=" + sizeY() + " dZ=" + sizeZ() + " V=" + volume();
     }
