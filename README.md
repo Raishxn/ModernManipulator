@@ -26,7 +26,6 @@ Implemented so far:
 
 - Original GTNH mod: https://github.com/GTNewHorizons/MatterManipulator
 - GTCEu addon template: https://github.com/GregTechCEu/GregTech-Addon-Template
-- Local GTCEu 7.5.2 source reference: `C:\Users\erick\OneDrive\Documents\GregTech-Modern-7.5.2-1.20.1`
 
 ## Development
 
