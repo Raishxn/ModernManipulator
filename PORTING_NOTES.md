@@ -25,6 +25,7 @@ The local GTCEu Modern 7.5.2 source reference is at:
 - Converted the initial item names from `en_US.lang` to `en_us.json`.
 - Ported the original tier capability flags and upgrade bit state.
 - Added a special crafting recipe for installing manipulator upgrades.
+- Added the first operational block action: remove selected blocks with GTNH-like EU cost scaling.
 
 ## Next Port Targets
 

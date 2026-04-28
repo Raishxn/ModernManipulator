@@ -7,15 +7,23 @@ import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.item.component.ElectricStats;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
@@ -30,6 +38,11 @@ import java.util.List;
 import java.util.Set;
 
 public class MatterManipulatorItem extends Item {
+
+    private static final double EU_PER_BLOCK = 128.0;
+    private static final double BLOCK_ENTITY_PENALTY = 16.0;
+    private static final double EU_DISTANCE_EXPONENT = 1.25;
+    private static final int MK3_IMMEDIATE_ACTION_LIMIT = 1024;
 
     private final ManipulatorTier tier;
 
@@ -89,6 +102,22 @@ public class MatterManipulatorItem extends Item {
                             markedPosition.shortText(), selectionInfo), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+        ItemStack stack = player.getItemInHand(usedHand);
+        HitResult hitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
+        if (hitResult instanceof BlockHitResult blockHitResult && hitResult.getType() == HitResult.Type.BLOCK) {
+            return InteractionResultHolder.pass(stack);
+        }
+        if (level.isClientSide) {
+            return InteractionResultHolder.success(stack);
+        }
+
+        RemovalStats stats = removeSelection(stack, player, level);
+        player.displayClientMessage(stats.message(), true);
+        return stats.changedWorld() ? InteractionResultHolder.success(stack) : InteractionResultHolder.fail(stack);
     }
 
     @Override
@@ -186,6 +215,98 @@ public class MatterManipulatorItem extends Item {
             }
             tooltip.add(Component.literal("  ").append(upgrade.displayName()).withStyle(ChatFormatting.DARK_GRAY));
         }
+    }
+
+    private RemovalStats removeSelection(ItemStack stack, Player player, Level level) {
+        MMState state = getState(stack);
+        if (!state.hasCapability(tier, MMCapability.ALLOW_REMOVING)) {
+            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.no_capability"));
+        }
+
+        MMSelection selection = state.selection();
+        if (selection == null) {
+            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.no_selection"));
+        }
+        if (!selection.dimension().equals(level.dimension().location())) {
+            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
+        }
+        if (!selection.isInPlayerRange(player, tier.maxRange())) {
+            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
+                    tier.maxRange()));
+        }
+
+        int actionLimit = tier.placeSpeed() < 0 ? MK3_IMMEDIATE_ACTION_LIMIT : tier.placeSpeed();
+        int removed = 0;
+        int skipped = 0;
+        int blocked = 0;
+        int outOfPower = 0;
+
+        for (BlockPos pos : selection.positions()) {
+            if (removed >= actionLimit) {
+                break;
+            }
+            if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
+                skipped++;
+                continue;
+            }
+
+            BlockState blockState = level.getBlockState(pos);
+            if (blockState.isAir()) {
+                skipped++;
+                continue;
+            }
+            if (blockState.getDestroySpeed(level, pos) < 0.0F || !player.mayInteract(level, pos)) {
+                blocked++;
+                continue;
+            }
+
+            long euCost = removalCost(level, player, pos, blockState, state);
+            if (!consumeEnergy(stack, player, euCost)) {
+                outOfPower++;
+                break;
+            }
+
+            if (level.destroyBlock(pos, true, player)) {
+                removed++;
+            } else {
+                blocked++;
+            }
+        }
+
+        if (removed == 0 && outOfPower > 0) {
+            return RemovalStats.error(Component.translatable("message.matter_manipulator.remove.out_of_power"));
+        }
+        return new RemovalStats(removed > 0, Component.translatable("message.matter_manipulator.remove.result",
+                removed, skipped, blocked, outOfPower, actionLimit));
+    }
+
+    private long removalCost(Level level, Player player, BlockPos pos, BlockState blockState, MMState state) {
+        int hardness = Mth.clamp((int) blockState.getDestroySpeed(level, pos), 0, 999);
+        double euUsage = EU_PER_BLOCK * (1.0D + Math.sqrt(hardness));
+        if (level.getBlockEntity(pos) != null) {
+            euUsage *= BLOCK_ENTITY_PENALTY;
+        }
+        euUsage *= Math.pow(Math.sqrt(player.blockPosition().distSqr(pos)), EU_DISTANCE_EXPONENT);
+        if (state.hasUpgrade(MMUpgrade.POWER_EFFICIENCY)) {
+            euUsage *= 0.5D;
+        }
+        return Math.max(1L, (long) Math.ceil(euUsage));
+    }
+
+    private boolean consumeEnergy(ItemStack stack, Player player, long euCost) {
+        if (player.isCreative()) {
+            return true;
+        }
+        IElectricItem electricItem = GTCapabilityHelper.getElectricItem(stack);
+        if (electricItem == null) {
+            return false;
+        }
+        long simulated = electricItem.discharge(euCost, Integer.MAX_VALUE, true, false, true);
+        if (simulated != euCost) {
+            return false;
+        }
+        electricItem.discharge(euCost, Integer.MAX_VALUE, true, false, false);
+        return true;
     }
 
     private long getCharge(ItemStack stack) {
@@ -339,6 +460,13 @@ public class MatterManipulatorItem extends Item {
 
         public Component displayName() {
             return Component.translatable("matter_manipulator.tier." + serializedName);
+        }
+    }
+
+    private record RemovalStats(boolean changedWorld, Component message) {
+
+        private static RemovalStats error(Component message) {
+            return new RemovalStats(false, message);
         }
     }
 }
