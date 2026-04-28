@@ -34,6 +34,10 @@ public final class MMClientEvents {
         sendWhilePressed(MMKeyMappings.NEXT_SHAPE, Action.NEXT_SHAPE);
         sendWhilePressed(MMKeyMappings.PREVIOUS_SHAPE, Action.PREVIOUS_SHAPE);
         sendWhilePressed(MMKeyMappings.CLEAR_COORDS, Action.CLEAR_COORDS);
+        sendWhilePressed(MMKeyMappings.COPY, Action.PREPARE_COPY);
+        sendWhilePressed(MMKeyMappings.CUT, Action.PREPARE_MOVE);
+        sendWhilePressed(MMKeyMappings.PASTE, Action.PREPARE_PASTE);
+        sendWhilePressed(MMKeyMappings.RESET, Action.RESET);
     }
 
     private static void sendWhilePressed(net.minecraft.client.KeyMapping keyMapping, Action action) {

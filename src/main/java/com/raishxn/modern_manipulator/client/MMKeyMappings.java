@@ -27,6 +27,14 @@ public final class MMKeyMappings {
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, CATEGORY);
     public static final KeyMapping OPEN_RADIAL_MENU = new KeyMapping("key.matter_manipulator.open_radial_menu",
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY);
+    public static final KeyMapping COPY = new KeyMapping("key.matter_manipulator.copy",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY);
+    public static final KeyMapping CUT = new KeyMapping("key.matter_manipulator.cut",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X, CATEGORY);
+    public static final KeyMapping PASTE = new KeyMapping("key.matter_manipulator.paste",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY);
+    public static final KeyMapping RESET = new KeyMapping("key.matter_manipulator.reset",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY);
 
     private MMKeyMappings() {}
 
@@ -38,5 +46,9 @@ public final class MMKeyMappings {
         event.register(PREVIOUS_SHAPE);
         event.register(CLEAR_COORDS);
         event.register(OPEN_RADIAL_MENU);
+        event.register(COPY);
+        event.register(CUT);
+        event.register(PASTE);
+        event.register(RESET);
     }
 }

@@ -178,6 +178,10 @@ public class MMState {
         this.coordC = coordC;
     }
 
+    public void clearCoordC() {
+        this.coordC = null;
+    }
+
     public void clearCoords() {
         this.coordA = null;
         this.coordB = null;
@@ -196,18 +200,24 @@ public class MMState {
         this.blueprint = blueprint;
     }
 
-    public record Blueprint(int sizeX, int sizeY, int sizeZ, List<BlueprintBlock> blocks) {
+    public void clearBlueprint() {
+        this.blueprint = null;
+    }
+
+    public record Blueprint(int sizeX, int sizeY, int sizeZ, List<BlueprintBlock> blocks, boolean consumesItems) {
 
         private static final String TAG_SIZE_X = "sizeX";
         private static final String TAG_SIZE_Y = "sizeY";
         private static final String TAG_SIZE_Z = "sizeZ";
         private static final String TAG_BLOCKS = "blocks";
+        private static final String TAG_CONSUMES_ITEMS = "consumesItems";
 
         public CompoundTag save() {
             CompoundTag tag = new CompoundTag();
             tag.putInt(TAG_SIZE_X, sizeX);
             tag.putInt(TAG_SIZE_Y, sizeY);
             tag.putInt(TAG_SIZE_Z, sizeZ);
+            tag.putBoolean(TAG_CONSUMES_ITEMS, consumesItems);
             ListTag blockList = new ListTag();
             for (BlueprintBlock block : blocks) {
                 blockList.add(block.save());
@@ -223,7 +233,8 @@ public class MMState {
                 blocks.add(BlueprintBlock.load(blockList.getCompound(i)));
             }
             return new Blueprint(tag.getInt(TAG_SIZE_X), tag.getInt(TAG_SIZE_Y), tag.getInt(TAG_SIZE_Z),
-                    List.copyOf(blocks));
+                    List.copyOf(blocks), !tag.contains(TAG_CONSUMES_ITEMS, Tag.TAG_BYTE) ||
+                            tag.getBoolean(TAG_CONSUMES_ITEMS));
         }
 
         public long volume() {
