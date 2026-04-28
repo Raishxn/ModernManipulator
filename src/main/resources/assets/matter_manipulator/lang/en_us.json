@@ -6,6 +6,8 @@
   "key.matter_manipulator.next_shape": "Next manipulator shape",
   "key.matter_manipulator.previous_shape": "Previous manipulator shape",
   "key.matter_manipulator.clear_coords": "Clear manipulator coordinates",
+  "key.matter_manipulator.open_radial_menu": "Open manipulator radial menu",
+  "screen.matter_manipulator.radial_menu": "Matter Manipulator radial menu",
   "item.matter_manipulator.prototype_matter_manipulator": "Prototype Matter Manipulator",
   "item.matter_manipulator.matter_manipulator_mk1": "Matter Manipulator MKI",
   "item.matter_manipulator.matter_manipulator_mk2": "Matter Manipulator MKII",
