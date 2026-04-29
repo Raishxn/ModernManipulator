@@ -386,7 +386,7 @@ public final class MMSelectionRenderer {
                     1.0F, 0.15F, 0.15F, 0.95F);
         }
         if (!action.isComplete()) {
-            BlockPos cursorPos = action.selection().positionAt(action.cursor());
+            BlockPos cursorPos = action.positionAt(action.cursor());
             if (action.selection().contains(cursorPos, action.blockSelectMode())) {
                 renderBlockRange(cursorPos, cursorPos, cameraPosition, poseStack, lineBuffer,
                         1.0F, 1.0F, 1.0F, 0.95F);

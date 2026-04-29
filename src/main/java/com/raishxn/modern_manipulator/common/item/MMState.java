@@ -861,12 +861,14 @@ public class MMState {
         private static final String TAG_ERRORS = "errors";
         private static final String TAG_PAUSED = "paused";
         private static final String TAG_BLOCK_SELECT_MODE = "blockSelectMode";
+        private static final String TAG_PENDING_POSITIONS = "pendingPositions";
         private static final int MAX_ISSUE_POSITIONS = 64;
 
         private final PendingActionType type;
         private final MMSelection selection;
         private final ItemStack replacement;
         private final BlockSelectMode blockSelectMode;
+        private final List<BlockPos> pendingPositions;
         private final List<BlockPos> warnings = new java.util.ArrayList<>();
         private final List<BlockPos> errors = new java.util.ArrayList<>();
         private long cursor;
@@ -887,10 +889,16 @@ public class MMState {
 
         public PendingAction(PendingActionType type, MMSelection selection, ItemStack replacement,
                              BlockSelectMode blockSelectMode) {
+            this(type, selection, replacement, blockSelectMode, List.of());
+        }
+
+        public PendingAction(PendingActionType type, MMSelection selection, ItemStack replacement,
+                             BlockSelectMode blockSelectMode, List<BlockPos> pendingPositions) {
             this.type = type;
             this.selection = selection;
             this.replacement = replacement.copy();
             this.blockSelectMode = blockSelectMode;
+            this.pendingPositions = List.copyOf(pendingPositions);
         }
 
         public static PendingAction load(CompoundTag tag) {
@@ -898,7 +906,8 @@ public class MMState {
                     loadSelection(tag.getCompound(TAG_SELECTION)),
                     tag.contains(TAG_REPLACEMENT, Tag.TAG_COMPOUND) ?
                             ItemStack.of(tag.getCompound(TAG_REPLACEMENT)) : ItemStack.EMPTY,
-                    BlockSelectMode.byName(tag.getString(TAG_BLOCK_SELECT_MODE)));
+                    BlockSelectMode.byName(tag.getString(TAG_BLOCK_SELECT_MODE)),
+                    loadPositions(tag.getList(TAG_PENDING_POSITIONS, Tag.TAG_COMPOUND)));
             action.cursor = tag.getLong(TAG_CURSOR);
             action.removed = tag.getInt(TAG_REMOVED);
             action.skipped = tag.getInt(TAG_SKIPPED);
@@ -919,6 +928,7 @@ public class MMState {
                 tag.put(TAG_REPLACEMENT, replacement.save(new CompoundTag()));
             }
             tag.putString(TAG_BLOCK_SELECT_MODE, blockSelectMode.serializedName);
+            tag.put(TAG_PENDING_POSITIONS, savePositions(pendingPositions));
             tag.putLong(TAG_CURSOR, cursor);
             tag.putInt(TAG_REMOVED, removed);
             tag.putInt(TAG_SKIPPED, skipped);
@@ -949,6 +959,17 @@ public class MMState {
 
         public long cursor() {
             return cursor;
+        }
+
+        public long totalPositions() {
+            return pendingPositions.isEmpty() ? selection.scanVolume() : pendingPositions.size();
+        }
+
+        public BlockPos positionAt(long index) {
+            if (!pendingPositions.isEmpty()) {
+                return pendingPositions.get((int) index);
+            }
+            return selection.positionAt(index);
         }
 
         public void advanceCursor() {
@@ -1034,11 +1055,11 @@ public class MMState {
         }
 
         public boolean isComplete() {
-            return cursor >= selection.scanVolume();
+            return cursor >= totalPositions();
         }
 
         public Component progressText() {
-            return Component.translatable("message.matter_manipulator.pending.progress", cursor, selection.scanVolume(),
+            return Component.translatable("message.matter_manipulator.pending.progress", cursor, totalPositions(),
                     removed, skipped, blocked, outOfPower);
         }
 
