@@ -226,6 +226,7 @@
   "message.matter_manipulator.pending.cancelled": "Pending action cancelled.",
   "message.matter_manipulator.pending.none": "No pending action.",
   "message.matter_manipulator.pending.paused": "Pending action paused.",
+  "message.matter_manipulator.pending.paused_unloaded_chunk": "Pending action paused: chunk is not loaded at [%s, %s, %s].",
   "message.matter_manipulator.pending.resumed": "Pending action resumed.",
   "message.matter_manipulator.plan.no_manipulator": "Hold a Matter Manipulator in the other hand.",
   "message.matter_manipulator.plan.no_blueprint": "The manipulator has no blueprint to save.",

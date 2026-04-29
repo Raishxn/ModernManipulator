@@ -955,6 +955,12 @@ public class MMState {
             cursor++;
         }
 
+        public void rewindCursor() {
+            if (cursor > 0) {
+                cursor--;
+            }
+        }
+
         public int removed() {
             return removed;
         }
