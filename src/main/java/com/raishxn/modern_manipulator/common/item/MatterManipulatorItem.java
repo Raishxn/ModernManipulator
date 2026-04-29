@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.item.component.ElectricStats;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -962,7 +964,7 @@ public class MatterManipulatorItem extends Item {
     }
 
     private List<BlockPos> pastePositions(MMState state, Blueprint blueprint, BlockPos origin) {
-        List<BlockPos> positions = new java.util.ArrayList<>();
+        List<PendingPasteTarget> targets = new java.util.ArrayList<>();
         int strideX = state.pasteSizeX(blueprint);
         int strideY = blueprint.sizeY();
         int strideZ = state.pasteSizeZ(blueprint);
@@ -972,12 +974,32 @@ public class MatterManipulatorItem extends Item {
                     BlockPos arrayOrigin = origin.offset(arrayX * strideX, arrayY * strideY, arrayZ * strideZ);
                     for (BlueprintBlock sourceBlock : blueprint.blocks()) {
                         BlueprintBlock pasteBlock = state.transformedBlock(blueprint, sourceBlock);
-                        positions.add(arrayOrigin.offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z()));
+                        targets.add(new PendingPasteTarget(
+                                arrayOrigin.offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z()),
+                                pasteBlock.state()));
                     }
                 }
             }
         }
-        return positions;
+        targets.sort(Comparator
+                .comparing(PendingPasteTarget::blockKey)
+                .thenComparingInt(target -> target.pos().getX() >> 4)
+                .thenComparingInt(target -> target.pos().getZ() >> 4)
+                .thenComparingLong(target -> packPosition(target.pos())));
+        return targets.stream().map(PendingPasteTarget::pos).toList();
+    }
+
+    private static long packPosition(BlockPos pos) {
+        return (((long) pos.getX() & 0x3FFFFFFL) << 38) |
+                (((long) pos.getZ() & 0x3FFFFFFL) << 12) |
+                ((long) pos.getY() & 0xFFFL);
+    }
+
+    private record PendingPasteTarget(BlockPos pos, BlockState state) {
+
+        private String blockKey() {
+            return BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        }
     }
 
     private boolean removeBlockWithDrops(Level level, BlockPos pos, Player player, MMState state,
