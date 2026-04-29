@@ -159,6 +159,19 @@ public final class BlockMovers {
         return true;
     }
 
+    public static boolean canMoveInto(Level level, BlockPos pos, RemoveMode removeMode) {
+        if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
+            return false;
+        }
+        BlockState existingState = level.getBlockState(pos);
+        if (!canReplace(existingState, removeMode) || (!existingState.isAir() &&
+                existingState.getDestroySpeed(level, pos) < 0.0F)) {
+            return false;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        return blockEntity == null || safeConfigTag(blockEntity) != null;
+    }
+
     public static boolean sourceStillMatches(Level level, BlockPos pos, BlueprintBlock blueprintBlock) {
         if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
             return false;
