@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
+import com.raishxn.modern_manipulator.common.item.MMState.BlockSelectMode;
 import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
 import com.raishxn.modern_manipulator.common.item.MMState.Shape;
 import org.jetbrains.annotations.Nullable;
@@ -74,6 +75,38 @@ public record MMSelection(ResourceLocation dimension, BlockPos min, BlockPos max
             case CUBE -> true;
             case SPHERE -> containsSphere(pos);
             case CYLINDER -> containsCylinder(pos);
+        };
+    }
+
+    public boolean contains(BlockPos pos, BlockSelectMode blockSelectMode) {
+        if (!contains(pos)) {
+            return false;
+        }
+        if (blockSelectMode == BlockSelectMode.NONE) {
+            return false;
+        }
+        if (blockSelectMode == BlockSelectMode.ALL) {
+            return true;
+        }
+
+        int boundaryAxes = 0;
+        if (pos.getX() == min.getX() || pos.getX() == max.getX()) {
+            boundaryAxes++;
+        }
+        if (pos.getY() == min.getY() || pos.getY() == max.getY()) {
+            boundaryAxes++;
+        }
+        if (pos.getZ() == min.getZ() || pos.getZ() == max.getZ()) {
+            boundaryAxes++;
+        }
+
+        return switch (blockSelectMode) {
+            case NONE -> false;
+            case CORNERS -> boundaryAxes == 3;
+            case EDGES -> boundaryAxes == 2;
+            case FACES -> boundaryAxes == 1;
+            case VOLUMES -> boundaryAxes == 0;
+            case ALL -> true;
         };
     }
 

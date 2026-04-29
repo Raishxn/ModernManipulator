@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FEF",
+    "RPR",
+    "FEF"
+  ],
+  "key": {
+    "F": {
+      "item": "gtceu:hv_field_generator"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "R": {
+      "item": "gtceu:hv_robot_arm"
+    },
+    "P": {
+      "item": "gtceu:hv_electric_pump"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:prototype_teleporter_core"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DMD",
+    "PBP",
+    "DMD"
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "M": {
+      "item": "gtceu:hv_electric_motor"
+    },
+    "P": {
+      "item": "minecraft:diamond_pickaxe"
+    },
+    "B": {
+      "item": "matter_manipulator:blank_upgrade"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:excavation_upgrade"
+  }
+}

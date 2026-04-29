@@ -25,7 +25,8 @@ public final class MMItems {
     public static final RegistryObject<Item> MATTER_MANIPULATOR_MK3 = registerManipulator("matter_manipulator_mk3",
             ManipulatorTier.MK3);
 
-    public static final RegistryObject<Item> MATTER_MANIPULATOR_PLAN = registerComponent("matter_manipulator_plan");
+    public static final RegistryObject<Item> MATTER_MANIPULATOR_PLAN = ITEMS.register("matter_manipulator_plan",
+            MMPlanItem::new);
     public static final RegistryObject<Item> PROTOTYPE_POWER_CORE = registerComponent("prototype_power_core");
     public static final RegistryObject<Item> PROTOTYPE_COMPUTER_CORE = registerComponent("prototype_computer_core");
     public static final RegistryObject<Item> PROTOTYPE_TELEPORTER_CORE = registerComponent("prototype_teleporter_core");
@@ -46,7 +47,7 @@ public final class MMItems {
     public static final RegistryObject<Item> TELEPORTER_CORE_MK3 = registerComponent("teleporter_core_mk3");
     public static final RegistryObject<Item> FRAME_MK3 = registerComponent("frame_mk3");
     public static final RegistryObject<Item> LENS_ASSEMBLY_MK3 = registerComponent("lens_assembly_mk3");
-    public static final RegistryObject<Item> ME_DOWNLINK = registerComponent("me_downlink");
+    public static final RegistryObject<Item> ME_DOWNLINK = ITEMS.register("me_downlink", MMMEDownlinkItem::new);
     public static final RegistryObject<Item> QUANTUM_DOWNLINK = registerComponent("quantum_downlink");
     public static final RegistryObject<Item> BLANK_UPGRADE = registerComponent("blank_upgrade");
     public static final RegistryObject<Item> ENERGY_TUNNEL_UPGRADE = registerComponent("energy_tunnel_upgrade",

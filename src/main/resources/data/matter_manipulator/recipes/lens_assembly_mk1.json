@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LBL",
+    "EIE",
+    "LBL"
+  ],
+  "key": {
+    "L": {
+      "item": "gtceu:light_blue_glass_lens"
+    },
+    "B": {
+      "item": "gtceu:blue_glass_lens"
+    },
+    "E": {
+      "item": "gtceu:iv_emitter"
+    },
+    "I": {
+      "item": "matter_manipulator:prototype_lens_assembly"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:lens_assembly_mk1"
+  }
+}

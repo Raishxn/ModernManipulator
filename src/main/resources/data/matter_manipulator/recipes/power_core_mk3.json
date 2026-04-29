@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EFE",
+    "FIF",
+    "EFE"
+  ],
+  "key": {
+    "E": {
+      "item": "gtceu:zpm_emitter"
+    },
+    "F": {
+      "item": "gtceu:zpm_field_generator"
+    },
+    "I": {
+      "item": "matter_manipulator:power_core_mk2"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:power_core_mk3"
+  }
+}

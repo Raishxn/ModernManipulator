@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GCG",
+    "CEC",
+    "GCG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "C": {
+      "tag": "gtceu:circuits/hv"
+    },
+    "E": {
+      "item": "gtceu:hv_emitter"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:blank_upgrade"
+  }
+}

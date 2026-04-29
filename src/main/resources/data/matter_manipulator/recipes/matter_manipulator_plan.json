@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "PCP",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "C": {
+      "tag": "gtceu:circuits/hv"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:matter_manipulator_plan"
+  }
+}

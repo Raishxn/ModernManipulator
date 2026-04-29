@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RCR",
+    "CBC",
+    "RCR"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "C": {
+      "tag": "gtceu:circuits/iv"
+    },
+    "B": {
+      "item": "matter_manipulator:blank_upgrade"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:adaptive_wiring_harness_upgrade"
+  }
+}

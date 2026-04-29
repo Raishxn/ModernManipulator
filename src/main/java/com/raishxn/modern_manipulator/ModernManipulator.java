@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import com.raishxn.modern_manipulator.common.config.MMConfig;
 import com.raishxn.modern_manipulator.common.item.MMCreativeTabs;
 import com.raishxn.modern_manipulator.common.item.MMItems;
 import com.raishxn.modern_manipulator.common.network.MMNetwork;
@@ -30,6 +31,7 @@ public class ModernManipulator {
         MMItems.ITEMS.register(modEventBus);
         MMCreativeTabs.TABS.register(modEventBus);
         MMRecipes.SERIALIZERS.register(modEventBus);
+        MMConfig.register();
 
         modEventBus.addListener(this::commonSetup);
 

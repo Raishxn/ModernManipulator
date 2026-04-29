@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WWW",
+    "EIE",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "tag": "forge:lenses/white"
+    },
+    "E": {
+      "item": "gtceu:zpm_emitter"
+    },
+    "I": {
+      "item": "matter_manipulator:lens_assembly_mk2"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:lens_assembly_mk3"
+  }
+}

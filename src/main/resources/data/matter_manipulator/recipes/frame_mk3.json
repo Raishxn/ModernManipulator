@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MGM",
+    "CIC",
+    "MGM"
+  ],
+  "key": {
+    "M": {
+      "item": "gtceu:zpm_electric_motor"
+    },
+    "G": {
+      "item": "gtceu:tungstensteel_gearbox"
+    },
+    "C": {
+      "item": "gtceu:zpm_conveyor_module"
+    },
+    "I": {
+      "item": "matter_manipulator:frame_mk2"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:frame_mk3"
+  }
+}

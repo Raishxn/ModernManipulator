@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "CRC",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "gtceu:hv_sensor"
+    },
+    "C": {
+      "tag": "gtceu:circuits/hv"
+    },
+    "R": {
+      "item": "gtceu:hv_robot_arm"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:prototype_computer_core"
+  }
+}
