@@ -900,7 +900,12 @@ public class MatterManipulatorItem extends Item {
             action.recordError(pos);
             return ActionTickResult.running();
         }
-        if (!BlockMovers.canPasteBlock(level, pos, pasteBlock, state.removeMode())) {
+        if (!blueprint.movesSource() && !BlockMovers.canPasteBlock(level, pos, pasteBlock, state.removeMode())) {
+            action.incrementBlocked();
+            action.recordError(pos);
+            return ActionTickResult.running();
+        }
+        if (blueprint.movesSource() && !BlockMovers.canMoveInto(level, pos, state.removeMode())) {
             action.incrementBlocked();
             action.recordError(pos);
             return ActionTickResult.running();
@@ -931,9 +936,18 @@ public class MatterManipulatorItem extends Item {
             action.recordError(pos);
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
         }
-        List<ItemStack> replacedDrops = MMConfig.DROP_REPLACED_BLOCKS_ON_PASTE.get() ?
+        MoveSwapTarget swapTarget = blueprint.movesSource() ? captureMoveSwapTarget(level, pos) : MoveSwapTarget.EMPTY;
+        if (blueprint.movesSource() && !swapTarget.safe()) {
+            action.incrementBlocked();
+            action.recordError(pos);
+            return ActionTickResult.running();
+        }
+        List<ItemStack> replacedDrops = !blueprint.movesSource() && MMConfig.DROP_REPLACED_BLOCKS_ON_PASTE.get() ?
                 blockDrops(level, pos, level.getBlockState(pos), player, stack) : List.of();
-        if (BlockMovers.pasteBlock(level, player, pos, pasteBlock, state.removeMode()) == PasteResult.PLACED) {
+        PasteResult pasteResult = blueprint.movesSource() ?
+                pasteMovedBlock(level, player, pos, pasteBlock, state.removeMode()) :
+                BlockMovers.pasteBlock(level, player, pos, pasteBlock, state.removeMode());
+        if (pasteResult == PasteResult.PLACED) {
             if (blueprint.consumesItems() && !consumeRequiredItem(player, state, new ItemStack(
                     pasteBlock.state().getBlock()))) {
                 level.removeBlock(pos, false);
@@ -954,6 +968,11 @@ public class MatterManipulatorItem extends Item {
                 action.recordError(pos);
                 return ActionTickResult.running();
             }
+            if (blueprint.movesSource() && !restoreMoveSwapTarget(level, player, blueprint, sourceBlock, swapTarget)) {
+                action.incrementBlocked();
+                action.recordError(pos);
+                return ActionTickResult.running();
+            }
             handleDrops(level, pos, player, state, replacedDrops);
             action.incrementRemoved();
         } else {
@@ -961,6 +980,56 @@ public class MatterManipulatorItem extends Item {
             action.recordError(pos);
         }
         return ActionTickResult.running();
+    }
+
+    private MoveSwapTarget captureMoveSwapTarget(Level level, BlockPos pos) {
+        BlockState existingState = level.getBlockState(pos);
+        if (existingState.isAir()) {
+            return MoveSwapTarget.EMPTY;
+        }
+        MMSelection singleBlock = new MMSelection(level.dimension().location(), pos, pos, MMState.Shape.CUBE);
+        CopyResult copyResult = BlockMovers.copyBlock(level, singleBlock, pos);
+        if (copyResult.type() == CopyResultType.COPIED && copyResult.block() != null) {
+            return new MoveSwapTarget(true, copyResult.block());
+        }
+        return new MoveSwapTarget(false, null);
+    }
+
+    private PasteResult pasteMovedBlock(Level level, Player player, BlockPos pos, BlueprintBlock pasteBlock,
+                                        MMState.RemoveMode removeMode) {
+        if (!BlockMovers.canMoveInto(level, pos, removeMode)) {
+            return PasteResult.BLOCKED;
+        }
+        if (!level.getBlockState(pos).isAir()) {
+            level.destroyBlock(pos, false, player);
+        }
+        if (!level.setBlock(pos, pasteBlock.state(), 3)) {
+            return PasteResult.BLOCKED;
+        }
+        if (pasteBlock.blockEntityTag() != null &&
+                !BlockMovers.applyConfigTag(level, player, pos, pasteBlock.blockEntityTag())) {
+            level.removeBlock(pos, false);
+            return PasteResult.BLOCKED;
+        }
+        return PasteResult.PLACED;
+    }
+
+    private boolean restoreMoveSwapTarget(Level level, Player player, Blueprint blueprint, BlueprintBlock sourceBlock,
+                                          MoveSwapTarget swapTarget) {
+        BlockPos sourcePos = blueprint.sourcePos(sourceBlock);
+        if (sourcePos == null) {
+            return false;
+        }
+        if (swapTarget.block() == null) {
+            return true;
+        }
+        return BlockMovers.pasteBlock(level, player, sourcePos, swapTarget.block(), MMState.RemoveMode.ALL) ==
+                PasteResult.PLACED;
+    }
+
+    private record MoveSwapTarget(boolean safe, @Nullable BlueprintBlock block) {
+
+        private static final MoveSwapTarget EMPTY = new MoveSwapTarget(true, null);
     }
 
     private List<BlockPos> pastePositions(MMState state, Blueprint blueprint, BlockPos origin) {
@@ -1073,8 +1142,10 @@ public class MatterManipulatorItem extends Item {
                         BlueprintBlock pasteBlock = state.transformedBlock(blueprint, sourceBlock);
                         BlockPos pos = pasteSelection.min().offset(arrayOffset)
                                 .offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z());
-                        if (!player.mayInteract(level, pos) || !BlockMovers.canPasteBlock(level, pos, pasteBlock,
-                                state.removeMode())) {
+                        boolean canPlace = blueprint.movesSource() ?
+                                BlockMovers.canMoveInto(level, pos, state.removeMode()) :
+                                BlockMovers.canPasteBlock(level, pos, pasteBlock, state.removeMode());
+                        if (!player.mayInteract(level, pos) || !canPlace) {
                             return PastePreflightResult.blocked(Component.translatable(
                                     "message.matter_manipulator.paste.target_blocked",
                                     pos.getX(), pos.getY(), pos.getZ()));
