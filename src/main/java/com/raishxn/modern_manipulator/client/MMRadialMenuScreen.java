@@ -210,10 +210,10 @@ public class MMRadialMenuScreen extends Screen {
 
     private RadialPage buildPlanningPage() {
         RadialPage page = new RadialPage(Component.translatable("matter_manipulator.radial.planning"));
-        page.action("matter_manipulator.radial.plan_missing_manual", Action.UNIMPLEMENTED_RADIAL_OPTION);
-        page.action("matter_manipulator.radial.plan_missing_auto", Action.UNIMPLEMENTED_RADIAL_OPTION);
-        page.action("matter_manipulator.radial.plan_all_manual", Action.UNIMPLEMENTED_RADIAL_OPTION);
-        page.action("matter_manipulator.radial.plan_all_auto", Action.UNIMPLEMENTED_RADIAL_OPTION);
+        page.action("matter_manipulator.radial.plan_missing_manual", Action.PLAN_MISSING_MANUAL);
+        page.action("matter_manipulator.radial.plan_missing_auto", Action.PLAN_MISSING_AUTO);
+        page.action("matter_manipulator.radial.plan_all_manual", Action.PLAN_ALL_MANUAL);
+        page.action("matter_manipulator.radial.plan_all_auto", Action.PLAN_ALL_AUTO);
         return page;
     }
 

@@ -13,9 +13,11 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkEvent;
 
+import com.raishxn.modern_manipulator.common.building.BlueprintMaterials;
 import com.raishxn.modern_manipulator.common.integration.ae2.AE2Integration;
 import com.raishxn.modern_manipulator.common.item.MMCapability;
 import com.raishxn.modern_manipulator.common.item.MMState;
+import com.raishxn.modern_manipulator.common.item.MMState.Blueprint;
 import com.raishxn.modern_manipulator.common.item.MMState.BlockSelectMode;
 import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
 import com.raishxn.modern_manipulator.common.item.MMState.RemoveMode;
@@ -115,6 +117,10 @@ public record ManipulatorConfigPacket(Action action) {
             case CLEAR_EXCHANGE_WHITELIST -> clearExchangeWhitelist(player, stack, state);
             case SET_CABLE -> setCable(player, stack, manipulator, state);
             case CLEAR_CABLE -> clearCable(player, stack, state);
+            case PLAN_MISSING_MANUAL -> analyzePlan(player, state, PlanMode.MISSING, false);
+            case PLAN_MISSING_AUTO -> analyzePlan(player, state, PlanMode.MISSING, true);
+            case PLAN_ALL_MANUAL -> analyzePlan(player, state, PlanMode.ALL, false);
+            case PLAN_ALL_AUTO -> analyzePlan(player, state, PlanMode.ALL, true);
             case UNIMPLEMENTED_RADIAL_OPTION -> player.displayClientMessage(
                     Component.translatable("message.matter_manipulator.radial.not_implemented"), true);
             case RUN_ACTION -> manipulator.runConfiguredAction(stack, player, player.level());
@@ -277,6 +283,67 @@ public record ManipulatorConfigPacket(Action action) {
         state.clearCable();
         MatterManipulatorItem.setState(stack, state);
         player.displayClientMessage(Component.translatable("message.matter_manipulator.cables.cable_cleared"), true);
+    }
+
+    private static void analyzePlan(ServerPlayer player, MMState state, PlanMode mode, boolean auto) {
+        Blueprint blueprint = state.blueprint();
+        if (blueprint == null) {
+            player.displayClientMessage(Component.translatable("message.matter_manipulator.plan.no_blueprint"), true);
+            return;
+        }
+
+        int missingTypes = 0;
+        long missingTotal = 0L;
+        long requiredTotal = 0L;
+        ItemStack firstMissing = ItemStack.EMPTY;
+        int firstMissingAmount = 0;
+        int firstMissingAvailable = 0;
+        for (ItemStack requiredItem : BlueprintMaterials.requiredItems(blueprint, state.pasteArrayCopies())) {
+            requiredTotal += requiredItem.getCount();
+            int available = countAvailableItems(player, state, requiredItem);
+            int missing = Math.max(0, requiredItem.getCount() - available);
+            if (missing > 0) {
+                missingTypes++;
+                missingTotal += missing;
+                if (firstMissing.isEmpty()) {
+                    firstMissing = requiredItem.copyWithCount(1);
+                    firstMissingAmount = missing;
+                    firstMissingAvailable = available;
+                }
+            }
+        }
+
+        if (mode == PlanMode.MISSING && missingTypes == 0) {
+            player.displayClientMessage(Component.translatable(
+                    auto ? "message.matter_manipulator.plan.auto_not_needed" :
+                            "message.matter_manipulator.plan.missing_none"), true);
+            return;
+        }
+        if (auto) {
+            player.displayClientMessage(Component.translatable(
+                    "message.matter_manipulator.plan.auto_analysis_only", missingTypes, missingTotal), true);
+            return;
+        }
+        if (mode == PlanMode.ALL) {
+            player.displayClientMessage(Component.translatable("message.matter_manipulator.plan.all_manual",
+                    requiredTotal, BlueprintMaterials.requiredItems(blueprint, state.pasteArrayCopies()).size()), true);
+            return;
+        }
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.plan.missing_manual",
+                missingTypes, missingTotal, firstMissing.getHoverName(), firstMissingAmount, firstMissingAvailable),
+                true);
+    }
+
+    private static int countAvailableItems(ServerPlayer player, MMState state, ItemStack wanted) {
+        long available = 0L;
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack candidate = player.getInventory().getItem(i);
+            if (ItemStack.isSameItemSameTags(candidate, wanted)) {
+                available += candidate.getCount();
+            }
+        }
+        available += AE2Integration.countItem(player, state, wanted);
+        return available > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) available;
     }
 
     private static void updateTransform(ServerPlayer player, ItemStack stack, MMState state, TransformAction action) {
@@ -553,6 +620,11 @@ public record ManipulatorConfigPacket(Action action) {
         RESET
     }
 
+    private enum PlanMode {
+        MISSING,
+        ALL
+    }
+
     public enum Action {
         NEXT_MODE,
         PREVIOUS_MODE,
@@ -615,6 +687,10 @@ public record ManipulatorConfigPacket(Action action) {
         CLEAR_EXCHANGE_WHITELIST,
         SET_CABLE,
         CLEAR_CABLE,
+        PLAN_MISSING_MANUAL,
+        PLAN_MISSING_AUTO,
+        PLAN_ALL_MANUAL,
+        PLAN_ALL_AUTO,
         RUN_ACTION,
         TOGGLE_PENDING_PAUSE,
         CANCEL_PENDING,
