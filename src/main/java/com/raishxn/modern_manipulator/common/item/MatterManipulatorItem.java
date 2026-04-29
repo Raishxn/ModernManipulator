@@ -676,10 +676,19 @@ public class MatterManipulatorItem extends Item {
                 continue;
             }
 
-            if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
+            if (!level.getWorldBorder().isWithinBounds(pos)) {
                 action.incrementSkipped();
                 action.recordWarning(pos);
                 continue;
+            }
+            if (!level.isLoaded(pos)) {
+                action.rewindCursor();
+                action.recordWarning(pos);
+                action.setPaused(true);
+                player.displayClientMessage(Component.translatable(
+                        "message.matter_manipulator.pending.paused_unloaded_chunk",
+                        pos.getX(), pos.getY(), pos.getZ()), true);
+                return ActionTickResult.running();
             }
             BlockState blockState = level.getBlockState(pos);
             if (action.type() != PendingActionType.PASTE && action.type() != PendingActionType.CABLE_PLACE &&
