@@ -204,6 +204,25 @@ public final class BlockMovers {
         return safeConfigTag(blockEntity);
     }
 
+    public static @Nullable CompoundTag copyExchangeConfig(Level level, BlockPos pos) {
+        if (!level.isLoaded(pos)) {
+            return null;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity == null) {
+            return null;
+        }
+        CompoundTag configTag = safeConfigTag(blockEntity);
+        if (configTag == null || !additionalRequiredItems(configTag).isEmpty()) {
+            return null;
+        }
+        return configTag;
+    }
+
+    public static boolean applyConfigTag(Level level, Player player, BlockPos pos, CompoundTag sourceTag) {
+        return applyBlockEntityTag(level, player, pos, sourceTag);
+    }
+
     public static ListTag additionalRequiredItems(@Nullable CompoundTag blockEntityTag) {
         if (blockEntityTag == null || !blockEntityTag.contains(TAG_REQUIRED_ITEMS, Tag.TAG_LIST)) {
             return new ListTag();
