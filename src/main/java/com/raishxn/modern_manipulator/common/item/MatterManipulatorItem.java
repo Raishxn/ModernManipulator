@@ -636,7 +636,8 @@ public class MatterManipulatorItem extends Item {
         if (!preflightResult.valid()) {
             return ActionStartResult.error(preflightResult.message());
         }
-        PendingAction action = new PendingAction(PendingActionType.PASTE, pasteSelection);
+        PendingAction action = new PendingAction(PendingActionType.PASTE, pasteSelection, ItemStack.EMPTY,
+                MMState.BlockSelectMode.ALL, pastePositions(state, blueprint, min));
         state.startPendingAction(action);
         setState(stack, state);
         return new ActionStartResult(true, Component.translatable("message.matter_manipulator.paste.started",
@@ -664,7 +665,7 @@ public class MatterManipulatorItem extends Item {
         int attemptedThisTick = 0;
 
         while (attemptedThisTick < actionLimit && !action.isComplete()) {
-            BlockPos pos = action.selection().positionAt(action.cursor());
+            BlockPos pos = action.positionAt(action.cursor());
             action.advanceCursor();
             attemptedThisTick++;
             if (!action.selection().contains(pos)) {
@@ -958,6 +959,25 @@ public class MatterManipulatorItem extends Item {
             action.recordError(pos);
         }
         return ActionTickResult.running();
+    }
+
+    private List<BlockPos> pastePositions(MMState state, Blueprint blueprint, BlockPos origin) {
+        List<BlockPos> positions = new java.util.ArrayList<>();
+        int strideX = state.pasteSizeX(blueprint);
+        int strideY = blueprint.sizeY();
+        int strideZ = state.pasteSizeZ(blueprint);
+        for (int arrayY = 0; arrayY < state.pasteArrayY(); arrayY++) {
+            for (int arrayZ = 0; arrayZ < state.pasteArrayZ(); arrayZ++) {
+                for (int arrayX = 0; arrayX < state.pasteArrayX(); arrayX++) {
+                    BlockPos arrayOrigin = origin.offset(arrayX * strideX, arrayY * strideY, arrayZ * strideZ);
+                    for (BlueprintBlock sourceBlock : blueprint.blocks()) {
+                        BlueprintBlock pasteBlock = state.transformedBlock(blueprint, sourceBlock);
+                        positions.add(arrayOrigin.offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z()));
+                    }
+                }
+            }
+        }
+        return positions;
     }
 
     private boolean removeBlockWithDrops(Level level, BlockPos pos, Player player, MMState state,
