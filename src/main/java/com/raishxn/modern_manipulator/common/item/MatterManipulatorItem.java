@@ -799,7 +799,11 @@ public class MatterManipulatorItem extends Item {
         if (!(replacement.getItem() instanceof BlockItem blockItem)) {
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.exchange.no_block"));
         }
+        CompoundTag exchangeConfig = null;
         if (level.getBlockEntity(pos) != null) {
+            exchangeConfig = BlockMovers.copyExchangeConfig(level, pos);
+        }
+        if (level.getBlockEntity(pos) != null && exchangeConfig == null) {
             action.incrementBlocked();
             action.recordError(pos);
             return ActionTickResult.running();
@@ -812,6 +816,11 @@ public class MatterManipulatorItem extends Item {
         BlockState replacementState = state.exchangeReplacementState() == null ?
                 blockItem.getBlock().defaultBlockState() : state.exchangeReplacementState();
         replacementState = copyCompatibleProperties(blockState, replacementState);
+        if (exchangeConfig != null && !replacementState.hasBlockEntity()) {
+            action.incrementBlocked();
+            action.recordError(pos);
+            return ActionTickResult.running();
+        }
         if (!replacementState.canSurvive(level, pos) || !level.getFluidState(pos).is(Fluids.EMPTY)) {
             action.incrementBlocked();
             action.recordError(pos);
@@ -831,6 +840,12 @@ public class MatterManipulatorItem extends Item {
         }
         List<ItemStack> drops = blockDrops(level, pos, blockState, player, stack);
         if (!level.setBlock(pos, replacementState, 3)) {
+            action.incrementBlocked();
+            action.recordError(pos);
+            return ActionTickResult.running();
+        }
+        if (exchangeConfig != null && !BlockMovers.applyConfigTag(level, player, pos, exchangeConfig)) {
+            level.removeBlock(pos, false);
             action.incrementBlocked();
             action.recordError(pos);
             return ActionTickResult.running();
