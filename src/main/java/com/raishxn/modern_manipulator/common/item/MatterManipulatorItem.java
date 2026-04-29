@@ -9,7 +9,11 @@ import com.gregtechceu.gtceu.api.item.component.ElectricStats;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -23,7 +27,10 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -31,6 +38,13 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 
+import com.raishxn.modern_manipulator.common.building.BlockMovers;
+import com.raishxn.modern_manipulator.common.building.BlockMovers.CopyResult;
+import com.raishxn.modern_manipulator.common.building.BlockMovers.CopyResultType;
+import com.raishxn.modern_manipulator.common.building.BlockMovers.PasteResult;
+import com.raishxn.modern_manipulator.common.building.BlueprintMaterials;
+import com.raishxn.modern_manipulator.common.config.MMConfig;
+import com.raishxn.modern_manipulator.common.integration.ae2.AE2Integration;
 import com.raishxn.modern_manipulator.common.item.MMState.Blueprint;
 import com.raishxn.modern_manipulator.common.item.MMState.BlueprintBlock;
 import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
@@ -77,9 +91,14 @@ public class MatterManipulatorItem extends Item {
                 .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.matter_manipulator.shape", state.shape().displayName())
                 .withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable("tooltip.matter_manipulator.block_select_mode",
+                state.blockSelectMode().displayName()).withStyle(ChatFormatting.GRAY));
+        appendExchangeTooltip(state, tooltip);
+        appendCableTooltip(state, tooltip);
         appendCoordTooltip(tooltip, "tooltip.matter_manipulator.coord_a", state.coordA());
         appendCoordTooltip(tooltip, "tooltip.matter_manipulator.coord_b", state.coordB());
         appendCoordTooltip(tooltip, "tooltip.matter_manipulator.coord_c", state.coordC());
+        appendCoordTooltip(tooltip, "tooltip.matter_manipulator.me_downlink", state.meDownlink());
         appendBlueprintTooltip(state, tooltip);
         appendSelectionTooltip(state, tooltip);
         appendPendingTooltip(state, tooltip);
@@ -93,8 +112,10 @@ public class MatterManipulatorItem extends Item {
         Level level = context.getLevel();
         if (!level.isClientSide && context.getPlayer() != null) {
             MMState state = getState(stack);
-            MarkedPosition markedPosition = new MarkedPosition(level.dimension().location(), context.getClickedPos());
             boolean setCoordB = context.getPlayer().isShiftKeyDown();
+            BlockPos selectedPos = setCoordB ? context.getClickedPos() :
+                    context.getClickedPos().relative(context.getClickedFace());
+            MarkedPosition markedPosition = new MarkedPosition(level.dimension().location(), selectedPos);
             if (setCoordB) {
                 state.setCoordB(markedPosition);
             } else if ((state.mode() == MMState.ToolMode.COPYING || state.mode() == MMState.ToolMode.MOVING) &&
@@ -130,23 +151,34 @@ public class MatterManipulatorItem extends Item {
             return InteractionResultHolder.success(stack);
         }
 
+        InteractionResult result = runConfiguredAction(stack, player, level);
+        return result == InteractionResult.SUCCESS ? InteractionResultHolder.success(stack) :
+                InteractionResultHolder.fail(stack);
+    }
+
+    public InteractionResult runConfiguredAction(ItemStack stack, Player player, Level level) {
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
         MMState state = getState(stack);
         PendingAction pendingAction = state.pendingAction();
         if (pendingAction != null) {
             state.clearPendingAction();
             setState(stack, state);
             player.displayClientMessage(Component.translatable("message.matter_manipulator.pending.cancelled"), true);
-            return InteractionResultHolder.success(stack);
+            return InteractionResult.SUCCESS;
         }
 
         ActionStartResult result = switch (state.mode()) {
             case EXCHANGING -> startExchangeSelection(stack, player, level, state);
-            case GEOMETRY, CABLES -> startRemoveSelection(stack, player, level, state);
+            case GEOMETRY -> startRemoveSelection(stack, player, level, state);
+            case CABLES -> startCableSelection(stack, player, level, state);
             case COPYING -> startCopyOrPaste(stack, player, level, state);
             case MOVING -> startMoveOrPaste(stack, player, level, state);
         };
         player.displayClientMessage(result.message(), true);
-        return result.started() ? InteractionResultHolder.success(stack) : InteractionResultHolder.fail(stack);
+        return result.started() ? InteractionResult.SUCCESS : InteractionResult.FAIL;
     }
 
     @Override
@@ -160,6 +192,9 @@ public class MatterManipulatorItem extends Item {
         if (action == null) {
             return;
         }
+        if (action.paused()) {
+            return;
+        }
         if (action.tickCooldown() > 0) {
             action.decrementTickCooldown();
             setState(stack, state);
@@ -167,12 +202,19 @@ public class MatterManipulatorItem extends Item {
         }
 
         ActionTickResult result = tickPendingAction(stack, player, level, state, action);
-        action.setTickCooldown(Math.max(1, tier.placeTicks()) - 1);
+        action.setTickCooldown(effectivePlaceTicks(state) - 1);
         if (result.finished()) {
-            Component message = result.message() == null ? action.resultText() : result.message();
-            if (action.type() == PendingActionType.PASTE && state.blueprint() != null &&
-                    !state.blueprint().consumesItems()) {
-                state.setBlueprint(null);
+            Component message = result.message() == null ? action.resultText(state.blueprint()) : result.message();
+            if (action.type() == PendingActionType.PASTE) {
+                if (state.blueprint() != null && !state.blueprint().consumesItems()) {
+                    state.setBlueprint(null);
+                }
+                if (MMConfig.CLEAR_PASTE_TARGET_AFTER_PASTE.get()) {
+                    state.clearCoordC();
+                }
+                if (MMConfig.RESET_TRANSFORM_AFTER_PASTE.get()) {
+                    state.resetTransform();
+                }
             }
             state.clearPendingAction();
             player.displayClientMessage(message, true);
@@ -239,6 +281,39 @@ public class MatterManipulatorItem extends Item {
         if (blueprint != null) {
             tooltip.add(Component.translatable("tooltip.matter_manipulator.blueprint", blueprint.sizeX(),
                     blueprint.sizeY(), blueprint.sizeZ(), blueprint.volume()).withStyle(ChatFormatting.AQUA));
+            if (state.pasteArrayCopies() > 1) {
+                tooltip.add(Component.translatable("tooltip.matter_manipulator.array",
+                        state.pasteArrayX(), state.pasteArrayY(), state.pasteArrayZ(),
+                        blueprint.volume() * state.pasteArrayCopies()).withStyle(ChatFormatting.DARK_AQUA));
+            }
+            if (state.hasPasteOffset()) {
+                tooltip.add(Component.translatable("tooltip.matter_manipulator.offset",
+                        state.pasteOffsetX(), state.pasteOffsetY(), state.pasteOffsetZ())
+                        .withStyle(ChatFormatting.DARK_AQUA));
+            }
+            appendRequiredItemsTooltip(blueprint, state.pasteArrayCopies(), tooltip);
+        }
+    }
+
+    private void appendRequiredItemsTooltip(Blueprint blueprint, long multiplier, List<Component> tooltip) {
+        List<ItemStack> requiredItems = BlueprintMaterials.requiredItems(blueprint, multiplier);
+        if (requiredItems.isEmpty()) {
+            return;
+        }
+        tooltip.add(Component.translatable("tooltip.matter_manipulator.required_items")
+                .withStyle(ChatFormatting.GRAY));
+        int shown = 0;
+        for (ItemStack requiredItem : requiredItems) {
+            if (shown >= 8) {
+                tooltip.add(Component.translatable("tooltip.matter_manipulator.required_items_more",
+                        requiredItems.size() - shown).withStyle(ChatFormatting.DARK_GRAY));
+                return;
+            }
+            tooltip.add(Component.literal("  ")
+                    .append(Component.translatable("tooltip.matter_manipulator.required_item",
+                            requiredItem.getHoverName(), requiredItem.getCount()))
+                    .withStyle(ChatFormatting.DARK_GRAY));
+            shown++;
         }
     }
 
@@ -259,6 +334,27 @@ public class MatterManipulatorItem extends Item {
         } else {
             tooltip.add(Component.translatable("tooltip.matter_manipulator.max_range_unlimited")
                     .withStyle(ChatFormatting.DARK_GRAY));
+        }
+    }
+
+    private void appendExchangeTooltip(MMState state, List<Component> tooltip) {
+        if (state.exchangeReplacement().isEmpty() && !state.hasExchangeWhitelist()) {
+            return;
+        }
+        if (!state.exchangeReplacement().isEmpty()) {
+            tooltip.add(Component.translatable("tooltip.matter_manipulator.exchange_replacement",
+                    state.exchangeReplacement().getHoverName()).withStyle(ChatFormatting.DARK_AQUA));
+        }
+        if (state.hasExchangeWhitelist()) {
+            tooltip.add(Component.translatable("tooltip.matter_manipulator.exchange_whitelist",
+                    state.exchangeWhitelist().size()).withStyle(ChatFormatting.DARK_AQUA));
+        }
+    }
+
+    private void appendCableTooltip(MMState state, List<Component> tooltip) {
+        if (!state.cableStack().isEmpty()) {
+            tooltip.add(Component.translatable("tooltip.matter_manipulator.cable",
+                    state.cableStack().getHoverName()).withStyle(ChatFormatting.DARK_AQUA));
         }
     }
 
@@ -307,16 +403,59 @@ public class MatterManipulatorItem extends Item {
         if (!selection.dimension().equals(level.dimension().location())) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
         }
+        ActionStartResult sizeResult = validateSelectionSize(selection);
+        if (sizeResult != null) {
+            return sizeResult;
+        }
         if (!selection.isInPlayerRange(player, tier.maxRange())) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
                     tier.maxRange()));
         }
 
-        PendingAction action = new PendingAction(PendingActionType.REMOVE, selection);
+        PendingAction action = new PendingAction(PendingActionType.REMOVE, selection, ItemStack.EMPTY,
+                state.blockSelectMode());
         state.startPendingAction(action);
         setState(stack, state);
         return new ActionStartResult(true, Component.translatable("message.matter_manipulator.remove.started",
                 selection.describe()));
+    }
+
+    private ActionStartResult startCableSelection(ItemStack stack, Player player, Level level, MMState state) {
+        if (!state.hasCapability(tier, MMCapability.ALLOW_CABLES)) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.cables.no_capability"));
+        }
+
+        MMSelection selection = state.selection();
+        if (selection == null) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.no_selection"));
+        }
+        if (!selection.dimension().equals(level.dimension().location())) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
+        }
+        ActionStartResult sizeResult = validateSelectionSize(selection);
+        if (sizeResult != null) {
+            return sizeResult;
+        }
+        if (!selection.isInPlayerRange(player, tier.maxRange())) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
+                    tier.maxRange()));
+        }
+
+        PendingAction action;
+        Component message;
+        if (state.cableStack().isEmpty()) {
+            action = new PendingAction(PendingActionType.CABLE_REMOVE, selection, ItemStack.EMPTY,
+                    state.blockSelectMode());
+            message = Component.translatable("message.matter_manipulator.cables.started", selection.describe());
+        } else {
+            action = new PendingAction(PendingActionType.CABLE_PLACE, selection, state.cableStack(),
+                    state.blockSelectMode());
+            message = Component.translatable("message.matter_manipulator.cables.place.started",
+                    selection.describe(), state.cableStack().getHoverName());
+        }
+        state.startPendingAction(action);
+        setState(stack, state);
+        return new ActionStartResult(true, message);
     }
 
     private ActionStartResult startExchangeSelection(ItemStack stack, Player player, Level level, MMState state) {
@@ -332,20 +471,32 @@ public class MatterManipulatorItem extends Item {
         if (!selection.dimension().equals(level.dimension().location())) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
         }
+        ActionStartResult sizeResult = validateSelectionSize(selection);
+        if (sizeResult != null) {
+            return sizeResult;
+        }
         if (!selection.isInPlayerRange(player, tier.maxRange())) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
                     tier.maxRange()));
         }
 
-        ItemStack replacement = player.getOffhandItem();
+        ItemStack replacement = state.exchangeReplacement();
+        if (replacement.isEmpty() && player.getOffhandItem().getItem() instanceof BlockItem) {
+            replacement = player.getOffhandItem().copyWithCount(1);
+        }
         if (!(replacement.getItem() instanceof BlockItem)) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.exchange.no_block"));
         }
-        if (!player.isCreative() && replacement.getCount() <= 0) {
+        if (!player.isCreative() && countAvailableItems(player, state, replacement.copyWithCount(1)) <= 0) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.exchange.no_items"));
         }
+        if (!state.hasExchangeWhitelist()) {
+            return ActionStartResult.error(Component.translatable(
+                    "message.matter_manipulator.exchange.no_whitelist"));
+        }
 
-        PendingAction action = new PendingAction(PendingActionType.EXCHANGE, selection, replacement.copyWithCount(1));
+        PendingAction action = new PendingAction(PendingActionType.EXCHANGE, selection, replacement.copyWithCount(1),
+                state.blockSelectMode());
         state.startPendingAction(action);
         setState(stack, state);
         return new ActionStartResult(true, Component.translatable("message.matter_manipulator.exchange.started",
@@ -373,7 +524,7 @@ public class MatterManipulatorItem extends Item {
         if (!copyResult.started()) {
             return copyResult;
         }
-        return startRemoveSelection(stack, player, level, state);
+        return copyResult;
     }
 
     private ActionStartResult copySelection(ItemStack stack, Player player, Level level, MMState state,
@@ -385,33 +536,53 @@ public class MatterManipulatorItem extends Item {
         if (!selection.dimension().equals(level.dimension().location())) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
         }
+        ActionStartResult sizeResult = validateSelectionSize(selection);
+        if (sizeResult != null) {
+            return sizeResult;
+        }
         if (!selection.isInPlayerRange(player, tier.maxRange())) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
                     tier.maxRange()));
         }
 
         List<BlueprintBlock> blocks = new java.util.ArrayList<>();
+        int unsafeSkipped = 0;
         for (BlockPos pos : selection.positions()) {
-            if (!selection.contains(pos)) {
+            if (!selection.contains(pos, state.blockSelectMode())) {
                 continue;
             }
-            if (!level.isLoaded(pos) || level.getBlockEntity(pos) != null) {
-                continue;
+            if (moving && !player.mayInteract(level, pos)) {
+                return ActionStartResult.error(Component.translatable(
+                        "message.matter_manipulator.move.protected_source",
+                        pos.getX(), pos.getY(), pos.getZ()));
             }
-            BlockState blockState = level.getBlockState(pos);
-            if (!blockState.isAir()) {
-                blocks.add(new BlueprintBlock(pos.getX() - selection.min().getX(),
-                        pos.getY() - selection.min().getY(),
-                        pos.getZ() - selection.min().getZ(), blockState));
+            CopyResult copyResult = BlockMovers.copyBlock(level, selection, pos);
+            if (copyResult.type() == CopyResultType.COPIED && copyResult.block() != null) {
+                blocks.add(copyResult.block());
+            } else if (copyResult.type() == CopyResultType.UNSAFE && moving && copyResult.pos() != null) {
+                return ActionStartResult.error(Component.translatable(
+                        "message.matter_manipulator.move.unsafe_block_entity",
+                        copyResult.pos().getX(), copyResult.pos().getY(), copyResult.pos().getZ()));
+            } else if (copyResult.type() == CopyResultType.UNSAFE) {
+                unsafeSkipped++;
             }
         }
+        if (blocks.isEmpty()) {
+            return ActionStartResult.error(Component.translatable(moving ?
+                    "message.matter_manipulator.move.no_blocks" : "message.matter_manipulator.copy.no_blocks"));
+        }
         Blueprint blueprint = new Blueprint(selection.sizeX(), selection.sizeY(), selection.sizeZ(),
-                List.copyOf(blocks), !moving);
+                List.copyOf(blocks), !moving, moving ? selection.dimension() : null, moving ? selection.min() : null);
         state.setBlueprint(blueprint);
         setState(stack, state);
-        return new ActionStartResult(true, Component.translatable(
-                moving ? "message.matter_manipulator.move.copied" : "message.matter_manipulator.copy.copied",
-                blueprint.volume(), selection.describe()));
+        if (moving) {
+            return new ActionStartResult(true, Component.translatable("message.matter_manipulator.move.copied",
+                    blueprint.volume(), selection.describe()));
+        }
+        String messageKey = unsafeSkipped > 0 ? "message.matter_manipulator.copy.copied_with_skips" :
+                "message.matter_manipulator.copy.copied";
+        return new ActionStartResult(true, Component.translatable(messageKey, blueprint.volume(),
+                selection.describe(), unsafeSkipped));
     }
 
     private ActionStartResult startPaste(ItemStack stack, Player player, Level level, MMState state) {
@@ -427,23 +598,56 @@ public class MatterManipulatorItem extends Item {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.wrong_dimension"));
         }
 
-        BlockPos min = coordC.pos();
-        BlockPos max = min.offset(blueprint.sizeX() - 1, blueprint.sizeY() - 1, blueprint.sizeZ() - 1);
+        BlockPos min = state.pasteOrigin(coordC.pos());
+        BlockPos max = min.offset(state.pasteArraySizeX(blueprint) - 1, state.pasteArraySizeY(blueprint) - 1,
+                state.pasteArraySizeZ(blueprint) - 1);
         MMSelection pasteSelection = new MMSelection(level.dimension().location(), min, max, MMState.Shape.CUBE);
+        ActionStartResult sizeResult = validateSelectionSize(pasteSelection);
+        if (sizeResult != null) {
+            return sizeResult;
+        }
         if (!pasteSelection.isInPlayerRange(player, tier.maxRange())) {
             return ActionStartResult.error(Component.translatable("message.matter_manipulator.remove.out_of_range",
                     tier.maxRange()));
+        }
+        if (blueprint.movesSource()) {
+            if (state.pasteArrayCopies() > 1) {
+                return ActionStartResult.error(Component.translatable("message.matter_manipulator.move.array_blocked"));
+            }
+            if (!level.dimension().location().equals(blueprint.sourceDimension())) {
+                return ActionStartResult.error(Component.translatable(
+                        "message.matter_manipulator.move.source_wrong_dimension"));
+            }
+            MMSelection sourceBounds = new MMSelection(blueprint.sourceDimension(), blueprint.sourceMin(),
+                    blueprint.sourceMin().offset(blueprint.sizeX() - 1, blueprint.sizeY() - 1,
+                            blueprint.sizeZ() - 1),
+                    MMState.Shape.CUBE);
+            if (selectionsIntersect(sourceBounds, pasteSelection)) {
+                return ActionStartResult.error(Component.translatable(
+                        "message.matter_manipulator.move.overlaps_source"));
+            }
+        }
+        MissingItem missingItem = missingRequiredItem(player, state, blueprint, state.pasteArrayCopies());
+        if (missingItem != null) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.paste.missing_items",
+                    missingItem.stack().getHoverName(), missingItem.stack().getCount(), missingItem.available()));
+        }
+        PastePreflightResult preflightResult = validatePasteTargets(level, player, state, blueprint, pasteSelection);
+        if (!preflightResult.valid()) {
+            return ActionStartResult.error(preflightResult.message());
         }
         PendingAction action = new PendingAction(PendingActionType.PASTE, pasteSelection);
         state.startPendingAction(action);
         setState(stack, state);
         return new ActionStartResult(true, Component.translatable("message.matter_manipulator.paste.started",
-                blueprint.volume(), coordC.shortText()));
+                blueprint.volume() * state.pasteArrayCopies(), coordC.shortText()));
     }
 
     private ActionTickResult tickPendingAction(ItemStack stack, Player player, Level level, MMState state,
                                                PendingAction action) {
-        if (action.type() != PendingActionType.REMOVE && action.type() != PendingActionType.EXCHANGE &&
+        if (action.type() != PendingActionType.REMOVE && action.type() != PendingActionType.CABLE_REMOVE &&
+                action.type() != PendingActionType.CABLE_PLACE &&
+                action.type() != PendingActionType.EXCHANGE &&
                 action.type() != PendingActionType.PASTE) {
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.pending.unknown"));
         }
@@ -456,7 +660,7 @@ public class MatterManipulatorItem extends Item {
                     tier.maxRange()));
         }
 
-        int actionLimit = tier.placeSpeed() < 0 ? MK3_BLOCKS_PER_OPERATION : tier.placeSpeed();
+        int actionLimit = effectiveBlocksPerOperation(state);
         int attemptedThisTick = 0;
 
         while (attemptedThisTick < actionLimit && !action.isComplete()) {
@@ -466,24 +670,48 @@ public class MatterManipulatorItem extends Item {
             if (!action.selection().contains(pos)) {
                 continue;
             }
+            if (action.type() != PendingActionType.PASTE &&
+                    !action.selection().contains(pos, action.blockSelectMode())) {
+                action.incrementSkipped();
+                continue;
+            }
 
             if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
                 action.incrementSkipped();
+                action.recordWarning(pos);
                 continue;
             }
             BlockState blockState = level.getBlockState(pos);
-            if (action.type() != PendingActionType.PASTE && blockState.isAir()) {
+            if (action.type() != PendingActionType.PASTE && action.type() != PendingActionType.CABLE_PLACE &&
+                    blockState.isAir()) {
                 action.incrementSkipped();
+                action.recordWarning(pos);
                 continue;
             }
-            if (action.type() != PendingActionType.PASTE &&
+            if (action.type() != PendingActionType.PASTE && action.type() != PendingActionType.CABLE_PLACE &&
                     (blockState.getDestroySpeed(level, pos) < 0.0F || !player.mayInteract(level, pos))) {
                 action.incrementBlocked();
+                action.recordError(pos);
+                continue;
+            }
+            if (action.type() == PendingActionType.CABLE_PLACE && !player.mayInteract(level, pos)) {
+                action.incrementBlocked();
+                action.recordError(pos);
+                continue;
+            }
+            if (action.type() == PendingActionType.CABLE_REMOVE && !BlockMovers.isCableLike(blockState)) {
+                action.incrementSkipped();
+                action.recordWarning(pos);
+                continue;
+            }
+            if (action.type() == PendingActionType.EXCHANGE && !state.isExchangeWhitelisted(blockState)) {
+                action.incrementSkipped();
                 continue;
             }
 
             ActionTickResult result = switch (action.type()) {
-                case REMOVE -> removeBlock(stack, player, level, pos, blockState, state, action);
+                case REMOVE, CABLE_REMOVE -> removeBlock(stack, player, level, pos, blockState, state, action);
+                case CABLE_PLACE -> placeCable(stack, player, level, pos, state, action);
                 case EXCHANGE -> exchangeBlock(stack, player, level, pos, blockState, state, action);
                 case PASTE -> pasteBlock(stack, player, level, pos, state, action);
             };
@@ -492,7 +720,8 @@ public class MatterManipulatorItem extends Item {
             }
         }
 
-        return action.isComplete() ? ActionTickResult.finished(action.resultText()) : ActionTickResult.running();
+        return action.isComplete() ? ActionTickResult.finished(action.resultText(state.blueprint())) :
+                ActionTickResult.running();
     }
 
     private ActionTickResult removeBlock(ItemStack stack, Player player, Level level, BlockPos pos,
@@ -500,12 +729,66 @@ public class MatterManipulatorItem extends Item {
         long euCost = operationCost(level, player, pos, blockState, state);
         if (!consumeEnergy(stack, player, euCost)) {
             action.incrementOutOfPower();
+            action.recordError(pos);
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
         }
-        if (level.destroyBlock(pos, true, player)) {
+        if (removeBlockWithDrops(level, pos, player, state, stack)) {
             action.incrementRemoved();
         } else {
             action.incrementBlocked();
+            action.recordError(pos);
+        }
+        return ActionTickResult.running();
+    }
+
+    private ActionTickResult placeCable(ItemStack stack, Player player, Level level, BlockPos pos,
+                                        MMState state, PendingAction action) {
+        ItemStack cableStack = action.replacement();
+        BlockState cableState = state.cableState();
+        if (!(cableStack.getItem() instanceof BlockItem blockItem)) {
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.cables.no_cable"));
+        }
+        if (cableState == null) {
+            cableState = blockItem.getBlock().defaultBlockState();
+        }
+        if (!BlockMovers.isCableLike(cableState)) {
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.cables.not_cable"));
+        }
+        if (level.getBlockState(pos).equals(cableState)) {
+            action.incrementSkipped();
+            return ActionTickResult.running();
+        }
+        CompoundTag cableConfig = BlockMovers.copyCableConfig(level, pos);
+        BlueprintBlock cableBlock = new BlueprintBlock(0, 0, 0, cableState, cableConfig);
+        if (!cableState.canSurvive(level, pos) || !level.getFluidState(pos).is(Fluids.EMPTY)) {
+            action.incrementBlocked();
+            action.recordError(pos);
+            return ActionTickResult.running();
+        }
+        if (!player.isCreative() && countAvailableItems(player, state, cableStack.copyWithCount(1)) <= 0) {
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.cables.no_items"));
+        }
+
+        long euCost = operationCost(level, player, pos, cableState, state);
+        if (!consumeEnergy(stack, player, euCost)) {
+            action.incrementOutOfPower();
+            action.recordError(pos);
+            return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
+        }
+        List<ItemStack> replacedDrops = MMConfig.DROP_REPLACED_BLOCKS_ON_PASTE.get() ?
+                blockDrops(level, pos, level.getBlockState(pos), player, stack) : List.of();
+        if (BlockMovers.pasteCableBlock(level, player, pos, cableBlock, state.removeMode()) == PasteResult.PLACED) {
+            if (!player.isCreative() && !consumeRequiredItem(player, state, cableStack.copyWithCount(1))) {
+                level.removeBlock(pos, false);
+                action.incrementBlocked();
+                action.recordError(pos);
+                return ActionTickResult.running();
+            }
+            handleDrops(level, pos, player, state, replacedDrops);
+            action.incrementRemoved();
+        } else {
+            action.incrementBlocked();
+            action.recordError(pos);
         }
         return ActionTickResult.running();
     }
@@ -518,36 +801,41 @@ public class MatterManipulatorItem extends Item {
         }
         if (level.getBlockEntity(pos) != null) {
             action.incrementBlocked();
+            action.recordError(pos);
             return ActionTickResult.running();
         }
 
-        ItemStack paymentStack = player.isCreative() ? replacement : findMatchingStack(player, replacement);
-        if (!player.isCreative() && paymentStack.isEmpty()) {
+        if (!player.isCreative() && countAvailableItems(player, state, replacement.copyWithCount(1)) <= 0) {
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.exchange.no_items"));
         }
 
-        BlockState replacementState = blockItem.getBlock().defaultBlockState();
+        BlockState replacementState = state.exchangeReplacementState() == null ?
+                blockItem.getBlock().defaultBlockState() : state.exchangeReplacementState();
+        replacementState = copyCompatibleProperties(blockState, replacementState);
         if (!replacementState.canSurvive(level, pos) || !level.getFluidState(pos).is(Fluids.EMPTY)) {
             action.incrementBlocked();
+            action.recordError(pos);
             return ActionTickResult.running();
         }
 
         long euCost = operationCost(level, player, pos, blockState, state);
         if (!consumeEnergy(stack, player, euCost)) {
             action.incrementOutOfPower();
+            action.recordError(pos);
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
         }
-        if (!level.destroyBlock(pos, true, player)) {
+        if (!player.isCreative() && !consumeRequiredItem(player, state, replacement.copyWithCount(1))) {
             action.incrementBlocked();
+            action.recordError(pos);
             return ActionTickResult.running();
         }
+        List<ItemStack> drops = blockDrops(level, pos, blockState, player, stack);
         if (!level.setBlock(pos, replacementState, 3)) {
             action.incrementBlocked();
+            action.recordError(pos);
             return ActionTickResult.running();
         }
-        if (!player.isCreative()) {
-            paymentStack.shrink(1);
-        }
+        handleDrops(level, pos, player, state, drops);
         action.incrementRemoved();
         return ActionTickResult.running();
     }
@@ -561,56 +849,125 @@ public class MatterManipulatorItem extends Item {
         int relX = pos.getX() - action.selection().min().getX();
         int relY = pos.getY() - action.selection().min().getY();
         int relZ = pos.getZ() - action.selection().min().getZ();
-        BlueprintBlock blueprintBlock = null;
+        int localX = relX % state.pasteSizeX(blueprint);
+        int localY = relY % blueprint.sizeY();
+        int localZ = relZ % state.pasteSizeZ(blueprint);
+        BlueprintBlock sourceBlock = null;
+        BlueprintBlock pasteBlock = null;
         for (BlueprintBlock candidate : blueprint.blocks()) {
-            if (candidate.x() == relX && candidate.y() == relY && candidate.z() == relZ) {
-                blueprintBlock = candidate;
+            BlockPos transformedRelative = state.transformedRelative(blueprint, candidate);
+            if (transformedRelative.getX() == localX && transformedRelative.getY() == localY &&
+                    transformedRelative.getZ() == localZ) {
+                sourceBlock = candidate;
+                pasteBlock = state.transformedBlock(blueprint, candidate);
                 break;
             }
         }
-        if (blueprintBlock == null) {
+        if (sourceBlock == null || pasteBlock == null) {
             action.incrementSkipped();
+            action.recordWarning(pos);
             return ActionTickResult.running();
         }
-        if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos) || level.getBlockEntity(pos) != null) {
+        if (!player.mayInteract(level, pos)) {
             action.incrementBlocked();
+            action.recordError(pos);
+            return ActionTickResult.running();
+        }
+        if (!BlockMovers.canPasteBlock(level, pos, pasteBlock, state.removeMode())) {
+            action.incrementBlocked();
+            action.recordError(pos);
+            return ActionTickResult.running();
+        }
+        if (blueprint.movesSource() && !canRemoveMovedSource(level, player, blueprint, sourceBlock)) {
+            action.incrementBlocked();
+            action.recordError(pos);
             return ActionTickResult.running();
         }
 
-        BlockState existingState = level.getBlockState(pos);
-        if (!existingState.isAir() && existingState.getDestroySpeed(level, pos) < 0.0F) {
-            action.incrementBlocked();
-            return ActionTickResult.running();
-        }
-        ItemStack paymentStack = ItemStack.EMPTY;
         if (blueprint.consumesItems() && !player.isCreative()) {
-            ItemStack wanted = new ItemStack(blueprintBlock.state().getBlock());
+            ItemStack wanted = new ItemStack(pasteBlock.state().getBlock());
             if (wanted.isEmpty()) {
                 action.incrementBlocked();
+                action.recordError(pos);
                 return ActionTickResult.running();
             }
-            paymentStack = findMatchingStack(player, wanted);
-            if (paymentStack.isEmpty()) {
+            if (countAvailableItems(player, state, wanted) <= 0) {
                 return ActionTickResult.finished(Component.translatable("message.matter_manipulator.paste.no_items"));
             }
         }
-        long euCost = operationCost(level, player, pos, blueprintBlock.state(), state);
+        long euCost = operationCost(level, player, pos, pasteBlock.state(), state);
+        if (pasteBlock.blockEntityTag() != null) {
+            euCost = Math.max(1L, (long) Math.ceil(euCost * BLOCK_ENTITY_PENALTY));
+        }
         if (!consumeEnergy(stack, player, euCost)) {
             action.incrementOutOfPower();
+            action.recordError(pos);
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.remove.out_of_power"));
         }
-        if (!existingState.isAir()) {
-            level.destroyBlock(pos, true, player);
-        }
-        if (level.setBlock(pos, blueprintBlock.state(), 3)) {
-            if (!paymentStack.isEmpty()) {
-                paymentStack.shrink(1);
+        List<ItemStack> replacedDrops = MMConfig.DROP_REPLACED_BLOCKS_ON_PASTE.get() ?
+                blockDrops(level, pos, level.getBlockState(pos), player, stack) : List.of();
+        if (BlockMovers.pasteBlock(level, player, pos, pasteBlock, state.removeMode()) == PasteResult.PLACED) {
+            if (blueprint.consumesItems() && !consumeRequiredItem(player, state, new ItemStack(
+                    pasteBlock.state().getBlock()))) {
+                level.removeBlock(pos, false);
+                action.incrementBlocked();
+                action.recordError(pos);
+                return ActionTickResult.running();
             }
+            if (blueprint.consumesItems() && !consumeAdditionalRequiredItems(player, state,
+                    pasteBlock.blockEntityTag())) {
+                level.removeBlock(pos, false);
+                action.incrementBlocked();
+                action.recordError(pos);
+                return ActionTickResult.running();
+            }
+            if (blueprint.movesSource() && !removeMovedSource(level, player, blueprint, sourceBlock)) {
+                level.removeBlock(pos, false);
+                action.incrementBlocked();
+                action.recordError(pos);
+                return ActionTickResult.running();
+            }
+            handleDrops(level, pos, player, state, replacedDrops);
             action.incrementRemoved();
         } else {
             action.incrementBlocked();
+            action.recordError(pos);
         }
         return ActionTickResult.running();
+    }
+
+    private boolean removeBlockWithDrops(Level level, BlockPos pos, Player player, MMState state,
+                                         ItemStack toolStack) {
+        if (!(level instanceof ServerLevel)) {
+            return level.destroyBlock(pos, true, player);
+        }
+        List<ItemStack> drops = blockDrops(level, pos, level.getBlockState(pos), player, toolStack);
+        if (!level.destroyBlock(pos, false, player)) {
+            return false;
+        }
+        handleDrops(level, pos, player, state, drops);
+        return true;
+    }
+
+    private List<ItemStack> blockDrops(Level level, BlockPos pos, BlockState blockState, Player player,
+                                       ItemStack toolStack) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return List.of();
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        return Block.getDrops(blockState, serverLevel, pos, blockEntity, player, toolStack);
+    }
+
+    private void handleDrops(Level level, BlockPos pos, Player player, MMState state, List<ItemStack> drops) {
+        for (ItemStack drop : drops) {
+            ItemStack remainder = drop;
+            if (player instanceof ServerPlayer serverPlayer && AE2Integration.isLinked(serverPlayer, state)) {
+                remainder = AE2Integration.insertItem(serverPlayer, state, drop);
+            }
+            if (!remainder.isEmpty()) {
+                Block.popResource(level, pos, remainder);
+            }
+        }
     }
 
     private ItemStack findMatchingStack(Player player, ItemStack wanted) {
@@ -621,6 +978,215 @@ public class MatterManipulatorItem extends Item {
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    private @Nullable MissingItem missingRequiredItem(Player player, MMState state, Blueprint blueprint,
+                                                      long multiplier) {
+        if (!blueprint.consumesItems() || player.isCreative()) {
+            return null;
+        }
+        for (ItemStack requiredItem : BlueprintMaterials.requiredItems(blueprint, multiplier)) {
+            int available = countAvailableItems(player, state, requiredItem);
+            if (available < requiredItem.getCount()) {
+                return new MissingItem(requiredItem, available);
+            }
+        }
+        return null;
+    }
+
+    private PastePreflightResult validatePasteTargets(Level level, Player player, MMState state, Blueprint blueprint,
+                                                      MMSelection pasteSelection) {
+        int strideX = state.pasteSizeX(blueprint);
+        int strideY = blueprint.sizeY();
+        int strideZ = state.pasteSizeZ(blueprint);
+        for (int arrayY = 0; arrayY < state.pasteArrayY(); arrayY++) {
+            for (int arrayZ = 0; arrayZ < state.pasteArrayZ(); arrayZ++) {
+                for (int arrayX = 0; arrayX < state.pasteArrayX(); arrayX++) {
+                    BlockPos arrayOffset = new BlockPos(arrayX * strideX, arrayY * strideY, arrayZ * strideZ);
+                    for (BlueprintBlock sourceBlock : blueprint.blocks()) {
+                        BlueprintBlock pasteBlock = state.transformedBlock(blueprint, sourceBlock);
+                        BlockPos pos = pasteSelection.min().offset(arrayOffset)
+                                .offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z());
+                        if (!player.mayInteract(level, pos) || !BlockMovers.canPasteBlock(level, pos, pasteBlock,
+                                state.removeMode())) {
+                            return PastePreflightResult.blocked(Component.translatable(
+                                    "message.matter_manipulator.paste.target_blocked",
+                                    pos.getX(), pos.getY(), pos.getZ()));
+                        }
+                        if (blueprint.movesSource() && !canRemoveMovedSource(level, player, blueprint, sourceBlock)) {
+                            BlockPos sourcePos = blueprint.sourcePos(sourceBlock);
+                            return PastePreflightResult.blocked(Component.translatable(
+                                    "message.matter_manipulator.move.source_blocked",
+                                    sourcePos == null ? 0 : sourcePos.getX(),
+                                    sourcePos == null ? 0 : sourcePos.getY(),
+                                    sourcePos == null ? 0 : sourcePos.getZ()));
+                        }
+                    }
+                }
+            }
+        }
+        return PastePreflightResult.VALID;
+    }
+
+    private int countMatchingItems(Player player, ItemStack wanted) {
+        int count = 0;
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack candidate = player.getInventory().getItem(i);
+            if (ItemStack.isSameItemSameTags(candidate, wanted)) {
+                count += candidate.getCount();
+            }
+        }
+        return count;
+    }
+
+    private int countAvailableItems(Player player, MMState state, ItemStack wanted) {
+        long available = countMatchingItems(player, wanted);
+        if (player instanceof ServerPlayer serverPlayer) {
+            available += AE2Integration.countItem(serverPlayer, state, wanted);
+        }
+        return available > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) available;
+    }
+
+    private boolean consumeRequiredItem(Player player, MMState state, ItemStack wanted) {
+        if (player.isCreative() || wanted.isEmpty()) {
+            return true;
+        }
+        if (countAvailableItems(player, state, wanted) < wanted.getCount()) {
+            return false;
+        }
+
+        int inventoryCount = countMatchingItems(player, wanted);
+        int networkCount = Math.max(0, wanted.getCount() - inventoryCount);
+        if (networkCount > 0 && (!(player instanceof ServerPlayer serverPlayer) ||
+                !AE2Integration.extractItem(serverPlayer, state, wanted.copyWithCount(networkCount), networkCount))) {
+            return false;
+        }
+
+        int remaining = wanted.getCount() - networkCount;
+        for (int i = 0; i < player.getInventory().getContainerSize() && remaining > 0; i++) {
+            ItemStack candidate = player.getInventory().getItem(i);
+            if (ItemStack.isSameItemSameTags(candidate, wanted)) {
+                int consumed = Math.min(remaining, candidate.getCount());
+                candidate.shrink(consumed);
+                remaining -= consumed;
+            }
+        }
+        if (remaining <= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean consumeAdditionalRequiredItems(Player player, MMState state, @Nullable CompoundTag blockEntityTag) {
+        ListTag requiredItems = BlockMovers.additionalRequiredItems(blockEntityTag);
+        if (player.isCreative() || requiredItems.isEmpty()) {
+            return true;
+        }
+        List<ItemStack> requiredStacks = new java.util.ArrayList<>();
+        for (Tag tag : requiredItems) {
+            if (tag instanceof CompoundTag compound) {
+                ItemStack requiredStack = ItemStack.of(compound);
+                if (!requiredStack.isEmpty()) {
+                    mergeRequiredStack(requiredStacks, requiredStack);
+                }
+            }
+        }
+        for (ItemStack requiredStack : requiredStacks) {
+            if (countAvailableItems(player, state, requiredStack) < requiredStack.getCount()) {
+                return false;
+            }
+        }
+        for (ItemStack requiredStack : requiredStacks) {
+            if (!consumeRequiredItem(player, state, requiredStack)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void mergeRequiredStack(List<ItemStack> stacks, ItemStack stack) {
+        for (ItemStack existingStack : stacks) {
+            if (ItemStack.isSameItemSameTags(existingStack, stack)) {
+                existingStack.grow(stack.getCount());
+                return;
+            }
+        }
+        stacks.add(stack.copy());
+    }
+
+    private BlockState copyCompatibleProperties(BlockState source, BlockState target) {
+        BlockState result = target;
+        for (Property<?> sourceProperty : source.getProperties()) {
+            Property<?> targetProperty = findProperty(result, sourceProperty.getName());
+            if (targetProperty != null) {
+                result = copyPropertyValue(source, result, sourceProperty, targetProperty);
+            }
+        }
+        return result;
+    }
+
+    private @Nullable Property<?> findProperty(BlockState state, String name) {
+        for (Property<?> property : state.getProperties()) {
+            if (property.getName().equals(name)) {
+                return property;
+            }
+        }
+        return null;
+    }
+
+    private <T extends Comparable<T>> BlockState copyPropertyValue(BlockState source, BlockState target,
+                                                                   Property<T> sourceProperty,
+                                                                   Property<?> targetProperty) {
+        T value = source.getValue(sourceProperty);
+        return setIfAllowed(target, targetProperty, value);
+    }
+
+    private <T extends Comparable<T>> BlockState setIfAllowed(BlockState state, Property<?> property, T value) {
+        return setIfAllowedTyped(state, property, value);
+    }
+
+    private <T extends Comparable<T>> BlockState setIfAllowedTyped(BlockState state, Property<?> property, T value) {
+        @SuppressWarnings("unchecked")
+        Property<T> typedProperty = (Property<T>) property;
+        return typedProperty.getPossibleValues().contains(value) ? state.setValue(typedProperty, value) : state;
+    }
+
+    private ActionStartResult validateSelectionSize(MMSelection selection) {
+        long maxScanVolume = MMConfig.MAX_SELECTION_SCAN_VOLUME.get();
+        if (selection.scanVolume() > maxScanVolume) {
+            return ActionStartResult.error(Component.translatable("message.matter_manipulator.selection_too_large",
+                    selection.scanVolume(), maxScanVolume));
+        }
+        return null;
+    }
+
+    private boolean canRemoveMovedSource(Level level, Player player, Blueprint blueprint, BlueprintBlock block) {
+        BlockPos sourcePos = blueprint.sourcePos(block);
+        if (sourcePos == null || !level.dimension().location().equals(blueprint.sourceDimension())) {
+            return false;
+        }
+        if (!level.isLoaded(sourcePos) || !level.getWorldBorder().isWithinBounds(sourcePos) ||
+                !player.mayInteract(level, sourcePos)) {
+            return false;
+        }
+        return BlockMovers.sourceStillMatches(level, sourcePos, block);
+    }
+
+    private boolean removeMovedSource(Level level, Player player, Blueprint blueprint, BlueprintBlock block) {
+        if (!canRemoveMovedSource(level, player, blueprint, block)) {
+            return false;
+        }
+        BlockPos sourcePos = blueprint.sourcePos(block);
+        return sourcePos != null && level.destroyBlock(sourcePos, false, player);
+    }
+
+    private boolean selectionsIntersect(MMSelection first, MMSelection second) {
+        if (!first.dimension().equals(second.dimension())) {
+            return false;
+        }
+        return first.min().getX() <= second.max().getX() && first.max().getX() >= second.min().getX() &&
+                first.min().getY() <= second.max().getY() && first.max().getY() >= second.min().getY() &&
+                first.min().getZ() <= second.max().getZ() && first.max().getZ() >= second.min().getZ();
     }
 
     private long operationCost(Level level, Player player, BlockPos pos, BlockState blockState, MMState state) {
@@ -634,6 +1200,22 @@ public class MatterManipulatorItem extends Item {
             euUsage *= 0.5D;
         }
         return Math.max(1L, (long) Math.ceil(euUsage));
+    }
+
+    private int effectiveBlocksPerOperation(MMState state) {
+        int blocks = tier.placeSpeed() < 0 ? MK3_BLOCKS_PER_OPERATION : tier.placeSpeed();
+        if (state.hasUpgrade(MMUpgrade.SPEED)) {
+            blocks *= 2;
+        }
+        return Math.max(1, blocks);
+    }
+
+    private int effectivePlaceTicks(MMState state) {
+        int ticks = Math.max(1, tier.placeTicks());
+        if (state.hasUpgrade(MMUpgrade.SPEED)) {
+            ticks = Math.max(1, ticks / 2);
+        }
+        return ticks;
     }
 
     private boolean consumeEnergy(ItemStack stack, Player player, long euCost) {
@@ -810,6 +1392,17 @@ public class MatterManipulatorItem extends Item {
 
         private static ActionStartResult error(Component message) {
             return new ActionStartResult(false, message);
+        }
+    }
+
+    private record MissingItem(ItemStack stack, int available) {}
+
+    private record PastePreflightResult(boolean valid, Component message) {
+
+        private static final PastePreflightResult VALID = new PastePreflightResult(true, Component.empty());
+
+        private static PastePreflightResult blocked(Component message) {
+            return new PastePreflightResult(false, message);
         }
     }
 

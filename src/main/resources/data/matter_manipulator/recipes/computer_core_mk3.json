@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "CIC",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "gtceu:zpm_sensor"
+    },
+    "C": {
+      "tag": "gtceu:circuits/zpm"
+    },
+    "I": {
+      "item": "matter_manipulator:computer_core_mk2"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:computer_core_mk3"
+  }
+}

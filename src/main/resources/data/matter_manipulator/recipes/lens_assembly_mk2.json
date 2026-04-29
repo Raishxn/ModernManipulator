@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PWP",
+    "EIE",
+    "PWP"
+  ],
+  "key": {
+    "P": {
+      "item": "gtceu:purple_glass_lens"
+    },
+    "W": {
+      "tag": "forge:lenses/white"
+    },
+    "E": {
+      "item": "gtceu:luv_emitter"
+    },
+    "I": {
+      "item": "matter_manipulator:lens_assembly_mk1"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:lens_assembly_mk2"
+  }
+}

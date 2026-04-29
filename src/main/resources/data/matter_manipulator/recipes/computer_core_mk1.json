@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "CIC",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "gtceu:iv_sensor"
+    },
+    "C": {
+      "tag": "gtceu:circuits/iv"
+    },
+    "I": {
+      "item": "matter_manipulator:prototype_computer_core"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:computer_core_mk1"
+  }
+}

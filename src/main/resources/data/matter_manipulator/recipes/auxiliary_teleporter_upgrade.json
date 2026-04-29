@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FEF",
+    "RBR",
+    "FEF"
+  ],
+  "key": {
+    "F": {
+      "item": "gtceu:iv_field_generator"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "R": {
+      "item": "gtceu:iv_robot_arm"
+    },
+    "B": {
+      "item": "matter_manipulator:blank_upgrade"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:auxiliary_teleporter_upgrade"
+  }
+}

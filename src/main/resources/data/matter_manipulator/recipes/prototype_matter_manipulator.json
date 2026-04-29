@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LCT",
+    "FPF",
+    " E "
+  ],
+  "key": {
+    "L": {
+      "item": "matter_manipulator:prototype_lens_assembly"
+    },
+    "C": {
+      "item": "matter_manipulator:prototype_computer_core"
+    },
+    "T": {
+      "item": "matter_manipulator:prototype_teleporter_core"
+    },
+    "F": {
+      "item": "matter_manipulator:prototype_frame"
+    },
+    "P": {
+      "item": "matter_manipulator:prototype_power_core"
+    },
+    "E": {
+      "item": "gtceu:hv_field_generator"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:prototype_matter_manipulator"
+  }
+}

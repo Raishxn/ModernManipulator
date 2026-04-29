@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RBG",
+    "ECE",
+    "GBR"
+  ],
+  "key": {
+    "R": {
+      "item": "gtceu:red_glass_lens"
+    },
+    "B": {
+      "item": "gtceu:blue_glass_lens"
+    },
+    "G": {
+      "item": "gtceu:green_glass_lens"
+    },
+    "E": {
+      "item": "gtceu:hv_emitter"
+    },
+    "C": {
+      "tag": "gtceu:circuits/hv"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:prototype_lens_assembly"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EFE",
+    "FIF",
+    "EFE"
+  ],
+  "key": {
+    "E": {
+      "item": "gtceu:luv_emitter"
+    },
+    "F": {
+      "item": "gtceu:luv_field_generator"
+    },
+    "I": {
+      "item": "matter_manipulator:power_core_mk1"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:power_core_mk2"
+  }
+}

@@ -147,6 +147,8 @@ dependencies {
     modImplementation("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
     modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
     modImplementation("dev.toma.configuration:configuration-forge-${minecraft_version}:${configuration_version}")
+    modImplementation("curse.maven:applied-energistics-2-223794:7148487")
+    modImplementation("curse.maven:guideme-1173950:7127447")
 
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.24'

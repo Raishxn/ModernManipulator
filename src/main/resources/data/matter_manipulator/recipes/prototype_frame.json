@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MGM",
+    "C C",
+    "MGM"
+  ],
+  "key": {
+    "M": {
+      "item": "gtceu:hv_electric_motor"
+    },
+    "G": {
+      "item": "gtceu:steel_gearbox"
+    },
+    "C": {
+      "item": "gtceu:hv_conveyor_module"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:prototype_frame"
+  }
+}

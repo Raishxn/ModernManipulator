@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EFE",
+    "FCF",
+    "EFE"
+  ],
+  "key": {
+    "E": {
+      "item": "gtceu:hv_emitter"
+    },
+    "F": {
+      "item": "gtceu:hv_field_generator"
+    },
+    "C": {
+      "tag": "gtceu:circuits/hv"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:prototype_power_core"
+  }
+}

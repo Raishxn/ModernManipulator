@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FEF",
+    "RIR",
+    "FEF"
+  ],
+  "key": {
+    "F": {
+      "item": "gtceu:zpm_field_generator"
+    },
+    "E": {
+      "item": "minecraft:nether_star"
+    },
+    "R": {
+      "item": "gtceu:zpm_robot_arm"
+    },
+    "I": {
+      "item": "matter_manipulator:teleporter_core_mk2"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:teleporter_core_mk3"
+  }
+}

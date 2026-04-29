@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FEF",
+    "CMC",
+    "FEF"
+  ],
+  "key": {
+    "F": {
+      "item": "ae2:fluix_crystal"
+    },
+    "E": {
+      "item": "ae2:engineering_processor"
+    },
+    "C": {
+      "tag": "gtceu:circuits/ev"
+    },
+    "M": {
+      "item": "matter_manipulator:computer_core_mk2"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:me_downlink"
+  }
+}

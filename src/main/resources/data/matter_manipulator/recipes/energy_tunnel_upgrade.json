@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FEF",
+    "CBC",
+    "FEF"
+  ],
+  "key": {
+    "F": {
+      "item": "gtceu:zpm_field_generator"
+    },
+    "E": {
+      "item": "gtceu:zpm_emitter"
+    },
+    "C": {
+      "tag": "gtceu:circuits/zpm"
+    },
+    "B": {
+      "item": "matter_manipulator:blank_upgrade"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:energy_tunnel_upgrade"
+  }
+}

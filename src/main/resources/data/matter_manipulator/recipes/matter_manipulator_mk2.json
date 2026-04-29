@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LCT",
+    "FMF",
+    " P "
+  ],
+  "key": {
+    "L": {
+      "item": "matter_manipulator:lens_assembly_mk2"
+    },
+    "C": {
+      "item": "matter_manipulator:computer_core_mk2"
+    },
+    "T": {
+      "item": "matter_manipulator:teleporter_core_mk2"
+    },
+    "F": {
+      "item": "matter_manipulator:frame_mk2"
+    },
+    "M": {
+      "item": "matter_manipulator:matter_manipulator_mk1"
+    },
+    "P": {
+      "item": "matter_manipulator:power_core_mk2"
+    }
+  },
+  "result": {
+    "item": "matter_manipulator:matter_manipulator_mk2"
+  }
+}
