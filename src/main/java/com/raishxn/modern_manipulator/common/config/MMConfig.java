@@ -14,6 +14,7 @@ public final class MMConfig {
     public static final ForgeConfigSpec.BooleanValue CLEAR_PASTE_TARGET_AFTER_PASTE;
     public static final ForgeConfigSpec.BooleanValue RESET_TRANSFORM_AFTER_PASTE;
     public static final ForgeConfigSpec.BooleanValue DROP_REPLACED_BLOCKS_ON_PASTE;
+    public static final ForgeConfigSpec.LongValue ME_DOWNLINK_RANGE_BLOCKS;
     public static final ForgeConfigSpec.BooleanValue RENDER_FILLED_BOXES;
     public static final ForgeConfigSpec.BooleanValue RENDER_SELECTION_RULERS;
     public static final ForgeConfigSpec.BooleanValue RENDER_BLUEPRINT_HINTS;
@@ -42,6 +43,11 @@ public final class MMConfig {
         DROP_REPLACED_BLOCKS_ON_PASTE = serverBuilder
                 .comment("Drop blocks overwritten by paste operations. Disabled by default to avoid cheap mining.")
                 .define("dropReplacedBlocksOnPaste", false);
+        serverBuilder.pop();
+        serverBuilder.push("ae2");
+        ME_DOWNLINK_RANGE_BLOCKS = serverBuilder
+                .comment("Maximum distance from the player to a linked ME downlink. Set to 0 to allow any loaded same-dimension downlink.")
+                .defineInRange("meDownlinkRangeBlocks", 1024L, 0L, Long.MAX_VALUE);
         serverBuilder.pop();
         SERVER_SPEC = serverBuilder.build();
 

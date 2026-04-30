@@ -181,6 +181,8 @@
   "tooltip.matter_manipulator.me_downlink_unset": "ME downlink: unset",
   "tooltip.matter_manipulator.me_downlink_missing": "ME downlink missing at %s.",
   "tooltip.matter_manipulator.me_downlink_offline": "ME downlink offline at %s.",
+  "tooltip.matter_manipulator.me_downlink_out_of_range": "ME downlink out of range at %s. Range: %s blocks.",
+  "tooltip.matter_manipulator.me_downlink_owner_mismatch": "ME downlink ownership changed at %s.",
   "tooltip.matter_manipulator.me_downlink_online": "ME downlink online: %s at %s.",
   "tooltip.matter_manipulator.coord_unset": "unset",
   "tooltip.matter_manipulator.blueprint": "Blueprint: %sx%sx%s, %s blocks",

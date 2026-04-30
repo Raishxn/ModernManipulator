@@ -22,6 +22,7 @@ import com.raishxn.modern_manipulator.common.building.BlockMovers;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 public class MMState {
 
@@ -31,6 +32,7 @@ public class MMState {
     private static final String TAG_COORD_B = "coordB";
     private static final String TAG_COORD_C = "coordC";
     private static final String TAG_ME_DOWNLINK = "meDownlink";
+    private static final String TAG_ME_DOWNLINK_OWNER = "meDownlinkOwner";
     private static final String TAG_MODE = "mode";
     private static final String TAG_SHAPE = "shape";
     private static final String TAG_INSTALLED_UPGRADES = "installedUpgrades";
@@ -60,6 +62,7 @@ public class MMState {
     private @Nullable MarkedPosition coordB;
     private @Nullable MarkedPosition coordC;
     private @Nullable MarkedPosition meDownlink;
+    private @Nullable UUID meDownlinkOwner;
     private ToolMode mode = ToolMode.GEOMETRY;
     private Shape shape = Shape.CUBE;
     private int installedUpgrades;
@@ -105,6 +108,9 @@ public class MMState {
         }
         if (tag.contains(TAG_ME_DOWNLINK, Tag.TAG_COMPOUND)) {
             state.meDownlink = MarkedPosition.load(tag.getCompound(TAG_ME_DOWNLINK));
+        }
+        if (tag.hasUUID(TAG_ME_DOWNLINK_OWNER)) {
+            state.meDownlinkOwner = tag.getUUID(TAG_ME_DOWNLINK_OWNER);
         }
         state.mode = ToolMode.byName(tag.getString(TAG_MODE));
         state.shape = Shape.byName(tag.getString(TAG_SHAPE));
@@ -175,6 +181,9 @@ public class MMState {
         if (meDownlink != null) {
             tag.put(TAG_ME_DOWNLINK, meDownlink.save());
         }
+        if (meDownlinkOwner != null) {
+            tag.putUUID(TAG_ME_DOWNLINK_OWNER, meDownlinkOwner);
+        }
         tag.putString(TAG_MODE, mode.serializedName);
         tag.putString(TAG_SHAPE, shape.serializedName);
         tag.putInt(TAG_INSTALLED_UPGRADES, installedUpgrades);
@@ -234,6 +243,10 @@ public class MMState {
 
     public @Nullable MarkedPosition meDownlink() {
         return meDownlink;
+    }
+
+    public @Nullable UUID meDownlinkOwner() {
+        return meDownlinkOwner;
     }
 
     public ToolMode mode() {
@@ -394,11 +407,17 @@ public class MMState {
     }
 
     public void setMeDownlink(MarkedPosition meDownlink) {
+        setMeDownlink(meDownlink, null);
+    }
+
+    public void setMeDownlink(MarkedPosition meDownlink, @Nullable UUID owner) {
         this.meDownlink = meDownlink;
+        this.meDownlinkOwner = owner;
     }
 
     public void clearMeDownlink() {
         this.meDownlink = null;
+        this.meDownlinkOwner = null;
     }
 
     public void clearCoordC() {
