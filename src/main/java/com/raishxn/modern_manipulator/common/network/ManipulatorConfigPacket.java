@@ -25,6 +25,8 @@ import com.raishxn.modern_manipulator.common.item.MMState.Shape;
 import com.raishxn.modern_manipulator.common.item.MMState.ToolMode;
 import com.raishxn.modern_manipulator.common.item.MatterManipulatorItem;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 public record ManipulatorConfigPacket(Action action) {
@@ -298,10 +300,18 @@ public record ManipulatorConfigPacket(Action action) {
         ItemStack firstMissing = ItemStack.EMPTY;
         int firstMissingAmount = 0;
         int firstMissingAvailable = 0;
-        for (ItemStack requiredItem : BlueprintMaterials.requiredItems(blueprint, state.pasteArrayCopies())) {
+        List<ItemStack> autoRequests = auto ? new ArrayList<>() : List.of();
+        List<ItemStack> requiredItems = BlueprintMaterials.requiredItems(blueprint, state.pasteArrayCopies());
+        for (ItemStack requiredItem : requiredItems) {
             requiredTotal += requiredItem.getCount();
             int available = countAvailableItems(player, state, requiredItem);
             int missing = Math.max(0, requiredItem.getCount() - available);
+            if (auto) {
+                int requestAmount = mode == PlanMode.MISSING ? missing : requiredItem.getCount();
+                if (requestAmount > 0) {
+                    autoRequests.add(requiredItem.copyWithCount(requestAmount));
+                }
+            }
             if (missing > 0) {
                 missingTypes++;
                 missingTotal += missing;
@@ -320,13 +330,12 @@ public record ManipulatorConfigPacket(Action action) {
             return;
         }
         if (auto) {
-            player.displayClientMessage(Component.translatable(
-                    "message.matter_manipulator.plan.auto_analysis_only", missingTypes, missingTotal), true);
+            player.displayClientMessage(AE2Integration.requestAutoCrafting(player, state, autoRequests), true);
             return;
         }
         if (mode == PlanMode.ALL) {
             player.displayClientMessage(Component.translatable("message.matter_manipulator.plan.all_manual",
-                    requiredTotal, BlueprintMaterials.requiredItems(blueprint, state.pasteArrayCopies()).size()), true);
+                    requiredTotal, requiredItems.size()), true);
             return;
         }
         player.displayClientMessage(Component.translatable("message.matter_manipulator.plan.missing_manual",
