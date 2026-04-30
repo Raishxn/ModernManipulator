@@ -47,6 +47,7 @@ public final class MMSelectionRenderer {
 
     private static final long MAX_DETAILED_SHAPE_SCAN = 4096L;
     private static final int RULER_LENGTH = 128;
+    private static final int HUD_LINE_SPACING = 12;
 
     private MMSelectionRenderer() {}
 
@@ -110,15 +111,15 @@ public final class MMSelectionRenderer {
                 state.shape().displayName().getString() + " / " + state.blockSelectMode().displayName().getString() +
                 " / " + state.removeMode().displayName().getString());
         drawCenteredHudLine(graphics, minecraft, summary, centerX, y, 0xFFE6E6E6);
-        y -= 10;
+        y -= HUD_LINE_SPACING;
         PendingAction pendingAction = state.pendingAction();
         if (pendingAction != null) {
             drawCenteredHudLine(graphics, minecraft, pendingAction.progressText(), centerX, y, 0xFFFFD36A);
-            y -= 10;
+            y -= HUD_LINE_SPACING;
             if (pendingAction.paused()) {
                 drawCenteredHudLine(graphics, minecraft, Component.translatable(
                         "hud.matter_manipulator.pending_paused"), centerX, y, 0xFFFFAA55);
-                y -= 10;
+                y -= HUD_LINE_SPACING;
             }
         }
         Blueprint blueprint = state.blueprint();
@@ -127,31 +128,31 @@ public final class MMSelectionRenderer {
                     blueprint.sizeX(), blueprint.sizeY(), blueprint.sizeZ(), blueprint.volume());
             drawCenteredHudLine(graphics, minecraft, blueprintText, centerX, y,
                     blueprint.movesSource() ? 0xFFFFAA55 : 0xFF75D7FF);
-            y -= 10;
+            y -= HUD_LINE_SPACING;
             if (state.rotationY() != 0 || state.mirrorX() || state.mirrorY() || state.mirrorZ()) {
                 drawCenteredHudLine(graphics, minecraft, Component.translatable(
                         "hud.matter_manipulator.transform", state.rotationY() * 90,
                         state.mirrorX() ? "X" : "-", state.mirrorY() ? "Y" : "-",
                         state.mirrorZ() ? "Z" : "-"), centerX, y, 0xFFC6FF75);
-                y -= 10;
+                y -= HUD_LINE_SPACING;
             }
             if (state.pasteArrayCopies() > 1) {
                 drawCenteredHudLine(graphics, minecraft, Component.translatable(
                         "hud.matter_manipulator.array",
                         state.pasteArrayX(), state.pasteArrayY(), state.pasteArrayZ()), centerX, y, 0xFF75FFC1);
-                y -= 10;
+                y -= HUD_LINE_SPACING;
             }
             if (state.hasPasteOffset()) {
                 drawCenteredHudLine(graphics, minecraft, Component.translatable(
                         "hud.matter_manipulator.offset",
                         state.pasteOffsetX(), state.pasteOffsetY(), state.pasteOffsetZ()), centerX, y, 0xFF75FFC1);
-                y -= 10;
+                y -= HUD_LINE_SPACING;
             }
             if (state.hasPasteSpacing()) {
                 drawCenteredHudLine(graphics, minecraft, Component.translatable(
                         "hud.matter_manipulator.spacing",
                         state.pasteSpacingX(), state.pasteSpacingY(), state.pasteSpacingZ()), centerX, y, 0xFF75FFC1);
-                y -= 10;
+                y -= HUD_LINE_SPACING;
             }
         }
         if (state.mode() == MMState.ToolMode.EXCHANGING) {
@@ -159,18 +160,20 @@ public final class MMSelectionRenderer {
                 drawCenteredHudLine(graphics, minecraft, Component.translatable(
                         "hud.matter_manipulator.exchange_replacement",
                         state.exchangeReplacement().getHoverName()), centerX, y, 0xFFC6FF75);
-                y -= 10;
+                y -= HUD_LINE_SPACING;
             }
             if (state.hasExchangeWhitelist()) {
                 drawCenteredHudLine(graphics, minecraft, Component.translatable(
                         "hud.matter_manipulator.exchange_whitelist",
                         state.exchangeWhitelist().size()), centerX, y, 0xFFC6FF75);
+                y -= HUD_LINE_SPACING;
             }
         }
         if (state.mode() == MMState.ToolMode.CABLES && !state.cableStack().isEmpty()) {
             drawCenteredHudLine(graphics, minecraft, Component.translatable(
                     "hud.matter_manipulator.cable",
                     state.cableStack().getHoverName()), centerX, y, 0xFF75FFC1);
+            y -= HUD_LINE_SPACING;
         }
         drawDimensionHud(graphics, minecraft, player, state);
     }
@@ -546,9 +549,23 @@ public final class MMSelectionRenderer {
 
     private static void drawCenteredHudLine(GuiGraphics graphics, Minecraft minecraft, Component text, int centerX,
                                             int y, int color) {
-        int width = minecraft.font.width(text);
-        graphics.fill(centerX - width / 2 - 3, y - 1, centerX + width / 2 + 3, y + 9, 0x90000000);
-        graphics.drawString(minecraft.font, text, centerX - width / 2, y, color);
+        Component displayedText = fitHudText(minecraft, text);
+        int width = minecraft.font.width(displayedText);
+        graphics.fill(centerX - width / 2 - 3, y - 1, centerX + width / 2 + 3, y + minecraft.font.lineHeight,
+                0x90000000);
+        graphics.drawString(minecraft.font, displayedText, centerX - width / 2, y, color);
+    }
+
+    private static Component fitHudText(Minecraft minecraft, Component text) {
+        int maxWidth = minecraft.getWindow().getGuiScaledWidth() - 24;
+        if (minecraft.font.width(text) <= maxWidth) {
+            return text;
+        }
+        String value = text.getString();
+        while (!value.isEmpty() && minecraft.font.width(value + "...") > maxWidth) {
+            value = value.substring(0, value.length() - 1);
+        }
+        return Component.literal(value + "...");
     }
 
     private static void drawDimensionHud(GuiGraphics graphics, Minecraft minecraft, Player player, MMState state) {
