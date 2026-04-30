@@ -313,6 +313,7 @@
   "message.matter_manipulator.move.overlaps_source": "Move destination cannot overlap the source selection yet.",
   "message.matter_manipulator.move.array_blocked": "Cut/move paste cannot use array yet.",
   "message.matter_manipulator.move.source_blocked": "Move source changed or is blocked at [%s, %s, %s].",
+  "message.matter_manipulator.move.started": "Started moving %s blocks to %s.",
   "message.matter_manipulator.move.finished": "Finished. Moved %s blocks. Skipped %s, blocked %s, no EU %s.",
   "message.matter_manipulator.paste.no_blueprint": "No copied blueprint stored.",
   "message.matter_manipulator.paste.no_coord_c": "Set Coord C first.",
