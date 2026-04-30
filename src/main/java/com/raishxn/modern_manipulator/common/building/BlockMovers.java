@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IHasCircuitSlot;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
+import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 import com.gregtechceu.gtceu.api.pipenet.longdistance.LongDistancePipeBlock;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -137,6 +138,7 @@ public final class BlockMovers {
             level.removeBlock(pos, false);
             return PasteResult.BLOCKED;
         }
+        connectAdjacentMatchingPipes(level, pos);
         return PasteResult.PLACED;
     }
 
@@ -203,6 +205,40 @@ public final class BlockMovers {
         return state.getBlock() instanceof PipeBlock<?, ?, ?> ||
                 state.getBlock() instanceof LongDistancePipeBlock ||
                 state.getBlock().getClass().getSimpleName().contains("Cable");
+    }
+
+    private static void connectAdjacentMatchingPipes(Level level, BlockPos pos) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof IPipeNode<?, ?> pipeNode)) {
+            return;
+        }
+        for (Direction direction : Direction.values()) {
+            BlockPos neighborPos = pos.relative(direction);
+            if (!level.isLoaded(neighborPos)) {
+                continue;
+            }
+            BlockEntity neighborBlockEntity = level.getBlockEntity(neighborPos);
+            if (!(neighborBlockEntity instanceof IPipeNode<?, ?> neighborPipe)) {
+                continue;
+            }
+            if (PipeBlockEntity.isFaceBlocked(pipeNode.getBlockedConnections(), direction) ||
+                    PipeBlockEntity.isFaceBlocked(neighborPipe.getBlockedConnections(), direction.getOpposite())) {
+                continue;
+            }
+            if (!pipeNode.canAttachTo(direction) || !neighborPipe.canAttachTo(direction.getOpposite()) ||
+                    !canPipesConnect(pipeNode, direction, neighborPipe)) {
+                continue;
+            }
+            pipeNode.setConnection(direction, true, false);
+            pipeNode.notifyBlockUpdate();
+            neighborPipe.notifyBlockUpdate();
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static boolean canPipesConnect(IPipeNode selfPipe, Direction direction, IPipeNode neighborPipe) {
+        return selfPipe.getPipeBlock().canPipesConnect(selfPipe, direction, neighborPipe) &&
+                neighborPipe.getPipeBlock().canPipesConnect(neighborPipe, direction.getOpposite(), selfPipe);
     }
 
     public static @Nullable CompoundTag copyCableConfig(Level level, BlockPos pos) {
