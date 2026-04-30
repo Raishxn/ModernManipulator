@@ -645,7 +645,7 @@ public class MatterManipulatorItem extends Item {
         }
         PendingActionType actionType = blueprint.movesSource() ? PendingActionType.MOVE : PendingActionType.PASTE;
         PendingAction action = new PendingAction(actionType, pasteSelection, ItemStack.EMPTY,
-                MMState.BlockSelectMode.ALL, pastePositions(state, blueprint, min));
+                MMState.BlockSelectMode.ALL, pastePositions(level, state, blueprint, min));
         state.startPendingAction(action);
         setState(stack, state);
         return new ActionStartResult(true, Component.translatable(
@@ -1050,7 +1050,7 @@ public class MatterManipulatorItem extends Item {
         private static final MoveSwapTarget EMPTY = new MoveSwapTarget(true, null);
     }
 
-    private List<BlockPos> pastePositions(MMState state, Blueprint blueprint, BlockPos origin) {
+    private List<BlockPos> pastePositions(Level level, MMState state, Blueprint blueprint, BlockPos origin) {
         List<PendingPasteTarget> targets = new java.util.ArrayList<>();
         int strideX = state.pasteStrideX(blueprint);
         int strideY = state.pasteStrideY(blueprint);
@@ -1063,13 +1063,16 @@ public class MatterManipulatorItem extends Item {
                         BlueprintBlock pasteBlock = state.transformedBlock(blueprint, sourceBlock);
                         targets.add(new PendingPasteTarget(
                                 arrayOrigin.offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z()),
-                                pasteBlock.state()));
+                                pasteBlock.state(),
+                                pasteBlock.state().canSurvive(level,
+                                        arrayOrigin.offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z())) ? 0 : 100));
                     }
                 }
             }
         }
         targets.sort(Comparator
-                .comparing(PendingPasteTarget::blockKey)
+                .comparingInt(PendingPasteTarget::buildOrder)
+                .thenComparing(PendingPasteTarget::blockKey)
                 .thenComparingInt(target -> target.pos().getX() >> 4)
                 .thenComparingInt(target -> target.pos().getZ() >> 4)
                 .thenComparingLong(target -> packPosition(target.pos())));
@@ -1082,7 +1085,7 @@ public class MatterManipulatorItem extends Item {
                 ((long) pos.getY() & 0xFFFL);
     }
 
-    private record PendingPasteTarget(BlockPos pos, BlockState state) {
+    private record PendingPasteTarget(BlockPos pos, BlockState state, int buildOrder) {
 
         private String blockKey() {
             return BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
