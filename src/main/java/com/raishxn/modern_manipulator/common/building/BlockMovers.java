@@ -218,6 +218,10 @@ public final class BlockMovers {
                 state.getBlock().getClass().getSimpleName().contains("Cable");
     }
 
+    public static void reconnectAdjacentCables(Level level, BlockPos pos) {
+        connectAdjacentMatchingPipes(level, pos);
+    }
+
     private static void connectAdjacentMatchingPipes(Level level, BlockPos pos) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof IPipeNode<?, ?> pipeNode)) {
