@@ -112,34 +112,51 @@ public class MatterManipulatorItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         ItemStack stack = context.getItemInHand();
         Level level = context.getLevel();
-        if (!level.isClientSide && context.getPlayer() != null) {
+        Player player = context.getPlayer();
+        if (!level.isClientSide && player != null) {
             MMState state = getState(stack);
-            boolean setCoordB = context.getPlayer().isShiftKeyDown();
-            BlockPos selectedPos = setCoordB ? context.getClickedPos() :
+            if (player.isShiftKeyDown() && shouldExecuteOnSneakBlockUse(state)) {
+                return runConfiguredAction(stack, player, level);
+            }
+
+            BlockPos selectedPos = player.isShiftKeyDown() ? context.getClickedPos() :
                     context.getClickedPos().relative(context.getClickedFace());
             MarkedPosition markedPosition = new MarkedPosition(level.dimension().location(), selectedPos);
-            if (setCoordB) {
-                state.setCoordB(markedPosition);
-            } else if ((state.mode() == MMState.ToolMode.COPYING || state.mode() == MMState.ToolMode.MOVING) &&
-                    state.selection() != null) {
-                        state.setCoordC(markedPosition);
-                    } else {
-                        state.setCoordA(markedPosition);
-                    }
+            CoordinateTarget coordinateTarget = markCoordinateFromUse(state, markedPosition);
             setState(stack, state);
             MMSelection selection = state.selection();
             Component selectionInfo = selection == null ?
                     Component.translatable("message.matter_manipulator.selection_incomplete") :
                     Component.literal(selection.describe());
-            context.getPlayer()
-                    .displayClientMessage(Component.translatable(
-                            setCoordB ? "message.matter_manipulator.coord_b_set" :
-                                    (state.coordC() != null && markedPosition.equals(state.coordC())) ?
-                                            "message.matter_manipulator.coord_c_set" :
-                                            "message.matter_manipulator.coord_a_set",
-                            markedPosition.shortText(), selectionInfo), true);
+            player.displayClientMessage(Component.translatable(coordinateTarget.messageKey(),
+                    markedPosition.shortText(), selectionInfo), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private boolean shouldExecuteOnSneakBlockUse(MMState state) {
+        if (state.pendingAction() != null) {
+            return true;
+        }
+        if (state.mode() == MMState.ToolMode.COPYING || state.mode() == MMState.ToolMode.MOVING) {
+            return state.blueprint() == null ? state.selection() != null : state.coordC() != null;
+        }
+        return state.selection() != null;
+    }
+
+    private CoordinateTarget markCoordinateFromUse(MMState state, MarkedPosition markedPosition) {
+        if ((state.mode() == MMState.ToolMode.COPYING || state.mode() == MMState.ToolMode.MOVING) &&
+                state.blueprint() != null) {
+            state.setCoordC(markedPosition);
+            return CoordinateTarget.C;
+        }
+        if (state.coordA() == null || state.selection() != null) {
+            state.clearCoords();
+            state.setCoordA(markedPosition);
+            return CoordinateTarget.A;
+        }
+        state.setCoordB(markedPosition);
+        return CoordinateTarget.B;
     }
 
     @Override
@@ -1582,6 +1599,22 @@ public class MatterManipulatorItem extends Item {
 
         private static ActionStartResult error(Component message) {
             return new ActionStartResult(false, message);
+        }
+    }
+
+    private enum CoordinateTarget {
+        A("message.matter_manipulator.coord_a_set"),
+        B("message.matter_manipulator.coord_b_set"),
+        C("message.matter_manipulator.coord_c_set");
+
+        private final String messageKey;
+
+        CoordinateTarget(String messageKey) {
+            this.messageKey = messageKey;
+        }
+
+        private String messageKey() {
+            return messageKey;
         }
     }
 
