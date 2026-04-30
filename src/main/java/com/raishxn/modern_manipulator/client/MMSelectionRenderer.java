@@ -338,7 +338,10 @@ public final class MMSelectionRenderer {
                     for (BlueprintBlock sourceBlock : blueprint.blocks()) {
                         BlueprintBlock pasteBlock = state.transformedBlock(blueprint, sourceBlock);
                         BlockPos pos = arrayOrigin.offset(pasteBlock.x(), pasteBlock.y(), pasteBlock.z());
-                        if (!BlockMovers.canPasteBlock(player.level(), pos, pasteBlock, state.removeMode())) {
+                        boolean canPlace = blueprint.movesSource() ?
+                                BlockMovers.canMoveInto(player.level(), pos, state.removeMode()) :
+                                BlockMovers.canPasteBlock(player.level(), pos, pasteBlock, state.removeMode());
+                        if (!canPlace) {
                             renderBlockRange(pos, pos, cameraPosition, poseStack, lineBuffer,
                                     1.0F, 0.15F, 0.15F, 0.85F);
                         } else if (player.level().getBlockState(pos).isAir()) {
