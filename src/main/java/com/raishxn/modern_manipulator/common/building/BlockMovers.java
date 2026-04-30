@@ -59,6 +59,7 @@ public final class BlockMovers {
     private static final String TAG_MUFFLED = "muffled";
     private static final String TAG_CIRCUIT = "circuit_config";
     private static final String TAG_WORKING_ENABLED = "working_enabled";
+    private static final String TAG_PAINTING_COLOR = "painting_color";
 
     private static final Set<String> UNSAFE_BLOCK_ENTITY_KEYS = Set.of("forgecaps", "items", "inventory", "item",
             "fluid", "tank", "energy", "loot_table", "loottable", "command", "spawn_data", "spawnpotentials");
@@ -490,6 +491,7 @@ public final class BlockMovers {
         if (machine instanceof IControllable controllable) {
             tag.putBoolean(TAG_WORKING_ENABLED, controllable.isWorkingEnabled());
         }
+        tag.putInt(TAG_PAINTING_COLOR, machine.getPaintingColor());
         if (machine instanceof IHasCircuitSlot circuitMachine) {
             int circuit = IntCircuitBehaviour
                     .getCircuitConfiguration(circuitMachine.getCircuitInventory().getStackInSlot(0));
@@ -508,6 +510,7 @@ public final class BlockMovers {
         CompoundTag tag = wrapper.getCompound(TAG_GT_CONFIG);
         tag.putInt(TAG_PIPE_CONNECTIONS, pipeBlockEntity.getConnections());
         tag.putInt(TAG_PIPE_BLOCKED_CONNECTIONS, pipeBlockEntity.getBlockedConnections());
+        tag.putInt(TAG_PAINTING_COLOR, pipeBlockEntity.getPaintingColor());
         tag.put(TAG_COVER, pipeBlockEntity.getCoverContainer().copyConfig(new CompoundTag()));
         return wrapper;
     }
@@ -576,6 +579,9 @@ public final class BlockMovers {
         if (machine instanceof IControllable controllable && tag.contains(TAG_WORKING_ENABLED)) {
             controllable.setWorkingEnabled(tag.getBoolean(TAG_WORKING_ENABLED));
         }
+        if (tag.contains(TAG_PAINTING_COLOR)) {
+            machine.setPaintingColor(tag.getInt(TAG_PAINTING_COLOR));
+        }
         if (machine instanceof IHasCircuitSlot circuitMachine && tag.contains(TAG_CIRCUIT)) {
             circuitMachine.getCircuitInventory().setStackInSlot(0, IntCircuitBehaviour.stack(tag.getInt(TAG_CIRCUIT)));
         }
@@ -595,6 +601,9 @@ public final class BlockMovers {
             for (Direction direction : GTUtil.DIRECTIONS) {
                 pipeBlockEntity.setBlocked(direction, PipeBlockEntity.isFaceBlocked(blockedConnections, direction));
             }
+        }
+        if (tag.contains(TAG_PAINTING_COLOR)) {
+            pipeBlockEntity.setPaintingColor(tag.getInt(TAG_PAINTING_COLOR));
         }
         pipeBlockEntity.getCoverContainer().pasteConfig(player, tag.getCompound(TAG_COVER));
     }
