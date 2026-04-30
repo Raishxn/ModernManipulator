@@ -147,7 +147,7 @@ public final class BlockMovers {
 
     public static boolean canPasteBlock(Level level, BlockPos pos, BlueprintBlock blueprintBlock,
                                         RemoveMode removeMode) {
-        if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos) || level.getBlockEntity(pos) != null) {
+        if (!level.isLoaded(pos) || !level.getWorldBorder().isWithinBounds(pos)) {
             return false;
         }
         if (blueprintBlock.blockEntityTag() != null && !blueprintBlock.state().hasBlockEntity()) {
@@ -159,6 +159,10 @@ public final class BlockMovers {
             return false;
         }
         if (!existingState.isAir() && existingState.getDestroySpeed(level, pos) < 0.0F) {
+            return false;
+        }
+        BlockEntity existingBlockEntity = level.getBlockEntity(pos);
+        if (existingBlockEntity != null && safeConfigTag(existingBlockEntity) == null) {
             return false;
         }
         return true;
