@@ -50,6 +50,7 @@ public final class BlockMovers {
     private static final String TAG_PIPE_BLOCKED_CONNECTIONS = "pipe_blocked_connections";
     private static final String TAG_COVER = "cover";
     private static final String TAG_FACING_DIR = "front_facing";
+    private static final String TAG_UPWARDS_FACING = "upwards_facing";
     private static final String TAG_ITEM_OUTPUT_SIDE = "output_direction_item";
     private static final String TAG_ITEM_AUTO_OUTPUT = "item_auto_output";
     private static final String TAG_ALLOW_ITEM_IN_FROM_OUT = "allow_input_from_output_item";
@@ -319,6 +320,7 @@ public final class BlockMovers {
 
         CompoundTag gtConfig = transformedTag.getCompound(TAG_GT_CONFIG);
         transformDirectionName(gtConfig, TAG_FACING_DIR, mirrorX, mirrorY, mirrorZ, rotationY);
+        transformDirectionName(gtConfig, TAG_UPWARDS_FACING, mirrorX, mirrorY, mirrorZ, rotationY);
         transformDirectionName(gtConfig, TAG_ITEM_OUTPUT_SIDE, mirrorX, mirrorY, mirrorZ, rotationY);
         transformDirectionName(gtConfig, TAG_FLUID_OUTPUT_SIDE, mirrorX, mirrorY, mirrorZ, rotationY);
         if (gtConfig.contains(TAG_PIPE_CONNECTIONS, Tag.TAG_INT)) {
@@ -478,6 +480,9 @@ public final class BlockMovers {
         CompoundTag wrapper = gregTechWrapper(TAG_GT_KIND_MACHINE, machine.getItemsRequiredToPaste());
         CompoundTag tag = wrapper.getCompound(TAG_GT_CONFIG);
         tag.putString(TAG_FACING_DIR, machine.getFrontFacing().getName());
+        if (machine.allowExtendedFacing()) {
+            tag.putString(TAG_UPWARDS_FACING, machine.getUpwardsFacing().getName());
+        }
 
         if (machine instanceof IAutoOutputItem autoOutputItem && autoOutputItem.getOutputFacingItems() != null) {
             tag.putString(TAG_ITEM_OUTPUT_SIDE, autoOutputItem.getOutputFacingItems().getName());
@@ -576,6 +581,12 @@ public final class BlockMovers {
         Direction facing = Direction.byName(tag.getString(TAG_FACING_DIR));
         if (facing != null) {
             machine.setFrontFacing(facing);
+        }
+        if (machine.allowExtendedFacing() && tag.contains(TAG_UPWARDS_FACING)) {
+            Direction upwardsFacing = Direction.byName(tag.getString(TAG_UPWARDS_FACING));
+            if (upwardsFacing != null && upwardsFacing.getAxis() != Direction.Axis.Y) {
+                machine.setUpwardsFacing(upwardsFacing);
+            }
         }
         if (machine instanceof IMufflableMachine mufflableMachine && tag.contains(TAG_MUFFLED)) {
             mufflableMachine.setMuffled(tag.getBoolean(TAG_MUFFLED));
