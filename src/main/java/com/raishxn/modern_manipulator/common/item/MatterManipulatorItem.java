@@ -115,10 +115,6 @@ public class MatterManipulatorItem extends Item {
         Player player = context.getPlayer();
         if (!level.isClientSide && player != null) {
             MMState state = getState(stack);
-            if (player.isShiftKeyDown() && shouldExecuteOnSneakBlockUse(state)) {
-                return runConfiguredAction(stack, player, level);
-            }
-
             BlockPos selectedPos = player.isShiftKeyDown() ? context.getClickedPos() :
                     context.getClickedPos().relative(context.getClickedFace());
             MarkedPosition markedPosition = new MarkedPosition(level.dimension().location(), selectedPos);
@@ -132,16 +128,6 @@ public class MatterManipulatorItem extends Item {
                     markedPosition.shortText(), selectionInfo), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
-    }
-
-    private boolean shouldExecuteOnSneakBlockUse(MMState state) {
-        if (state.pendingAction() != null) {
-            return true;
-        }
-        if (state.mode() == MMState.ToolMode.COPYING || state.mode() == MMState.ToolMode.MOVING) {
-            return state.blueprint() == null ? state.selection() != null : state.coordC() != null;
-        }
-        return state.selection() != null;
     }
 
     private CoordinateTarget markCoordinateFromUse(MMState state, MarkedPosition markedPosition) {
@@ -167,6 +153,9 @@ public class MatterManipulatorItem extends Item {
             return InteractionResultHolder.pass(stack);
         }
         if (level.isClientSide) {
+            return InteractionResultHolder.success(stack);
+        }
+        if (!player.isShiftKeyDown()) {
             return InteractionResultHolder.success(stack);
         }
 
