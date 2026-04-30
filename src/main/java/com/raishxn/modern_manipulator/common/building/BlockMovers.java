@@ -238,6 +238,7 @@ public final class BlockMovers {
                 continue;
             }
             pipeNode.setConnection(direction, true, false);
+            neighborPipe.setConnection(direction.getOpposite(), true, false);
             pipeNode.notifyBlockUpdate();
             neighborPipe.notifyBlockUpdate();
         }
