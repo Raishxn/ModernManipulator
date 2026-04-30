@@ -108,6 +108,7 @@ public class MMRadialMenuScreen extends Screen {
         page.action("matter_manipulator.radial.mirror_y", Action.MIRROR_Y);
         page.action("matter_manipulator.radial.mirror_z", Action.MIRROR_Z);
         page.branch("matter_manipulator.radial.array", buildArrayPage());
+        page.branch("matter_manipulator.radial.spacing", buildSpacingPage());
         page.branch("matter_manipulator.radial.offset", buildOffsetPage());
         page.action("matter_manipulator.radial.reset_transform", Action.RESET_TRANSFORM);
         return page;
@@ -133,6 +134,29 @@ public class MMRadialMenuScreen extends Screen {
         page.action("matter_manipulator.radial.offset_y_minus", Action.OFFSET_Y_MINUS);
         page.action("matter_manipulator.radial.offset_z_plus", Action.OFFSET_Z_PLUS);
         page.action("matter_manipulator.radial.offset_z_minus", Action.OFFSET_Z_MINUS);
+        page.action("matter_manipulator.radial.offset_reset", Action.OFFSET_RESET);
+        return page;
+    }
+
+    private RadialPage buildSpacingPage() {
+        RadialPage page = new RadialPage(Component.translatable("matter_manipulator.radial.spacing"));
+        page.action("matter_manipulator.radial.spacing_x_plus", Action.SPACING_X_PLUS);
+        page.action("matter_manipulator.radial.spacing_x_minus", Action.SPACING_X_MINUS);
+        page.action("matter_manipulator.radial.spacing_y_plus", Action.SPACING_Y_PLUS);
+        page.action("matter_manipulator.radial.spacing_y_minus", Action.SPACING_Y_MINUS);
+        page.action("matter_manipulator.radial.spacing_z_plus", Action.SPACING_Z_PLUS);
+        page.action("matter_manipulator.radial.spacing_z_minus", Action.SPACING_Z_MINUS);
+        page.action("matter_manipulator.radial.spacing_reset", Action.SPACING_RESET);
+        return page;
+    }
+
+    private RadialPage buildEditStackPage() {
+        RadialPage page = new RadialPage(Component.translatable("matter_manipulator.radial.edit_stack"));
+        page.branch("matter_manipulator.radial.array", buildArrayPage());
+        page.branch("matter_manipulator.radial.spacing", buildSpacingPage());
+        page.branch("matter_manipulator.radial.offset", buildOffsetPage());
+        page.action("matter_manipulator.radial.array_reset", Action.ARRAY_RESET);
+        page.action("matter_manipulator.radial.spacing_reset", Action.SPACING_RESET);
         page.action("matter_manipulator.radial.offset_reset", Action.OFFSET_RESET);
         return page;
     }
@@ -168,7 +192,7 @@ public class MMRadialMenuScreen extends Screen {
         page.action("matter_manipulator.radial.mark_paste", Action.PREPARE_PASTE);
         page.branch("matter_manipulator.radial.set_mode", buildModePage(state, manipulator));
         page.action("matter_manipulator.radial.mark_copy", Action.PREPARE_COPY);
-        page.branch("matter_manipulator.radial.edit_stack", buildArrayPage());
+        page.branch("matter_manipulator.radial.edit_stack", buildEditStackPage());
         page.branch("matter_manipulator.radial.planning", buildPlanningPage());
         return page;
     }

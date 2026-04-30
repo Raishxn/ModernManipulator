@@ -293,6 +293,11 @@ public class MatterManipulatorItem extends Item {
                         state.pasteOffsetX(), state.pasteOffsetY(), state.pasteOffsetZ())
                         .withStyle(ChatFormatting.DARK_AQUA));
             }
+            if (state.hasPasteSpacing()) {
+                tooltip.add(Component.translatable("tooltip.matter_manipulator.spacing",
+                        state.pasteSpacingX(), state.pasteSpacingY(), state.pasteSpacingZ())
+                        .withStyle(ChatFormatting.DARK_AQUA));
+            }
             appendRequiredItemsTooltip(blueprint, state.pasteArrayCopies(), tooltip);
         }
     }
@@ -876,9 +881,15 @@ public class MatterManipulatorItem extends Item {
         int relX = pos.getX() - action.selection().min().getX();
         int relY = pos.getY() - action.selection().min().getY();
         int relZ = pos.getZ() - action.selection().min().getZ();
-        int localX = relX % state.pasteSizeX(blueprint);
-        int localY = relY % blueprint.sizeY();
-        int localZ = relZ % state.pasteSizeZ(blueprint);
+        int localX = relX % state.pasteStrideX(blueprint);
+        int localY = relY % state.pasteStrideY(blueprint);
+        int localZ = relZ % state.pasteStrideZ(blueprint);
+        if (localX >= state.pasteSizeX(blueprint) || localY >= blueprint.sizeY() ||
+                localZ >= state.pasteSizeZ(blueprint)) {
+            action.incrementSkipped();
+            action.recordWarning(pos);
+            return ActionTickResult.running();
+        }
         BlueprintBlock sourceBlock = null;
         BlueprintBlock pasteBlock = null;
         for (BlueprintBlock candidate : blueprint.blocks()) {
@@ -1034,9 +1045,9 @@ public class MatterManipulatorItem extends Item {
 
     private List<BlockPos> pastePositions(MMState state, Blueprint blueprint, BlockPos origin) {
         List<PendingPasteTarget> targets = new java.util.ArrayList<>();
-        int strideX = state.pasteSizeX(blueprint);
-        int strideY = blueprint.sizeY();
-        int strideZ = state.pasteSizeZ(blueprint);
+        int strideX = state.pasteStrideX(blueprint);
+        int strideY = state.pasteStrideY(blueprint);
+        int strideZ = state.pasteStrideZ(blueprint);
         for (int arrayY = 0; arrayY < state.pasteArrayY(); arrayY++) {
             for (int arrayZ = 0; arrayZ < state.pasteArrayZ(); arrayZ++) {
                 for (int arrayX = 0; arrayX < state.pasteArrayX(); arrayX++) {
@@ -1131,9 +1142,9 @@ public class MatterManipulatorItem extends Item {
 
     private PastePreflightResult validatePasteTargets(Level level, Player player, MMState state, Blueprint blueprint,
                                                       MMSelection pasteSelection) {
-        int strideX = state.pasteSizeX(blueprint);
-        int strideY = blueprint.sizeY();
-        int strideZ = state.pasteSizeZ(blueprint);
+        int strideX = state.pasteStrideX(blueprint);
+        int strideY = state.pasteStrideY(blueprint);
+        int strideZ = state.pasteStrideZ(blueprint);
         for (int arrayY = 0; arrayY < state.pasteArrayY(); arrayY++) {
             for (int arrayZ = 0; arrayZ < state.pasteArrayZ(); arrayZ++) {
                 for (int arrayX = 0; arrayX < state.pasteArrayX(); arrayX++) {

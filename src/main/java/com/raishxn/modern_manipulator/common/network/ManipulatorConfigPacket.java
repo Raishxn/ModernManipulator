@@ -105,6 +105,13 @@ public record ManipulatorConfigPacket(Action action) {
             case OFFSET_Z_PLUS -> updatePasteOffset(player, stack, state, 0, 0, 1);
             case OFFSET_Z_MINUS -> updatePasteOffset(player, stack, state, 0, 0, -1);
             case OFFSET_RESET -> resetPasteOffset(player, stack, state);
+            case SPACING_X_PLUS -> updatePasteSpacing(player, stack, state, 1, 0, 0);
+            case SPACING_X_MINUS -> updatePasteSpacing(player, stack, state, -1, 0, 0);
+            case SPACING_Y_PLUS -> updatePasteSpacing(player, stack, state, 0, 1, 0);
+            case SPACING_Y_MINUS -> updatePasteSpacing(player, stack, state, 0, -1, 0);
+            case SPACING_Z_PLUS -> updatePasteSpacing(player, stack, state, 0, 0, 1);
+            case SPACING_Z_MINUS -> updatePasteSpacing(player, stack, state, 0, 0, -1);
+            case SPACING_RESET -> resetPasteSpacing(player, stack, state);
             case SET_REMOVE_NONE -> setRemoveMode(player, stack, state, RemoveMode.NONE);
             case SET_REMOVE_REPLACEABLE -> setRemoveMode(player, stack, state, RemoveMode.REPLACEABLE);
             case SET_REMOVE_ALL -> setRemoveMode(player, stack, state, RemoveMode.ALL);
@@ -148,6 +155,7 @@ public record ManipulatorConfigPacket(Action action) {
                 state.clearMeDownlink();
                 state.resetTransform();
                 state.resetPasteArray();
+                state.resetPasteSpacing();
                 MatterManipulatorItem.setState(stack, state);
                 player.displayClientMessage(Component.translatable("message.matter_manipulator.reset"), true);
             }
@@ -404,6 +412,21 @@ public record ManipulatorConfigPacket(Action action) {
         MatterManipulatorItem.setState(stack, state);
         player.displayClientMessage(Component.translatable("message.matter_manipulator.offset_set",
                 state.pasteOffsetX(), state.pasteOffsetY(), state.pasteOffsetZ()), true);
+    }
+
+    private static void updatePasteSpacing(ServerPlayer player, ItemStack stack, MMState state,
+                                           int deltaX, int deltaY, int deltaZ) {
+        state.adjustPasteSpacing(deltaX, deltaY, deltaZ);
+        MatterManipulatorItem.setState(stack, state);
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.spacing_set",
+                state.pasteSpacingX(), state.pasteSpacingY(), state.pasteSpacingZ()), true);
+    }
+
+    private static void resetPasteSpacing(ServerPlayer player, ItemStack stack, MMState state) {
+        state.resetPasteSpacing();
+        MatterManipulatorItem.setState(stack, state);
+        player.displayClientMessage(Component.translatable("message.matter_manipulator.spacing_set",
+                state.pasteSpacingX(), state.pasteSpacingY(), state.pasteSpacingZ()), true);
     }
 
     private static void setLookedCoord(ServerPlayer player, ItemStack stack, MatterManipulatorItem manipulator,
@@ -682,6 +705,13 @@ public record ManipulatorConfigPacket(Action action) {
         OFFSET_Z_PLUS,
         OFFSET_Z_MINUS,
         OFFSET_RESET,
+        SPACING_X_PLUS,
+        SPACING_X_MINUS,
+        SPACING_Y_PLUS,
+        SPACING_Y_MINUS,
+        SPACING_Z_PLUS,
+        SPACING_Z_MINUS,
+        SPACING_RESET,
         SET_REMOVE_NONE,
         SET_REMOVE_REPLACEABLE,
         SET_REMOVE_ALL,
