@@ -738,6 +738,9 @@ public class MatterManipulatorItem extends Item {
             if (result.finished()) {
                 return result;
             }
+            if (action.paused()) {
+                return ActionTickResult.running();
+            }
         }
 
         return action.isComplete() ? ActionTickResult.finished(action.resultText(state.blueprint())) :
@@ -927,6 +930,23 @@ public class MatterManipulatorItem extends Item {
             action.incrementBlocked();
             action.recordError(pos);
             return ActionTickResult.running();
+        }
+        if (blueprint.movesSource()) {
+            BlockPos sourcePos = blueprint.sourcePos(sourceBlock);
+            if (sourcePos == null || !level.dimension().location().equals(blueprint.sourceDimension())) {
+                action.incrementBlocked();
+                action.recordError(pos);
+                return ActionTickResult.running();
+            }
+            if (!level.isLoaded(sourcePos)) {
+                action.rewindCursor();
+                action.recordWarning(sourcePos);
+                action.setPaused(true);
+                player.displayClientMessage(Component.translatable(
+                        "message.matter_manipulator.pending.paused_unloaded_chunk",
+                        sourcePos.getX(), sourcePos.getY(), sourcePos.getZ()), true);
+                return ActionTickResult.running();
+            }
         }
         if (blueprint.movesSource() && !canRemoveMovedSource(level, player, blueprint, sourceBlock)) {
             action.incrementBlocked();
