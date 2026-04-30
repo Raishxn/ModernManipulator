@@ -991,8 +991,8 @@ public class MMState {
             action.outOfPower = tag.getInt(TAG_OUT_OF_POWER);
             action.tickCooldown = tag.getInt(TAG_TICK_COOLDOWN);
             action.paused = tag.getBoolean(TAG_PAUSED);
-            action.warnings.addAll(loadPositions(tag.getList(TAG_WARNINGS, Tag.TAG_COMPOUND)));
-            action.errors.addAll(loadPositions(tag.getList(TAG_ERRORS, Tag.TAG_COMPOUND)));
+            action.warnings.addAll(loadIssuePositions(tag.getList(TAG_WARNINGS, Tag.TAG_COMPOUND)));
+            action.errors.addAll(loadIssuePositions(tag.getList(TAG_ERRORS, Tag.TAG_COMPOUND)));
             return action;
         }
 
@@ -1177,6 +1177,15 @@ public class MMState {
         }
 
         private static List<BlockPos> loadPositions(ListTag tag) {
+            List<BlockPos> positions = new java.util.ArrayList<>();
+            for (int i = 0; i < tag.size(); i++) {
+                CompoundTag posTag = tag.getCompound(i);
+                positions.add(new BlockPos(posTag.getInt("x"), posTag.getInt("y"), posTag.getInt("z")));
+            }
+            return positions;
+        }
+
+        private static List<BlockPos> loadIssuePositions(ListTag tag) {
             List<BlockPos> positions = new java.util.ArrayList<>();
             for (int i = 0; i < tag.size() && i < MAX_ISSUE_POSITIONS; i++) {
                 CompoundTag posTag = tag.getCompound(i);
