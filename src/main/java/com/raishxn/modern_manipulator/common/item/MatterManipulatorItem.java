@@ -207,7 +207,7 @@ public class MatterManipulatorItem extends Item {
         action.setTickCooldown(effectivePlaceTicks(state) - 1);
         if (result.finished()) {
             Component message = result.message() == null ? action.resultText(state.blueprint()) : result.message();
-            if (action.type() == PendingActionType.PASTE) {
+            if (isPasteAction(action.type())) {
                 if (state.blueprint() != null && !state.blueprint().consumesItems()) {
                     state.setBlueprint(null);
                 }
@@ -643,11 +643,14 @@ public class MatterManipulatorItem extends Item {
         if (!preflightResult.valid()) {
             return ActionStartResult.error(preflightResult.message());
         }
-        PendingAction action = new PendingAction(PendingActionType.PASTE, pasteSelection, ItemStack.EMPTY,
+        PendingActionType actionType = blueprint.movesSource() ? PendingActionType.MOVE : PendingActionType.PASTE;
+        PendingAction action = new PendingAction(actionType, pasteSelection, ItemStack.EMPTY,
                 MMState.BlockSelectMode.ALL, pastePositions(state, blueprint, min));
         state.startPendingAction(action);
         setState(stack, state);
-        return new ActionStartResult(true, Component.translatable("message.matter_manipulator.paste.started",
+        return new ActionStartResult(true, Component.translatable(
+                blueprint.movesSource() ? "message.matter_manipulator.move.started" :
+                        "message.matter_manipulator.paste.started",
                 blueprint.volume() * state.pasteArrayCopies(), coordC.shortText()));
     }
 
@@ -656,7 +659,7 @@ public class MatterManipulatorItem extends Item {
         if (action.type() != PendingActionType.REMOVE && action.type() != PendingActionType.CABLE_REMOVE &&
                 action.type() != PendingActionType.CABLE_PLACE &&
                 action.type() != PendingActionType.EXCHANGE &&
-                action.type() != PendingActionType.PASTE) {
+                !isPasteAction(action.type())) {
             return ActionTickResult.finished(Component.translatable("message.matter_manipulator.pending.unknown"));
         }
         if (!action.selection().dimension().equals(level.dimension().location())) {
@@ -678,7 +681,7 @@ public class MatterManipulatorItem extends Item {
             if (!action.selection().contains(pos)) {
                 continue;
             }
-            if (action.type() != PendingActionType.PASTE &&
+            if (!isPasteAction(action.type()) &&
                     !action.selection().contains(pos, action.blockSelectMode())) {
                 action.incrementSkipped();
                 continue;
@@ -699,13 +702,13 @@ public class MatterManipulatorItem extends Item {
                 return ActionTickResult.running();
             }
             BlockState blockState = level.getBlockState(pos);
-            if (action.type() != PendingActionType.PASTE && action.type() != PendingActionType.CABLE_PLACE &&
+            if (!isPasteAction(action.type()) && action.type() != PendingActionType.CABLE_PLACE &&
                     blockState.isAir()) {
                 action.incrementSkipped();
                 action.recordWarning(pos);
                 continue;
             }
-            if (action.type() != PendingActionType.PASTE && action.type() != PendingActionType.CABLE_PLACE &&
+            if (!isPasteAction(action.type()) && action.type() != PendingActionType.CABLE_PLACE &&
                     (blockState.getDestroySpeed(level, pos) < 0.0F || !player.mayInteract(level, pos))) {
                 action.incrementBlocked();
                 action.recordError(pos);
@@ -730,7 +733,7 @@ public class MatterManipulatorItem extends Item {
                 case REMOVE, CABLE_REMOVE -> removeBlock(stack, player, level, pos, blockState, state, action);
                 case CABLE_PLACE -> placeCable(stack, player, level, pos, state, action);
                 case EXCHANGE -> exchangeBlock(stack, player, level, pos, blockState, state, action);
-                case PASTE -> pasteBlock(stack, player, level, pos, state, action);
+                case MOVE, PASTE -> pasteBlock(stack, player, level, pos, state, action);
             };
             if (result.finished()) {
                 return result;
@@ -756,6 +759,10 @@ public class MatterManipulatorItem extends Item {
             action.recordError(pos);
         }
         return ActionTickResult.running();
+    }
+
+    private static boolean isPasteAction(PendingActionType type) {
+        return type == PendingActionType.PASTE || type == PendingActionType.MOVE;
     }
 
     private ActionTickResult placeCable(ItemStack stack, Player player, Level level, BlockPos pos,

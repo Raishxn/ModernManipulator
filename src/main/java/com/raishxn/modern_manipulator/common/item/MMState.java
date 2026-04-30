@@ -1144,8 +1144,8 @@ public class MMState {
                 case CABLE_REMOVE -> "message.matter_manipulator.cables.finished";
                 case CABLE_PLACE -> "message.matter_manipulator.cables.place.finished";
                 case EXCHANGE -> "message.matter_manipulator.exchange.finished";
-                case PASTE -> blueprint != null && blueprint.movesSource() ?
-                        "message.matter_manipulator.move.finished" : "message.matter_manipulator.paste.finished";
+                case MOVE -> "message.matter_manipulator.move.finished";
+                case PASTE -> "message.matter_manipulator.paste.finished";
                 case REMOVE -> "message.matter_manipulator.remove.finished";
             };
             return Component.translatable(key, removed, skipped, blocked, outOfPower);
@@ -1213,6 +1213,7 @@ public class MMState {
         CABLE_REMOVE("cable_remove"),
         CABLE_PLACE("cable_place"),
         EXCHANGE("exchange"),
+        MOVE("move"),
         PASTE("paste");
 
         private final String serializedName;
