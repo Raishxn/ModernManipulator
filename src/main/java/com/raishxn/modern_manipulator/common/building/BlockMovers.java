@@ -2,6 +2,7 @@ package com.raishxn.modern_manipulator.common.building;
 
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
@@ -57,6 +58,7 @@ public final class BlockMovers {
     private static final String TAG_ALLOW_FLUID_IN_FROM_OUT = "allow_input_from_output_fluid";
     private static final String TAG_MUFFLED = "muffled";
     private static final String TAG_CIRCUIT = "circuit_config";
+    private static final String TAG_WORKING_ENABLED = "working_enabled";
 
     private static final Set<String> UNSAFE_BLOCK_ENTITY_KEYS = Set.of("forgecaps", "items", "inventory", "item",
             "fluid", "tank", "energy", "loot_table", "loottable", "command", "spawn_data", "spawnpotentials");
@@ -485,6 +487,9 @@ public final class BlockMovers {
         if (machine instanceof IMufflableMachine mufflableMachine) {
             tag.putBoolean(TAG_MUFFLED, mufflableMachine.isMuffled());
         }
+        if (machine instanceof IControllable controllable) {
+            tag.putBoolean(TAG_WORKING_ENABLED, controllable.isWorkingEnabled());
+        }
         if (machine instanceof IHasCircuitSlot circuitMachine) {
             int circuit = IntCircuitBehaviour
                     .getCircuitConfiguration(circuitMachine.getCircuitInventory().getStackInSlot(0));
@@ -567,6 +572,9 @@ public final class BlockMovers {
         }
         if (machine instanceof IMufflableMachine mufflableMachine && tag.contains(TAG_MUFFLED)) {
             mufflableMachine.setMuffled(tag.getBoolean(TAG_MUFFLED));
+        }
+        if (machine instanceof IControllable controllable && tag.contains(TAG_WORKING_ENABLED)) {
+            controllable.setWorkingEnabled(tag.getBoolean(TAG_WORKING_ENABLED));
         }
         if (machine instanceof IHasCircuitSlot circuitMachine && tag.contains(TAG_CIRCUIT)) {
             circuitMachine.getCircuitInventory().setStackInSlot(0, IntCircuitBehaviour.stack(tag.getInt(TAG_CIRCUIT)));
