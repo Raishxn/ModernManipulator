@@ -1049,6 +1049,9 @@ public class MatterManipulatorItem extends Item {
             level.removeBlock(pos, false);
             return PasteResult.BLOCKED;
         }
+        if (BlockMovers.isCableLike(pasteBlock.state())) {
+            BlockMovers.reconnectAdjacentCables(level, pos);
+        }
         return PasteResult.PLACED;
     }
 
