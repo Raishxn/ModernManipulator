@@ -14,6 +14,7 @@ import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 public class MMMEDownlinkItem extends MMComponentItem {
 
@@ -53,7 +54,8 @@ public class MMMEDownlinkItem extends MMComponentItem {
             return InteractionResult.FAIL;
         }
 
-        state.setMeDownlink(downlink);
+        UUID owner = AE2Integration.downlinkOwner(player, downlink);
+        state.setMeDownlink(downlink, owner);
         MatterManipulatorItem.setState(manipulatorStack, state);
         player.displayClientMessage(Component.translatable("message.matter_manipulator.downlink.linked",
                 downlink.shortText()), true);

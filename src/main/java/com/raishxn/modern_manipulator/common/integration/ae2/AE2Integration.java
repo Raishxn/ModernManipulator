@@ -21,8 +21,10 @@ import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
 import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.config.MMConfig;
 import com.raishxn.modern_manipulator.common.item.MMState;
 import com.raishxn.modern_manipulator.common.item.MMState.MarkedPosition;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,12 +50,20 @@ public final class AE2Integration {
         if (downlink == null) {
             return Component.translatable("tooltip.matter_manipulator.me_downlink_unset");
         }
+        if (!isWithinRange(player, downlink)) {
+            return Component.translatable("tooltip.matter_manipulator.me_downlink_out_of_range",
+                    downlink.shortText(), MMConfig.ME_DOWNLINK_RANGE_BLOCKS.get());
+        }
         IGridNode node = exposedNode(player, downlink);
         if (node == null) {
             return Component.translatable("tooltip.matter_manipulator.me_downlink_missing", downlink.shortText());
         }
         if (!node.isOnline()) {
             return Component.translatable("tooltip.matter_manipulator.me_downlink_offline", downlink.shortText());
+        }
+        if (!ownerMatches(state.meDownlinkOwner(), node)) {
+            return Component.translatable("tooltip.matter_manipulator.me_downlink_owner_mismatch",
+                    downlink.shortText());
         }
         return Component.translatable("tooltip.matter_manipulator.me_downlink_online",
                 storage(player, state).getDescription(), downlink.shortText());
@@ -99,7 +109,7 @@ public final class AE2Integration {
         if (downlink == null) {
             return Component.translatable("message.matter_manipulator.plan.auto_no_me");
         }
-        IGridNode node = exposedNode(player, downlink);
+        IGridNode node = validatedNode(player, state);
         if (node == null || !node.isOnline()) {
             return Component.translatable("message.matter_manipulator.plan.auto_me_offline");
         }
@@ -132,7 +142,7 @@ public final class AE2Integration {
         }
 
         PendingCraftBatch previous = PENDING_CRAFTS.put(player.getUUID(),
-                new PendingCraftBatch(downlink, pending, skipped));
+                new PendingCraftBatch(downlink, state.meDownlinkOwner(), pending, skipped));
         if (previous != null) {
             previous.cancel();
         }
@@ -142,6 +152,11 @@ public final class AE2Integration {
 
     public static boolean hasGridNode(ServerPlayer player, MarkedPosition downlink) {
         return exposedNode(player, downlink) != null;
+    }
+
+    public static @Nullable UUID downlinkOwner(ServerPlayer player, MarkedPosition downlink) {
+        IGridNode node = exposedNode(player, downlink);
+        return node == null ? null : node.getOwningPlayerProfileId();
     }
 
     @SubscribeEvent
@@ -175,11 +190,28 @@ public final class AE2Integration {
         if (downlink == null) {
             return null;
         }
-        IGridNode node = exposedNode(player, downlink);
+        IGridNode node = validatedNode(player, state);
         if (node == null || !node.isOnline()) {
             return null;
         }
         return node.getGrid().getService(IStorageService.class).getInventory();
+    }
+
+    private static @Nullable IGridNode validatedNode(ServerPlayer player, MMState state) {
+        MarkedPosition downlink = state.meDownlink();
+        if (downlink == null || !isWithinRange(player, downlink)) {
+            return null;
+        }
+        return validatedNode(player, downlink, state.meDownlinkOwner());
+    }
+
+    private static @Nullable IGridNode validatedNode(ServerPlayer player, MarkedPosition downlink,
+                                                     @Nullable UUID expectedOwner) {
+        IGridNode node = exposedNode(player, downlink);
+        if (node == null || !ownerMatches(expectedOwner, node)) {
+            return null;
+        }
+        return node;
     }
 
     private static IGridNode exposedNode(ServerPlayer player, MarkedPosition downlink) {
@@ -196,6 +228,22 @@ public final class AE2Integration {
         return GridHelper.getExposedNode(player.level(), downlink.pos(), null);
     }
 
+    private static boolean isWithinRange(ServerPlayer player, MarkedPosition downlink) {
+        long range = MMConfig.ME_DOWNLINK_RANGE_BLOCKS.get();
+        if (range <= 0L) {
+            return true;
+        }
+        if (!downlink.dimension().equals(player.level().dimension().location())) {
+            return false;
+        }
+        return player.blockPosition().distSqr(downlink.pos()) <= range * range;
+    }
+
+    private static boolean ownerMatches(@Nullable UUID expectedOwner, IGridNode node) {
+        UUID actualOwner = node.getOwningPlayerProfileId();
+        return expectedOwner == null || actualOwner == null || expectedOwner.equals(actualOwner);
+    }
+
     private static IActionSource actionSource(ServerPlayer player, IGridNode node) {
         return IActionSource.ofPlayer(player, () -> node);
     }
@@ -204,19 +252,26 @@ public final class AE2Integration {
 
     private static final class PendingCraftBatch {
         private final MarkedPosition downlink;
+        private final @Nullable UUID owner;
         private final List<PendingCraft> crafts;
         private final int skipped;
         private int submitted;
         private int failed;
 
-        private PendingCraftBatch(MarkedPosition downlink, List<PendingCraft> crafts, int skipped) {
+        private PendingCraftBatch(MarkedPosition downlink, @Nullable UUID owner, List<PendingCraft> crafts,
+                                  int skipped) {
             this.downlink = downlink;
+            this.owner = owner;
             this.crafts = crafts;
             this.skipped = skipped;
         }
 
         private void tick(ServerPlayer player) {
-            IGridNode node = exposedNode(player, downlink);
+            if (!isWithinRange(player, downlink)) {
+                failRemaining(player, "message.matter_manipulator.plan.auto_failed_me_offline");
+                return;
+            }
+            IGridNode node = validatedNode(player, downlink, owner);
             if (node == null || !node.isOnline()) {
                 failRemaining(player, "message.matter_manipulator.plan.auto_failed_me_offline");
                 return;
