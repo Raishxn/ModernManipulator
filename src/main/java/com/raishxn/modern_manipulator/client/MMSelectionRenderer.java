@@ -147,6 +147,12 @@ public final class MMSelectionRenderer {
                         state.pasteOffsetX(), state.pasteOffsetY(), state.pasteOffsetZ()), centerX, y, 0xFF75FFC1);
                 y -= 10;
             }
+            if (state.hasPasteSpacing()) {
+                drawCenteredHudLine(graphics, minecraft, Component.translatable(
+                        "hud.matter_manipulator.spacing",
+                        state.pasteSpacingX(), state.pasteSpacingY(), state.pasteSpacingZ()), centerX, y, 0xFF75FFC1);
+                y -= 10;
+            }
         }
         if (state.mode() == MMState.ToolMode.EXCHANGING) {
             if (!state.exchangeReplacement().isEmpty()) {
@@ -322,9 +328,9 @@ public final class MMSelectionRenderer {
             return;
         }
 
-        int strideX = state.pasteSizeX(blueprint);
-        int strideY = blueprint.sizeY();
-        int strideZ = state.pasteSizeZ(blueprint);
+        int strideX = state.pasteStrideX(blueprint);
+        int strideY = state.pasteStrideY(blueprint);
+        int strideZ = state.pasteStrideZ(blueprint);
         for (int arrayY = 0; arrayY < state.pasteArrayY(); arrayY++) {
             for (int arrayZ = 0; arrayZ < state.pasteArrayZ(); arrayZ++) {
                 for (int arrayX = 0; arrayX < state.pasteArrayX(); arrayX++) {

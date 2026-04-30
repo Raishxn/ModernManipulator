@@ -55,8 +55,12 @@ public class MMState {
     private static final String TAG_PASTE_OFFSET_X = "pasteOffsetX";
     private static final String TAG_PASTE_OFFSET_Y = "pasteOffsetY";
     private static final String TAG_PASTE_OFFSET_Z = "pasteOffsetZ";
+    private static final String TAG_PASTE_SPACING_X = "pasteSpacingX";
+    private static final String TAG_PASTE_SPACING_Y = "pasteSpacingY";
+    private static final String TAG_PASTE_SPACING_Z = "pasteSpacingZ";
     private static final int MAX_PASTE_ARRAY = 16;
     private static final int MAX_PASTE_OFFSET = 256;
+    private static final int MAX_PASTE_SPACING = 256;
 
     private @Nullable MarkedPosition coordA;
     private @Nullable MarkedPosition coordB;
@@ -85,6 +89,9 @@ public class MMState {
     private int pasteOffsetX;
     private int pasteOffsetY;
     private int pasteOffsetZ;
+    private int pasteSpacingX;
+    private int pasteSpacingY;
+    private int pasteSpacingZ;
 
     public static MMState getOrCreate(CompoundTag root) {
         if (!root.contains(TAG_NAME, Tag.TAG_COMPOUND)) {
@@ -158,6 +165,9 @@ public class MMState {
         state.pasteOffsetX = clampPasteOffset(tag.getInt(TAG_PASTE_OFFSET_X));
         state.pasteOffsetY = clampPasteOffset(tag.getInt(TAG_PASTE_OFFSET_Y));
         state.pasteOffsetZ = clampPasteOffset(tag.getInt(TAG_PASTE_OFFSET_Z));
+        state.pasteSpacingX = clampPasteSpacing(tag.getInt(TAG_PASTE_SPACING_X));
+        state.pasteSpacingY = clampPasteSpacing(tag.getInt(TAG_PASTE_SPACING_Y));
+        state.pasteSpacingZ = clampPasteSpacing(tag.getInt(TAG_PASTE_SPACING_Z));
         if (tag.contains(TAG_PENDING_ACTION, Tag.TAG_COMPOUND)) {
             state.pendingAction = PendingAction.load(tag.getCompound(TAG_PENDING_ACTION));
         }
@@ -216,6 +226,9 @@ public class MMState {
         tag.putInt(TAG_PASTE_OFFSET_X, pasteOffsetX);
         tag.putInt(TAG_PASTE_OFFSET_Y, pasteOffsetY);
         tag.putInt(TAG_PASTE_OFFSET_Z, pasteOffsetZ);
+        tag.putInt(TAG_PASTE_SPACING_X, pasteSpacingX);
+        tag.putInt(TAG_PASTE_SPACING_Y, pasteSpacingY);
+        tag.putInt(TAG_PASTE_SPACING_Z, pasteSpacingZ);
         if (pendingAction != null) {
             tag.put(TAG_PENDING_ACTION, pendingAction.save());
         }
@@ -365,6 +378,22 @@ public class MMState {
         return pasteOffsetX != 0 || pasteOffsetY != 0 || pasteOffsetZ != 0;
     }
 
+    public int pasteSpacingX() {
+        return pasteSpacingX;
+    }
+
+    public int pasteSpacingY() {
+        return pasteSpacingY;
+    }
+
+    public int pasteSpacingZ() {
+        return pasteSpacingZ;
+    }
+
+    public boolean hasPasteSpacing() {
+        return pasteSpacingX != 0 || pasteSpacingY != 0 || pasteSpacingZ != 0;
+    }
+
     public void startPendingAction(PendingAction pendingAction) {
         this.pendingAction = pendingAction;
     }
@@ -494,6 +523,18 @@ public class MMState {
         pasteOffsetZ = 0;
     }
 
+    public void adjustPasteSpacing(int deltaX, int deltaY, int deltaZ) {
+        pasteSpacingX = clampPasteSpacing(pasteSpacingX + deltaX);
+        pasteSpacingY = clampPasteSpacing(pasteSpacingY + deltaY);
+        pasteSpacingZ = clampPasteSpacing(pasteSpacingZ + deltaZ);
+    }
+
+    public void resetPasteSpacing() {
+        pasteSpacingX = 0;
+        pasteSpacingY = 0;
+        pasteSpacingZ = 0;
+    }
+
     public void setRemoveMode(RemoveMode removeMode) {
         this.removeMode = removeMode;
     }
@@ -547,15 +588,27 @@ public class MMState {
     }
 
     public int pasteArraySizeX(Blueprint blueprint) {
-        return pasteSizeX(blueprint) * pasteArrayX;
+        return pasteSizeX(blueprint) + pasteStrideX(blueprint) * (pasteArrayX - 1);
     }
 
     public int pasteArraySizeY(Blueprint blueprint) {
-        return blueprint.sizeY() * pasteArrayY;
+        return blueprint.sizeY() + pasteStrideY(blueprint) * (pasteArrayY - 1);
     }
 
     public int pasteArraySizeZ(Blueprint blueprint) {
-        return pasteSizeZ(blueprint) * pasteArrayZ;
+        return pasteSizeZ(blueprint) + pasteStrideZ(blueprint) * (pasteArrayZ - 1);
+    }
+
+    public int pasteStrideX(Blueprint blueprint) {
+        return pasteSizeX(blueprint) + pasteSpacingX;
+    }
+
+    public int pasteStrideY(Blueprint blueprint) {
+        return blueprint.sizeY() + pasteSpacingY;
+    }
+
+    public int pasteStrideZ(Blueprint blueprint) {
+        return pasteSizeZ(blueprint) + pasteSpacingZ;
     }
 
     public BlockPos pasteOrigin(BlockPos coordC) {
@@ -568,6 +621,10 @@ public class MMState {
 
     private static int clampPasteOffset(int value) {
         return Math.max(-MAX_PASTE_OFFSET, Math.min(MAX_PASTE_OFFSET, value));
+    }
+
+    private static int clampPasteSpacing(int value) {
+        return Math.max(0, Math.min(MAX_PASTE_SPACING, value));
     }
 
     public BlockPos transformedRelative(Blueprint blueprint, BlueprintBlock block) {
