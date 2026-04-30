@@ -109,6 +109,9 @@ public final class BlockMovers {
             level.removeBlock(pos, false);
             return PasteResult.BLOCKED;
         }
+        if (isCableLike(blueprintBlock.state())) {
+            connectAdjacentMatchingPipes(level, pos);
+        }
         return PasteResult.PLACED;
     }
 
