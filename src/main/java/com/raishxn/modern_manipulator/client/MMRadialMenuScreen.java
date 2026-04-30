@@ -199,6 +199,7 @@ public class MMRadialMenuScreen extends Screen {
 
     private RadialPage buildMovingContextPage(MMState state, MatterManipulatorItem manipulator) {
         RadialPage page = new RadialPage(Component.translatable("matter_manipulator.radial.moving_options"));
+        page.branch("matter_manipulator.radial.transform", buildTransformPage());
         page.action("matter_manipulator.radial.mark_paste", Action.PREPARE_PASTE);
         page.branch("matter_manipulator.radial.set_mode", buildModePage(state, manipulator));
         page.action("matter_manipulator.radial.mark_cut", Action.PREPARE_MOVE);
