@@ -342,6 +342,10 @@ public class MMState {
             if (whitelistedState.equals(blockState)) {
                 return true;
             }
+            if (BlockMovers.isCableLike(whitelistedState) && BlockMovers.isCableLike(blockState) &&
+                    whitelistedState.getBlock() == blockState.getBlock()) {
+                return true;
+            }
         }
         return false;
     }

@@ -843,11 +843,7 @@ public class MatterManipulatorItem extends Item {
         BlockState replacementState = state.exchangeReplacementState() == null ?
                 blockItem.getBlock().defaultBlockState() : state.exchangeReplacementState();
         replacementState = copyCompatibleProperties(blockState, replacementState);
-        if (exchangeConfig != null && !replacementState.hasBlockEntity()) {
-            action.incrementBlocked();
-            action.recordError(pos);
-            return ActionTickResult.running();
-        }
+        CompoundTag configToApply = replacementState.hasBlockEntity() ? exchangeConfig : null;
         if (!replacementState.canSurvive(level, pos) || !level.getFluidState(pos).is(Fluids.EMPTY)) {
             action.incrementBlocked();
             action.recordError(pos);
@@ -866,13 +862,14 @@ public class MatterManipulatorItem extends Item {
             return ActionTickResult.running();
         }
         List<ItemStack> drops = blockDrops(level, pos, blockState, player, stack);
-        if (!level.setBlock(pos, replacementState, 3)) {
-            action.incrementBlocked();
-            action.recordError(pos);
-            return ActionTickResult.running();
+        PasteResult exchangeResult;
+        if (BlockMovers.isCableLike(blockState) || BlockMovers.isCableLike(replacementState)) {
+            exchangeResult = BlockMovers.pasteCableBlock(level, player, pos,
+                    new BlueprintBlock(0, 0, 0, replacementState, configToApply), MMState.RemoveMode.ALL);
+        } else {
+            exchangeResult = placeExchangeBlock(level, player, pos, replacementState, configToApply);
         }
-        if (exchangeConfig != null && !BlockMovers.applyConfigTag(level, player, pos, exchangeConfig)) {
-            level.removeBlock(pos, false);
+        if (exchangeResult != PasteResult.PLACED) {
             action.incrementBlocked();
             action.recordError(pos);
             return ActionTickResult.running();
@@ -880,6 +877,18 @@ public class MatterManipulatorItem extends Item {
         handleDrops(level, pos, player, state, drops);
         action.incrementRemoved();
         return ActionTickResult.running();
+    }
+
+    private PasteResult placeExchangeBlock(Level level, Player player, BlockPos pos, BlockState replacementState,
+                                           @Nullable CompoundTag configToApply) {
+        if (!level.setBlock(pos, replacementState, 3)) {
+            return PasteResult.BLOCKED;
+        }
+        if (configToApply != null && !BlockMovers.applyConfigTag(level, player, pos, configToApply)) {
+            level.removeBlock(pos, false);
+            return PasteResult.BLOCKED;
+        }
+        return PasteResult.PLACED;
     }
 
     private ActionTickResult pasteBlock(ItemStack stack, Player player, Level level, BlockPos pos, MMState state,
