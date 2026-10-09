@@ -168,7 +168,7 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         try {
             BlockCaptureDrops.captureDrops(world);
 
-            world.removeBlockEntity(pos);
+            // the block entity is kept so that blocks can drop their remaining contents (they're captured)
             world.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         } finally {
             givePlayerItems(BlockCaptureDrops.stopCapturingDrops(world).toArray(new ItemStack[0]));

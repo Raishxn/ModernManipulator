@@ -4,6 +4,7 @@ import com.raishxn.modern_manipulator.common.items.MMCreativeTabs;
 import com.raishxn.modern_manipulator.common.items.MMItems;
 import com.raishxn.modern_manipulator.common.items.MMRecipes;
 import com.raishxn.modern_manipulator.common.networking.Messages;
+import com.raishxn.modern_manipulator.common.utils.Mods;
 
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
@@ -42,7 +43,12 @@ public class ModernManipulator {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(Messages::init);
+        event.enqueueWork(() -> {
+            Messages.init();
+
+            if (Mods.GregTech.isModLoaded()) com.raishxn.modern_manipulator.common.compat.gt.GTCompat.init();
+            if (Mods.AppliedEnergistics2.isModLoaded()) com.raishxn.modern_manipulator.common.compat.ae.AECompat.init();
+        });
     }
 
     public static ResourceLocation id(String path) {

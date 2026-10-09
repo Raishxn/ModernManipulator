@@ -457,15 +457,15 @@ public class MMUtils {
     }
 
     public static String getDirectionUnlocalizedName(@Nullable Direction dir, boolean unknownIsCentre) {
-        if (dir == null) return unknownIsCentre ? "mm.dir.center" : "mm.dir.unknown";
+        if (dir == null) return unknownIsCentre ? "mm.direction.center" : "mm.direction.unknown";
 
         return switch (dir) {
-            case DOWN -> "mm.dir.down";
-            case UP -> "mm.dir.up";
-            case NORTH -> "mm.dir.north";
-            case SOUTH -> "mm.dir.south";
-            case WEST -> "mm.dir.west";
-            case EAST -> "mm.dir.east";
+            case DOWN -> "mm.direction.down";
+            case UP -> "mm.direction.up";
+            case NORTH -> "mm.direction.north";
+            case SOUTH -> "mm.direction.south";
+            case WEST -> "mm.direction.west";
+            case EAST -> "mm.direction.east";
         };
     }
 
