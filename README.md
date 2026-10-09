@@ -1,66 +1,43 @@
 # Modern Manipulator
 
-Modern Manipulator is a Minecraft 1.20.1 / Forge port of the GregTech: New Horizons Matter Manipulator, targeting GTCEu Modern 7.5.2+.
+A Minecraft 1.20.1 / Forge 47 port of the [GregTech: New Horizons Matter Manipulator](https://github.com/GTNewHorizons/MatterManipulator) for GTCEu Modern 7.5.3+.
 
-The goal is a faithful 1:1 gameplay port where possible, while replacing the old Minecraft 1.7.10, IC2, GTNH, and Forge APIs with their modern GTCEu equivalents.
+One handheld tool to build, copy, move, exchange and wire whole structures, pulling the items from your inventory, your ME system or a Quantum Uplink.
 
-## Current Status
+## Features
 
-This project is in early porting work.
+- Four tiers: Prototype, MKI, MKII and MKIII, with the original ranges, speeds, EU buffers and upgrades.
+- Modes: Geometry (line, cube, sphere, cylinder), Copying (rotate, flip, array), Moving, Exchanging and Cables.
+- GregTech: copies covers and their settings, pipe/cable connections, painting, auto output, circuits, machine configs, multiblock controller settings (voiding, batch, recipe type) and turbine rotors.
+- AE2 (optional): parts, facades, memory card settings, cable mode, ME access through a Wireless Access Point, and Smart Copy (pattern buffers to proxies).
+- Quantum Uplink multiblock: infinite range access to an ME system and automatic crafting of missing items through plans.
+- Ghost block previews, a radial menu and keybinds (Ctrl + X/C/V/Z).
 
-Implemented so far:
+## Requirements
 
-- GTCEu addon template converted into the Modern Manipulator project
-- `matter_manipulator` mod id and `com.raishxn.modern_manipulator` Java package
-- Four manipulator tiers registered
-- Original component/upgrades registered as modern items
-- Original item textures and initial uplink textures copied into modern resource paths
-- Dedicated Matter Manipulator creative tab
-- Basic manipulator NBT state
-- GTCEu electric item capability
-- EU capacity and voltage tiers matching the original mod
-- Coord A / Coord B marking through block interaction
-- Upgrade capability gates and upgrade installation recipe
-- Pending selection removal action with EU cost, range checks, and per-tier throughput
-- Client-side selection preview box
-- Basic tooltips and charge bar
+- Minecraft 1.20.1, Forge 47.4+
+- GregTech CEu Modern 7.5.3+
+- Applied Energistics 2 15+ (optional; needed for ME features and the Quantum Uplink)
 
-## Reference Repositories
+## Quick start (copying)
 
-- Original GTNH mod: https://github.com/GTNewHorizons/MatterManipulator
-- GTCEu addon template: https://github.com/GregTechCEu/GregTech-Addon-Template
+1. Right click the air with the manipulator to open the radial menu and pick **Copying**.
+2. Press **C** (Mark Copy) and right click two opposite corners of what you want to copy.
+3. Press **V** (Mark Paste) and right click where the copy should go.
+4. With a MKIII bound to a Quantum Uplink, open **Planning** in the radial menu to have AE2 craft the missing items.
+5. Build.
 
 ## Development
 
-Build:
+- `./gradlew build` builds the jar into `build/libs`.
+- `./gradlew runGameTestServer` runs the game tests.
+- See [PORTING_NOTES.md](PORTING_NOTES.md) for what was ported, adapted or left out, and the other dev tasks.
 
-```powershell
-.\gradlew.bat build
-```
+## Credits
 
-Format:
-
-```powershell
-.\gradlew.bat spotlessApply
-```
-
-Generated jar:
-
-```text
-build/libs/modern-manipulator-0.1.0.jar
-```
-
-## Porting Roadmap
-
-- Tier capability gates and upgrade installation
-- Range validation and area selection
-- Geometry, removing, copying, exchanging, moving, and cable modes
-- Client selection preview rendering
-- Networking and GUI
-- Quantum Uplink GTCEu machine
-- AE2 and inventory integration
-- Full GTCEu recipe chains
+- Original mod by RecursivePineapple and the GTNewHorizons team.
+- Based on the [GregTechCEu addon template](https://github.com/GregTechCEu/GregTech-Addon-Template).
 
 ## License
 
-LGPL-3.0, following the template and original project licensing.
+LGPL-3.0, like the original mod.

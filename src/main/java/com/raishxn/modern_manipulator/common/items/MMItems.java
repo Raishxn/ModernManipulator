@@ -1,21 +1,22 @@
 package com.raishxn.modern_manipulator.common.items;
 
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public final class MMItems {
 
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ModernManipulator.MOD_ID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS,
+            ModernManipulator.MOD_ID);
 
     private static final List<RegistryObject<Item>> MANIPULATORS = new ArrayList<>();
     private static final List<RegistryObject<Item>> COMPONENTS = new ArrayList<>();
@@ -51,8 +52,10 @@ public final class MMItems {
     public static final RegistryObject<Item> BLANK_UPGRADE = component("blank_upgrade", 23);
     public static final RegistryObject<Item> ENERGY_TUNNEL_UPGRADE = component("energy_tunnel_upgrade", 24);
     public static final RegistryObject<Item> EXCAVATION_UPGRADE = component("excavation_upgrade", 25);
-    public static final RegistryObject<Item> AUXILIARY_TELEPORTER_UPGRADE = component("auxiliary_teleporter_upgrade", 26);
-    public static final RegistryObject<Item> ADAPTIVE_WIRING_HARNESS_UPGRADE = component("adaptive_wiring_harness_upgrade", 27);
+    public static final RegistryObject<Item> AUXILIARY_TELEPORTER_UPGRADE = component("auxiliary_teleporter_upgrade",
+            26);
+    public static final RegistryObject<Item> ADAPTIVE_WIRING_HARNESS_UPGRADE = component(
+            "adaptive_wiring_harness_upgrade", 27);
 
     private MMItems() {}
 
@@ -66,9 +69,11 @@ public final class MMItems {
 
         COMPONENTS.forEach(item -> output.accept(item.get()));
 
-        // the uplink machines are registered through GTRegistrate, which doesn't add them to this tab
-        output.accept(com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.UPLINK.asStack());
-        output.accept(com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.UPLINK_HATCH.asStack());
+        // the uplink machines are registered through GTRegistrate (only with AE2), which doesn't add them to this tab
+        if (com.raishxn.modern_manipulator.common.utils.Mods.AppliedEnergistics2.isModLoaded()) {
+            output.accept(com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.UPLINK.asStack());
+            output.accept(com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.UPLINK_HATCH.asStack());
+        }
     }
 
     private static RegistryObject<Item> manipulator(String name, ManipulatorTier tier) {
