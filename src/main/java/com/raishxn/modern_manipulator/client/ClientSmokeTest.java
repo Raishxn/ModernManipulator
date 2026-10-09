@@ -13,7 +13,6 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -27,11 +26,17 @@ public class ClientSmokeTest {
     private static boolean done = false;
 
     @SubscribeEvent
-    public static void onTitle(ScreenEvent.Render.Post event) {
-        if (done || !Boolean.getBoolean("mm.clientSmokeTest") || !(event.getScreen() instanceof TitleScreen)) return;
-        done = true;
+    public static void onTick(net.minecraftforge.event.TickEvent.ClientTickEvent event) {
+        if (done || !Boolean.getBoolean("mm.clientSmokeTest") || event.phase != net.minecraftforge.event.TickEvent.Phase.END) return;
 
         Minecraft mc = Minecraft.getInstance();
+
+        if (!(mc.screen instanceof TitleScreen title)) return;
+        done = true;
+
+        ModernManipulator.LOG.info("MM client smoke test starting");
+
+        var graphics = new net.minecraft.client.gui.GuiGraphics(mc, mc.renderBuffers().bufferSource());
         int pages = 0;
 
         try {
@@ -46,8 +51,8 @@ public class ClientSmokeTest {
 
                     RadialMenu menu = ManipulatorMenus.getMenuOptions(manipulator, stack).build();
                     RadialMenuScreen screen = new RadialMenuScreen(menu);
-                    screen.init(mc, event.getScreen().width, event.getScreen().height);
-                    screen.render(event.getGuiGraphics(), 0, 0, 0);
+                    screen.init(mc, title.width, title.height);
+                    screen.render(graphics, 0, 0, 0);
                     pages++;
                 }
             }
