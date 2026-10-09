@@ -11,7 +11,7 @@ Mod id: `modern_manipulator`. The package layout mirrors the original (`common.b
 - Building algorithm: chunk/protection checks, remove modes, dependency shuffling (torches, levers...), EU cost formula (hardness, block entity penalty, distance^1.25, power efficiency upgrade), item sourcing order (pending drops → player → ME → uplink), drops returned through ME → uplink → inventory → ground, fluids into containers.
 - Preview: region boxes, rulers, ghost block hints (with build error/warning tinting), HUD text.
 - Plans: required item report, manual/auto plans through the uplink (fake processing patterns + auto crafting requests).
-- Quantum Uplink multiblock (original 9x9x9 structure) + ME connector hatch: 1A ZPM while active, plasma cost per transfer, plan patterns, power refill for the Energy Tunnel upgrade.
+- Quantum Uplink multiblock (original 9x9x9 structure; Trinium gets GENERATE_FRAME for it; crafting recipes for the controller and ME hatch since GTNH's assembly line recipes weren't part of the mod) + ME connector hatch: 1A ZPM while active, plasma cost per transfer, plan patterns, power refill for the Energy Tunnel upgrade.
 - GregTech: colour, covers (with their config), auto output, circuit, muffled, distinct, memory-card config (`ICopyable`), pipe/cable connections and blocked faces, cable mode with connections, ore voiding, battery buffer inventories. Facing/upwards facing are part of the block state.
 - AE2: parts on cable busses (with memory card settings), facades, AE machine settings, cable mode, exchanging cables, ME linking through the Wireless Access Point (put the MKI+ manipulator in the WAP link slot), Smart Copy: pattern buffers → pattern buffer proxies.
 
@@ -28,3 +28,4 @@ Mod id: `modern_manipulator`. The package layout mirrors the original (`common.b
 - `./gradlew runGameTestServer` runs the game tests (`gametest/MMGameTests`, `gametest/MMCompatGameTests`).
 - `./gradlew runData` regenerates the uplink machine models. Delete `src/generated/resources/assets/modern_manipulator/lang/` afterwards (the hand-written langs in `src/main/resources` are the real ones: en_us, pt_br, zh_cn).
 - `./gradlew runClient -PmmSmokeTest` renders every radial menu page of every tier/mode and builds the hint buffer at the title screen, logs `MM client smoke test passed`/`FAILED`, then closes the game.
+- `./gradlew runClient -PwithGtna` also loads GTNA (`../GregTech-Nexus-Addon/build/libs/gtna-0.5.2.jar`; override with `-PgtnaDir`/`-PgtnaVersion`) with infiniverse and ldlib 1.0.50.
