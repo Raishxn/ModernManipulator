@@ -91,6 +91,11 @@ public class RenderHints {
         pending.add(hint);
     }
 
+    /** Rebuilds the vertex buffer now (used by the smoke test). */
+    public void forceRebuild() {
+        rebuild();
+    }
+
     private void rebuild() {
         dirty = false;
 

@@ -27,3 +27,4 @@ Mod id: `modern_manipulator`. The package layout mirrors the original (`common.b
 ## Testing
 - `./gradlew runGameTestServer` runs the game tests (`gametest/MMGameTests`, `gametest/MMCompatGameTests`).
 - `./gradlew runData` regenerates the uplink machine models. Delete `src/generated/resources/assets/modern_manipulator/lang/` afterwards (the hand-written langs in `src/main/resources` are the real ones: en_us, pt_br, zh_cn).
+- `./gradlew runClient -PmmSmokeTest` renders every radial menu page of every tier/mode and builds the hint buffer at the title screen, logs `MM client smoke test passed`/`FAILED`, then closes the game.
