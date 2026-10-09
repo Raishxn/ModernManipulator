@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ECE",
+    "QHQ",
+    "EIE"
+  ],
+  "key": {
+    "E": {
+      "item": "gtceu:zpm_emitter"
+    },
+    "C": {
+      "tag": "gtceu:circuits/zpm"
+    },
+    "Q": {
+      "item": "ae2:quantum_link"
+    },
+    "H": {
+      "item": "gtceu:zpm_machine_hull"
+    },
+    "I": {
+      "item": "ae2:interface"
+    }
+  },
+  "result": {
+    "item": "modern_manipulator:mm_uplink_me_hatch"
+  }
+}

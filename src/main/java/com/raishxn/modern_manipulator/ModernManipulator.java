@@ -38,6 +38,10 @@ public class ModernManipulator {
         MMRecipes.SERIALIZERS.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
+        // the uplink structure uses trinium frames (as in GTNH), which GTCEu doesn't generate
+        modEventBus.addListener((com.gregtechceu.gtceu.api.data.chemical.material.event.PostMaterialEvent event) ->
+            com.gregtechceu.gtceu.common.data.GTMaterials.Trinium.addFlags(
+                com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.GENERATE_FRAME));
         modEventBus.addGenericListener(MachineDefinition.class, this::registerMachines);
 
         MinecraftForge.EVENT_BUS.register(new CommonEvents());

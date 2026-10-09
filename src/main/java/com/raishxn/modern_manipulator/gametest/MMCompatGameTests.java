@@ -240,6 +240,55 @@ public class MMCompatGameTests {
     }
 
     @GameTest(template = "empty16")
+    public static void uplinkStructureForms(GameTestHelper helper) {
+        clear(helper);
+
+        ServerPlayer player = player(helper);
+
+        helper.assertTrue(GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, GTMaterials.Trinium) != null,
+            "the trinium frame should exist (the uplink structure needs it)");
+
+        BlockPos pos = new BlockPos(8, 6, 1);
+        helper.setBlock(pos, com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.UPLINK.getBlock().defaultBlockState());
+
+        if (!(helper.getBlockEntity(pos) instanceof IMachineBlockEntity mbe &&
+            mbe.getMetaMachine() instanceof com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine controller)) {
+            helper.fail("the uplink should be a multiblock controller");
+            return;
+        }
+
+        controller.getPattern().autoBuild(player, controller.getMultiblockState());
+
+        helper.assertTrue(controller.checkPattern(), "the auto built uplink structure should be valid: " +
+            controller.getMultiblockState().error);
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16")
+    public static void uplinkRecipesAreCraftable(GameTestHelper helper) {
+        var recipes = helper.getLevel().getRecipeManager();
+
+        for (String id : new String[] { "mm_uplink", "mm_uplink_me_hatch" }) {
+            var recipe = recipes.byKey(new ResourceLocation(ModernManipulator.MOD_ID, id)).orElse(null);
+
+            if (recipe == null) {
+                helper.fail("the " + id + " recipe should be loaded");
+                return;
+            }
+
+            for (var ingredient : recipe.getIngredients()) {
+                helper.assertTrue(ingredient.isEmpty() || ingredient.getItems().length > 0,
+                    "every ingredient of " + id + " should match an item");
+            }
+
+            helper.assertTrue(!recipe.getResultItem(helper.getLevel().registryAccess()).isEmpty(), id + " should have a result");
+        }
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16")
     public static void gtCableLine(GameTestHelper helper) {
         clear(helper);
 

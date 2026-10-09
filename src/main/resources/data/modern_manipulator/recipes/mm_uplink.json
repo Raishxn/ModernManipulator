@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FCF",
+    "TXT",
+    "FHF"
+  ],
+  "key": {
+    "F": {
+      "item": "gtceu:zpm_field_generator"
+    },
+    "C": {
+      "tag": "gtceu:circuits/uv"
+    },
+    "T": {
+      "item": "modern_manipulator:teleporter_core_mk3"
+    },
+    "X": {
+      "item": "modern_manipulator:computer_core_mk3"
+    },
+    "H": {
+      "item": "gtceu:zpm_machine_hull"
+    }
+  },
+  "result": {
+    "item": "modern_manipulator:mm_uplink"
+  }
+}
