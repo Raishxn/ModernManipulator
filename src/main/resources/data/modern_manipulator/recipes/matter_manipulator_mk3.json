@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LCT",
+    "FMF",
+    " P "
+  ],
+  "key": {
+    "L": {
+      "item": "modern_manipulator:lens_assembly_mk3"
+    },
+    "C": {
+      "item": "modern_manipulator:computer_core_mk3"
+    },
+    "T": {
+      "item": "modern_manipulator:teleporter_core_mk3"
+    },
+    "F": {
+      "item": "modern_manipulator:frame_mk3"
+    },
+    "M": {
+      "item": "modern_manipulator:matter_manipulator_mk2"
+    },
+    "P": {
+      "item": "modern_manipulator:power_core_mk3"
+    }
+  },
+  "result": {
+    "item": "modern_manipulator:matter_manipulator_mk3"
+  }
+}

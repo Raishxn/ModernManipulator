@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 @SuppressWarnings("removal")
 public class ModernManipulator {
 
-    public static final String MOD_ID = "matter_manipulator";
+    public static final String MOD_ID = "modern_manipulator";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final GTRegistrate REGISTRATE = GTRegistrate.create(MOD_ID);
 
