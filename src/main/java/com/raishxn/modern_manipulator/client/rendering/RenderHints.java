@@ -44,8 +44,8 @@ public class RenderHints {
     private static final ResourceLocation HINT_TEXTURE = new ResourceLocation("minecraft", "block/white_stained_glass");
 
     /** Ghost blocks are slightly smaller than a full block so that they don't z-fight with the terrain. */
-    private static final float SCALE = 0.9f;
-    private static final int GHOST_ALPHA = 0xA0;
+    private static final float SCALE = 0.7f;
+    private static final int GHOST_ALPHA = 0x80;
 
     private static class Hint {
 
@@ -329,7 +329,7 @@ public class RenderHints {
         }
 
         vbo.bind();
-        vbo.drawWithShader(pose.last().pose(), projection, GameRenderer.getPositionColorTexShader());
+        vbo.drawWithShader(pose.last().pose(), projection, MMShaders.GHOST != null ? MMShaders.GHOST : GameRenderer.getPositionColorTexShader());
         VertexBuffer.unbind();
 
         RenderSystem.enableDepthTest();

@@ -1,12 +1,21 @@
 {
-    "vertex": "modern_manipulator:mm_fancybox",
-    "fragment": "modern_manipulator:mm_fancybox",
+    "blend": {
+        "func": "add",
+        "srcrgb": "srcalpha",
+        "dstrgb": "1-srcalpha"
+    },
+    "vertex": "modern_manipulator:mm_ghost",
+    "fragment": "modern_manipulator:mm_ghost",
     "attributes": [
         "Position",
         "Color",
         "UV0"
     ],
-    "samplers": [],
+    "samplers": [
+        {
+            "name": "Sampler0"
+        }
+    ],
     "uniforms": [
         {
             "name": "ModelViewMat",
@@ -53,19 +62,6 @@
                 0.0,
                 1.0
             ]
-        },
-        {
-            "name": "MMTime",
-            "type": "float",
-            "count": 1,
-            "values": [
-                0.0
-            ]
         }
-    ],
-    "blend": {
-        "func": "add",
-        "srcrgb": "srcalpha",
-        "dstrgb": "1-srcalpha"
-    }
+    ]
 }

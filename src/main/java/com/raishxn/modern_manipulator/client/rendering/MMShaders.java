@@ -16,10 +16,13 @@ import java.io.IOException;
 public class MMShaders {
 
     public static ShaderInstance FANCYBOX;
+    public static ShaderInstance GHOST;
 
     @SubscribeEvent
     public static void register(RegisterShadersEvent event) throws IOException {
         event.registerShader(new ShaderInstance(event.getResourceProvider(), ModernManipulator.id("mm_fancybox"),
             DefaultVertexFormat.POSITION_COLOR_TEX), shader -> FANCYBOX = shader);
+        event.registerShader(new ShaderInstance(event.getResourceProvider(), ModernManipulator.id("mm_ghost"),
+            DefaultVertexFormat.POSITION_COLOR_TEX), shader -> GHOST = shader);
     }
 }

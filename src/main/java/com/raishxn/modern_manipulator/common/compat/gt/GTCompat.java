@@ -19,6 +19,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.IItemHandler;
 
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,27 @@ import java.util.List;
 public class GTCompat {
 
     private GTCompat() {}
+
+    /** Forces every ldlib synced field of the machines/pipes to be sent to the clients again. */
+    public static void resync(net.minecraft.server.level.ServerLevel level, List<BlockPos> positions) {
+        for (BlockPos pos : positions) {
+            BlockEntity te = level.getBlockEntity(pos);
+
+            if (te instanceof IMachineBlockEntity mbe) {
+                MetaMachine machine = mbe.getMetaMachine();
+                machine.getSyncStorage().markAllDirty();
+                machine.getCoverContainer().getCovers().forEach(cover -> cover.getSyncStorage().markAllDirty());
+            } else if (te instanceof PipeBlockEntity<?, ?> pipe) {
+                pipe.getSyncStorage().markAllDirty();
+                pipe.getCoverContainer().getCovers().forEach(cover -> cover.getSyncStorage().markAllDirty());
+            } else {
+                continue;
+            }
+
+            BlockState state = level.getBlockState(pos);
+            level.sendBlockUpdated(pos, state, state, net.minecraft.world.level.block.Block.UPDATE_ALL);
+        }
+    }
 
     public static void init() {
         TileAnalyzers.register((block, te, flags) -> {
@@ -58,6 +80,27 @@ public class GTCompat {
                 if (machine instanceof BatteryBufferMachine buffer) return buffer.getBatteryInventory();
 
                 return null;
+            }
+        });
+
+        // configuring a machine/pipe in the same tick it's placed doesn't reach the client (ldlib only syncs changes made
+        // after the initial update), so everything is re-synced on the next tick
+        com.raishxn.modern_manipulator.common.compat.BuildHooks.register(new com.raishxn.modern_manipulator.common.compat.BuildHooks.IBuildHook() {
+
+            @Override
+            public void onBlocksPlaced(com.raishxn.modern_manipulator.common.building.PendingBuild build, Level world, List<PendingBlock> placed,
+                                       com.raishxn.modern_manipulator.common.building.IBlockApplyContext context) {
+                if (!(world instanceof net.minecraft.server.level.ServerLevel serverLevel)) return;
+
+                List<BlockPos> positions = new java.util.ArrayList<>();
+
+                for (PendingBlock block : placed) {
+                    if (block.gt != null) positions.add(new BlockPos(block.x, block.y, block.z));
+                }
+
+                if (positions.isEmpty()) return;
+
+                serverLevel.getServer().tell(new net.minecraft.server.TickTask(serverLevel.getServer().getTickCount() + 1, () -> resync(serverLevel, positions)));
             }
         });
 
