@@ -71,6 +71,28 @@ public class GTCompat {
             new com.raishxn.modern_manipulator.common.items.manipulator.Location(level, positions.get(0)), synced);
     }
 
+    private record PendingResync(net.minecraft.server.level.ServerLevel level, List<BlockPos> positions, int tick) {}
+
+    private static final List<PendingResync> PENDING_RESYNCS = new java.util.ArrayList<>();
+
+    /** Re-sends the machines/pipes to the clients at the end of the next tick (see {@link #resync}). */
+    public static void scheduleResync(net.minecraft.server.level.ServerLevel level, List<BlockPos> positions) {
+        PENDING_RESYNCS.add(new PendingResync(level, positions, level.getServer().getTickCount()));
+    }
+
+    private static void onServerTick(net.minecraftforge.event.TickEvent.ServerTickEvent event) {
+        if (event.phase != net.minecraftforge.event.TickEvent.Phase.END || PENDING_RESYNCS.isEmpty()) return;
+
+        int now = event.getServer().getTickCount();
+
+        PENDING_RESYNCS.removeIf(pending -> {
+            if (pending.tick() >= now) return false;
+
+            resync(pending.level(), pending.positions());
+            return true;
+        });
+    }
+
     public static void init() {
         TileAnalyzers.register((block, te, flags) -> {
             if ((flags & PendingBlock.ANALYZE_GT) != 0) {
@@ -99,8 +121,10 @@ public class GTCompat {
             }
         });
 
-        // configuring a machine/pipe in the same tick it's placed doesn't reach the client (ldlib only syncs changes made
-        // after the initial update), so everything is re-synced on the next tick
+        // configuring a machine/pipe in the same tick it's placed doesn't reach the client: ldlib's sync payload can
+        // arrive before the block itself (block changes are only broadcast during the next tick's chunk tick) and gets
+        // dropped. Everything is re-sent at the end of the next tick, after that broadcast.
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(GTCompat::onServerTick);
         com.raishxn.modern_manipulator.common.compat.BuildHooks.register(new com.raishxn.modern_manipulator.common.compat.BuildHooks.IBuildHook() {
 
             @Override
@@ -116,7 +140,7 @@ public class GTCompat {
 
                 if (positions.isEmpty()) return;
 
-                serverLevel.getServer().tell(new net.minecraft.server.TickTask(serverLevel.getServer().getTickCount() + 1, () -> resync(serverLevel, positions)));
+                scheduleResync(serverLevel, positions);
             }
         });
 
