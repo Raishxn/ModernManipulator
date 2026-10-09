@@ -1,0 +1,24 @@
+package com.raishxn.modern_manipulator.common.items;
+
+import com.raishxn.modern_manipulator.ModernManipulator;
+
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
+
+public final class MMCreativeTabs {
+
+    public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB,
+        ModernManipulator.MOD_ID);
+
+    public static final RegistryObject<CreativeModeTab> MATTER_MANIPULATOR = TABS.register("matter_manipulator",
+        () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.modern_manipulator"))
+            .icon(() -> MMItems.MK3.get().getDefaultInstance())
+            .displayItems((parameters, output) -> MMItems.addCreativeTabItems(output))
+            .build());
+
+    private MMCreativeTabs() {}
+}

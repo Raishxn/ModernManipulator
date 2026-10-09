@@ -1,5 +1,10 @@
 package com.raishxn.modern_manipulator;
 
+import com.raishxn.modern_manipulator.common.items.MMCreativeTabs;
+import com.raishxn.modern_manipulator.common.items.MMItems;
+import com.raishxn.modern_manipulator.common.items.MMRecipes;
+import com.raishxn.modern_manipulator.common.networking.Messages;
+
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.resources.ResourceLocation;
@@ -9,11 +14,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-import com.raishxn.modern_manipulator.common.config.MMConfig;
-import com.raishxn.modern_manipulator.common.item.MMCreativeTabs;
-import com.raishxn.modern_manipulator.common.item.MMItems;
-import com.raishxn.modern_manipulator.common.network.MMNetwork;
-import com.raishxn.modern_manipulator.common.recipe.MMRecipes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,28 +22,27 @@ import org.apache.logging.log4j.Logger;
 public class ModernManipulator {
 
     public static final String MOD_ID = "modern_manipulator";
-    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    public static final Logger LOG = LogManager.getLogger("ModernManipulator");
     public static final GTRegistrate REGISTRATE = GTRegistrate.create(MOD_ID);
 
     public ModernManipulator() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        GlobalMMConfig.register();
+
         MMItems.ITEMS.register(modEventBus);
         MMCreativeTabs.TABS.register(modEventBus);
         MMRecipes.SERIALIZERS.register(modEventBus);
-        MMConfig.register();
 
         modEventBus.addListener(this::commonSetup);
 
-        MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(new CommonEvents());
+
         REGISTRATE.registerRegistrate();
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            MMNetwork.register();
-            LOGGER.info("Matter Manipulator modern port initialized.");
-        });
+        event.enqueueWork(Messages::init);
     }
 
     public static ResourceLocation id(String path) {
