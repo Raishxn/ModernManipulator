@@ -301,6 +301,7 @@
   "mm.info.warning.invalid_cover": "无效的覆盖板：%s",
   "mm.uplink.address": "地址：%s",
   "mm.uplink.stored_plasma": "储存的等离子体：%s EU",
+  "mm.uplink.hatch_plasma": "输入仓中的等离子体：%s EU",
   "mm.uplink.state.active": "状态：运行中（处理计划）",
   "mm.uplink.state.idle": "状态：空闲",
   "mm.uplink.state.off": "状态：离线",

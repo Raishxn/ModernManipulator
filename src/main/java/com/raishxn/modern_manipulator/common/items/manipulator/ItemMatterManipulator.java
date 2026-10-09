@@ -401,16 +401,10 @@ public class ItemMatterManipulator extends Item {
                         span.y + (span.y < 0 ? -1 : 1),
                         span.z + (span.z < 0 ? -1 : 1)));
 
-                addInfoLine(desc, "mm.tooltip.copying.wireless_link", state.config.linkExternalHubs,
-                    on -> Component.translatable(on ? "mm.gui.smart_copy.on" : "mm.gui.smart_copy.off").getString());
-
                 if (state.hasCap(ALLOW_SMART_COPY)) {
                     addInfoLine(desc, "mm.tooltip.copying.auto_proxy_cribs", state.config.replaceCribsWithProxies,
                         on -> Component.translatable(on ? "mm.gui.smart_copy.on" : "mm.gui.smart_copy.off").getString());
                 }
-
-                addInfoLine(desc, "mm.tooltip.copying.auto_p2p_interfaces", state.config.replaceInterfacesWithP2P,
-                    on -> Component.translatable(on ? "mm.gui.smart_copy.on" : "mm.gui.smart_copy.off").getString());
             }
 
             if (state.config.placeMode == PlaceMode.MOVING) {

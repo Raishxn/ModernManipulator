@@ -219,6 +219,7 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
 
         textList.add(Component.translatable("mm.uplink.address", Long.toHexString(address)).withStyle(ChatFormatting.GRAY));
         textList.add(Component.translatable("mm.uplink.stored_plasma", MMUtils.formatNumber(pendingPlasmaEU)).withStyle(ChatFormatting.GRAY));
+        textList.add(Component.translatable("mm.uplink.hatch_plasma", MMUtils.formatNumber(getPlasmaEUInHatches())).withStyle(ChatFormatting.GRAY));
         textList.add(Component.translatable(switch (getState()) {
             case OFF -> "mm.uplink.state.off";
             case IDLE -> "mm.uplink.state.idle";
@@ -444,6 +445,25 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
         }
     }
 
+    /** The EU the plasma in the input hatches is worth (it's only converted when a transfer needs it). */
+    private long getPlasmaEUInHatches() {
+        if (getLevel() == null || inputHatches.isEmpty()) return 0;
+
+        List<GTRecipe> fuels = getLevel().getRecipeManager().getAllRecipesFor(GTRecipeTypes.PLASMA_GENERATOR_FUELS);
+
+        long total = 0;
+
+        for (FluidHatchPartMachine hatch : inputHatches) {
+            for (int i = 0; i < hatch.tank.getTanks(); i++) {
+                FluidStack fluid = hatch.tank.getFluidInTank(i);
+
+                if (!fluid.isEmpty()) total += fluid.getAmount() * getEUPerLitre(fuels, fluid);
+            }
+        }
+
+        return total;
+    }
+
     private static long getEUPerLitre(List<GTRecipe> fuels, FluidStack fluid) {
         for (GTRecipe recipe : fuels) {
             for (FluidStack input : RecipeHelper.getInputFluids(recipe)) {
@@ -486,6 +506,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
             hatch.addRequest(submitter, patternName, requiredItems, autocraft);
 
             sendInfoToPlayer(submitter, "mm.info.new_virtual_me_pattern", patternName);
+        } else {
+            MMUtils.sendErrorToPlayer(submitter, uplinkHatches.isEmpty() ? "mm.uplink.status.no_hatch" : "mm.uplink.status.ae_offline");
         }
     }
 

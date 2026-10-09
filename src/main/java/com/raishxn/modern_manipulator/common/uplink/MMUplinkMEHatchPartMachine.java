@@ -533,12 +533,18 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
 
                 var result = crafting.submitJob(plan, hatch, null, false, hatch.getRequestSource());
 
-                if (!result.successful() || result.link() == null) return false;
+                if (!result.successful() || result.link() == null) {
+                    if (player != null) com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer(player, "mm.info.error.craft_failed", requestName);
+                    return false;
+                }
 
                 link = result.link();
 
                 if (player != null) sendInfoToPlayer(player, "mm.info.submitted_job", requestName);
             } catch (Exception e) {
+                ModernManipulator.LOG.error("Could not submit the crafting job for plan {}", requestName, e);
+                Player player = getPlayer();
+                if (player != null) com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer(player, "mm.info.error.craft_failed", requestName);
                 return false;
             }
 

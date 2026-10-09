@@ -301,6 +301,7 @@
   "mm.info.warning.invalid_cover": "Invalid cover: %s",
   "mm.uplink.address": "Address: %s",
   "mm.uplink.stored_plasma": "Stored Plasma: %s EU",
+  "mm.uplink.hatch_plasma": "Plasma in Hatches: %s EU",
   "mm.uplink.state.active": "Status: Active (processing plans)",
   "mm.uplink.state.idle": "Status: Idle",
   "mm.uplink.state.off": "Status: Offline",

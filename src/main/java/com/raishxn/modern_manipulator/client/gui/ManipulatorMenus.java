@@ -313,14 +313,7 @@ public class ManipulatorMenus {
             .done()
             .branch()
                 .label(I18n.get("mm.gui.advanced_options"))
-                .option()
-                    .label(() -> I18n.get(
-                        "mm.gui.wireless_link_hub",
-                        I18n.get(initialState.config.linkExternalHubs ? "mm.gui.smart_copy.on" : "mm.gui.smart_copy.off")))
-                    .onClicked(() -> {
-                        Messages.SetLinkExternalHubs.sendToServer();
-                    })
-                .done()
+                .hidden(!initialState.hasCap(ALLOW_SMART_COPY))
                 .option()
                     .hidden(!initialState.hasCap(ALLOW_SMART_COPY))
                     .label(() -> I18n.get(
@@ -331,6 +324,8 @@ public class ManipulatorMenus {
                     })
                 .done()
                 .option()
+                    // AE2 1.20 has no P2P tunnel that holds patterns, so this isn't ported (see PORTING_NOTES)
+                    .hidden(true)
                     .label(() -> I18n.get(
                         "mm.gui.smart_copy.interfaces_to_p2p",
                         I18n.get(initialState.config.replaceInterfacesWithP2P ? "mm.gui.smart_copy.on" : "mm.gui.smart_copy.off")))

@@ -65,6 +65,10 @@ public final class MMItems {
         }
 
         COMPONENTS.forEach(item -> output.accept(item.get()));
+
+        // the uplink machines are registered through GTRegistrate, which doesn't add them to this tab
+        output.accept(com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.UPLINK.asStack());
+        output.accept(com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.UPLINK_HATCH.asStack());
     }
 
     private static RegistryObject<Item> manipulator(String name, ManipulatorTier tier) {
