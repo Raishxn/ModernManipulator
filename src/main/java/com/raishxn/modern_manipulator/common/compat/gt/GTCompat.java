@@ -116,6 +116,10 @@ public class GTCompat {
 
                 // only machines whose inventory is part of their configuration are copied (busses aren't)
                 if (machine instanceof BatteryBufferMachine buffer) return buffer.getBatteryInventory();
+                // the turbine rotor (also covers addon rotor holders extending it)
+                if (machine instanceof com.gregtechceu.gtceu.common.machine.multiblock.part.RotorHolderPartMachine rotorHolder) {
+                    return rotorHolder.inventory.storage;
+                }
 
                 return null;
             }

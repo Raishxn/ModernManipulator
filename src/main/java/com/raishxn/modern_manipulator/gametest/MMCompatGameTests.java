@@ -193,6 +193,53 @@ public class MMCompatGameTests {
     }
 
     @GameTest(template = "empty16")
+    public static void copyRotorHolderRotor(GameTestHelper helper) {
+        clear(helper);
+
+        ServerPlayer player = player(helper);
+        player.setGameMode(GameType.SURVIVAL);
+        player.getInventory().clearContent();
+        ItemStack stack = ((ItemMatterManipulator) MMItems.MK3.get()).createChargedStack();
+        MMState state = ItemMatterManipulator.getState(stack);
+
+        var holderDef = GTMachines.ROTOR_HOLDER[GTValues.HV];
+        ItemStack rotor = GTItems.TURBINE_ROTOR.asStack();
+        com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour.getBehaviour(rotor).setPartMaterial(rotor, GTMaterials.Steel);
+
+        BlockPos src = new BlockPos(1, 2, 1);
+        helper.setBlock(src, holderDef.getBlock().defaultBlockState());
+
+        if (!(helper.getBlockEntity(src) instanceof IMachineBlockEntity mbe &&
+            mbe.getMetaMachine() instanceof com.gregtechceu.gtceu.common.machine.multiblock.part.RotorHolderPartMachine holder)) {
+            helper.fail("the rotor holder should be a rotor holder machine");
+            return;
+        }
+
+        holder.inventory.storage.setStackInSlot(0, rotor.copy());
+
+        player.getInventory().add(holderDef.asStack());
+        player.getInventory().add(rotor.copy());
+
+        state.config.placeMode = PlaceMode.COPYING;
+        state.config.coordA = loc(helper, 1, 2, 1);
+        state.config.coordB = loc(helper, 1, 2, 1);
+        state.config.coordC = loc(helper, 6, 2, 6);
+
+        build(helper, stack, state, player);
+
+        if (!(helper.getBlockEntity(new BlockPos(6, 2, 6)) instanceof IMachineBlockEntity copyBe &&
+            copyBe.getMetaMachine() instanceof com.gregtechceu.gtceu.common.machine.multiblock.part.RotorHolderPartMachine copy)) {
+            helper.fail("the rotor holder should be copied");
+            return;
+        }
+
+        helper.assertTrue(ItemStack.isSameItemSameTags(copy.inventory.storage.getStackInSlot(0), rotor), "the rotor should be copied");
+        helper.assertTrue(player.getInventory().countItem(GTItems.TURBINE_ROTOR.get()) == 0, "the rotor should be taken from the player");
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16")
     public static void gtCableLine(GameTestHelper helper) {
         clear(helper);
 
