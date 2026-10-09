@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "com.raishxn.modern_manipulator.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "modern_manipulator.refmap.json",
+  "minVersion": "0.8",
+  "client": ["client.GameRendererMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

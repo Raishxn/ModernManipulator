@@ -27,6 +27,8 @@ public class BoxRenderer {
     private PoseStack pose;
     private Vec3 camera;
     private BufferBuilder boxes;
+    /** Without the fancybox shader the boxes are plain translucent quads. */
+    private boolean plain;
 
     /**
      * Starts rendering fancy boxes. Should only be called once per frame, to allow quad sorting.
@@ -42,8 +44,10 @@ public class BoxRenderer {
      */
     public void drawAround(AABB aabb, Vector3f colour) {
         if (boxes == null) {
+            plain = MMShaders.FANCYBOX == null;
             boxes = Tesselator.getInstance().getBuilder();
-            boxes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
+            boxes.begin(VertexFormat.Mode.QUADS,
+                    plain ? DefaultVertexFormat.POSITION_COLOR : DefaultVertexFormat.POSITION_COLOR_TEX);
         }
 
         aabb = aabb.inflate(0.01);
@@ -81,7 +85,8 @@ public class BoxRenderer {
     private void v(Matrix4f m, float ox, float oy, float oz, float x, float y, float z, float u, float vv, float r,
                    float g, float b,
                    float a) {
-        boxes.vertex(m, ox + x, oy + y, oz + z).color(r, g, b, a).uv(u, vv).endVertex();
+        if (plain) boxes.vertex(m, ox + x, oy + y, oz + z).color(r, g, b, a).endVertex();
+        else boxes.vertex(m, ox + x, oy + y, oz + z).color(r, g, b, a).uv(u, vv).endVertex();
     }
 
     // the bottom face has 4 position args less, so it uses this overload
@@ -94,7 +99,7 @@ public class BoxRenderer {
      * Actually draws the stored boxes.
      */
     public void finish() {
-        if (boxes != null && MMShaders.FANCYBOX != null) {
+        if (boxes != null) {
             boxes.setQuadSorting(VertexSorting.byDistance(0, 0, 0));
 
             RenderSystem.enableBlend();
@@ -102,18 +107,20 @@ public class BoxRenderer {
             RenderSystem.disableCull();
             RenderSystem.depthMask(false);
 
-            RenderSystem.setShader(() -> MMShaders.FANCYBOX);
+            if (plain) {
+                RenderSystem.setShader(GameRenderer::getPositionColorShader);
+            } else {
+                RenderSystem.setShader(() -> MMShaders.FANCYBOX);
 
-            var time = MMShaders.FANCYBOX.getUniform("MMTime");
-            if (time != null) time.set((System.currentTimeMillis() % 2500) / 1000f);
+                var time = MMShaders.FANCYBOX.getUniform("MMTime");
+                if (time != null) time.set((System.currentTimeMillis() % 2500) / 1000f);
+            }
 
             Tesselator.getInstance().end();
 
             RenderSystem.depthMask(true);
             RenderSystem.enableCull();
             RenderSystem.disableBlend();
-        } else if (boxes != null) {
-            boxes.end();
         }
 
         boxes = null;

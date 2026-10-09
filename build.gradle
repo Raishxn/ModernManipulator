@@ -141,6 +141,13 @@ legacyForge {
         }
     }
 }
+mixin {
+    add sourceSets.main, 'modern_manipulator.refmap.json'
+    config 'modern_manipulator.mixins.json'
+}
+jar {
+    manifest.attributes('MixinConfigs': 'modern_manipulator.mixins.json')
+}
 apply from: "$rootDir/gradle/scripts/spotless.gradle"
 
 dependencies {

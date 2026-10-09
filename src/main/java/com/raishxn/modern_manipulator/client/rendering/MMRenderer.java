@@ -13,7 +13,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import com.raishxn.modern_manipulator.GlobalMMConfig;
 import com.raishxn.modern_manipulator.ModernManipulator;
 import com.raishxn.modern_manipulator.common.building.BlockSpec;
@@ -28,6 +30,7 @@ import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
 import com.raishxn.modern_manipulator.common.utils.MMUtils;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -77,11 +80,53 @@ public class MMRenderer {
         statusExpiration = exp <= 0 ? 0 : System.currentTimeMillis() + exp * 1000L;
     }
 
+    /** Camera of the current frame, kept for {@link #renderDeferred()} while a shader pack is active. */
+    private static Matrix4f deferredPose, deferredProjection;
+    private static Vec3 deferredCamera;
+
     public static void renderSelection(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
 
+        if (ShaderPackCompat.isShaderPackInUse()) {
+            // The shader pack's composite passes would wipe our shaders out: draw after the level instead.
+            deferredPose = new Matrix4f(event.getPoseStack().last().pose());
+            deferredProjection = new Matrix4f(event.getProjectionMatrix());
+            deferredCamera = event.getCamera().getPosition();
+            return;
+        }
+
+        render(event.getPoseStack(), event.getProjectionMatrix(), event.getCamera().getPosition());
+    }
+
+    /** Called by GameRendererMixin once the level, including the shader pack's final pass, has been drawn. */
+    public static void renderDeferred() {
+        if (deferredPose == null) return;
+
+        PoseStack pose = new PoseStack();
+        pose.last().pose().set(deferredPose);
+        Matrix4f projection = deferredProjection;
+        Vec3 camera = deferredCamera;
+        deferredPose = null;
+
+        Matrix4f oldProjection = RenderSystem.getProjectionMatrix();
+        VertexSorting oldSorting = RenderSystem.getVertexSorting();
+        RenderSystem.getModelViewStack().pushPose();
+        RenderSystem.getModelViewStack().setIdentity();
+        RenderSystem.applyModelViewMatrix();
+        RenderSystem.setProjectionMatrix(projection, VertexSorting.DISTANCE_TO_ORIGIN);
+        RenderSystem.enableDepthTest();
         try {
-            renderSelectionImpl(event);
+            render(pose, projection, camera);
+        } finally {
+            RenderSystem.setProjectionMatrix(oldProjection, oldSorting);
+            RenderSystem.getModelViewStack().popPose();
+            RenderSystem.applyModelViewMatrix();
+        }
+    }
+
+    private static void render(PoseStack pose, Matrix4f projection, Vec3 camera) {
+        try {
+            renderSelectionImpl(pose, projection, camera);
         } catch (Throwable t) {
             ModernManipulator.LOG.error("Could not render matter manipulator preview", t);
 
@@ -95,14 +140,11 @@ public class MMRenderer {
         }
     }
 
-    private static void renderSelectionImpl(RenderLevelStageEvent event) {
+    private static void renderSelectionImpl(PoseStack pose, Matrix4f projection, Vec3 camera) {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
 
         ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
-
-        PoseStack pose = event.getPoseStack();
-        Vec3 camera = event.getCamera().getPosition();
 
         if (held.getItem() instanceof ItemMatterManipulator manipulator) {
             MMState state = ItemMatterManipulator.getState(held);
@@ -118,7 +160,7 @@ public class MMRenderer {
                 BoxRenderer.INSTANCE.finish();
             }
 
-            RenderHints.INSTANCE.render(pose, event.getProjectionMatrix(), camera);
+            RenderHints.INSTANCE.render(pose, projection, camera);
         } else {
             if (lastDrawer != null) {
                 lastDrawer = null;
