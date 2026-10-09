@@ -1,7 +1,6 @@
 <div align="center">
   <img src="banner.png" alt="ModernManipulator Banner" width="100%">
   <br><br>
-  <img src="logo.gif" alt="ModernManipulator Logo" width="180" height="180">
   <h1>ModernManipulator</h1>
   <p><strong>Next-generation handheld building, structure duplication, and automated fabrication for GregTech CEu Modern</strong></p>
 
