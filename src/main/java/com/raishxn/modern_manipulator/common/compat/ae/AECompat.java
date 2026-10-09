@@ -49,6 +49,10 @@ public class AECompat {
     public static void init() {
         MEConnection.HOLDER.factory = AEConnection::connect;
 
+        if (com.raishxn.modern_manipulator.common.utils.Mods.GregTech.isModLoaded()) {
+            com.raishxn.modern_manipulator.common.compat.gt.GTSmartCopy.init();
+        }
+
         TileAnalyzers.register((block, te, flags) -> {
             if ((flags & PendingBlock.ANALYZE_AE) != 0) {
                 AEAnalysisResult ae = AEAnalysisResult.analyze(te, null);

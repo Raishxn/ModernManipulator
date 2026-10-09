@@ -40,3 +40,9 @@ Faithful modern GTCEu port of the GregTech: New Horizons Matter Manipulator.
         versionRange = "[${gtceu_version},)"
         ordering = "AFTER"
         side = "BOTH"
+    [[dependencies.${mod_id}]]
+        modId = "ae2"
+        mandatory = false
+        versionRange = "[15.0,)"
+        ordering = "AFTER"
+        side = "BOTH"

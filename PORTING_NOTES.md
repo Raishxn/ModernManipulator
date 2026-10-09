@@ -1,41 +1,29 @@
-# Matter Manipulator Modern Port Notes
+# ModernManipulator — port notes
 
-This repository is based on `GregTechCEu/GregTech-Addon-Template` for Minecraft 1.20.1, Forge 47.4.x, and GTCEu Modern 7.4+.
+Port of [GTNewHorizons/MatterManipulator](https://github.com/GTNewHorizons/MatterManipulator) to Minecraft 1.20.1 / Forge 47 / GTCEu Modern 7.5.3.
+Mod id: `modern_manipulator`. The package layout mirrors the original (`common.building`, `common.items.manipulator`, `common.networking`, `common.uplink`, ...).
 
-The original GTNH 1.7.10 source is cloned beside this project at:
+## Ported 1:1
+- 4 tiers (Prototype, MKI, MKII, MKIII) with the original ranges, place speeds/ticks, voltages, EU buffers, capabilities and allowed upgrades. MK3 speed is still configurable.
+- Upgrades (Excavation, Auxiliary Teleporter, Adaptive Wiring Harness, Energy Tunnel) and the install-upgrade crafting recipe.
+- All modes: Geometry (line, cube, sphere, cylinder with corner/edge/face/volume weighted block lists), Copying (with rotation/flip transform and stacking/array), Moving, Exchanging (whitelist + replacement), Cables.
+- Radial menu with the same tree of options, the transform/coordinate editor window, key bindings (Ctrl + X/C/V/Z), middle click to pick blocks (also on items inside GUIs).
+- Building algorithm: chunk/protection checks, remove modes, dependency shuffling (torches, levers...), EU cost formula (hardness, block entity penalty, distance^1.25, power efficiency upgrade), item sourcing order (pending drops → player → ME → uplink), drops returned through ME → uplink → inventory → ground, fluids into containers.
+- Preview: region boxes, rulers, ghost block hints (with build error/warning tinting), HUD text.
+- Plans: required item report, manual/auto plans through the uplink (fake processing patterns + auto crafting requests).
+- Quantum Uplink multiblock (original 9x9x9 structure) + ME connector hatch: 1A ZPM while active, plasma cost per transfer, plan patterns, power refill for the Energy Tunnel upgrade.
+- GregTech: colour, covers (with their config), auto output, circuit, muffled, distinct, memory-card config (`ICopyable`), pipe/cable connections and blocked faces, cable mode with connections, ore voiding, battery buffer inventories. Facing/upwards facing are part of the block state.
+- AE2: parts on cable busses (with memory card settings), facades, AE machine settings, cable mode, exchanging cables, ME linking through the Wireless Access Point (put the MKI+ manipulator in the WAP link slot), Smart Copy: pattern buffers → pattern buffer proxies.
 
-`C:\Users\erick\OneDrive\Documents\MatterManipulator`
+## Adapted for 1.20
+- `BlockSpec` stores a full `BlockState`; this replaces the old meta + `BlockPropertyRegistry` (1.7.10 only). Transforms use vanilla `rotate`/`mirror` for horizontal transforms and a generic direction/axis/half mapping otherwise.
+- The uplink is bound by right clicking its controller with the manipulator (GTCEu controllers have no controller slot).
+- ME connection uses AE2's grid linking instead of encryption keys / security terminals.
 
-The local GTCEu Modern 7.5.2 source reference is at:
+## Not ported (no 1.20 equivalent)
+- Integrations with 1.7.10 only mods (Forge Multipart, Carpenter's Blocks, ArchitectureCraft, OpenComputers, Thaumcraft, EnderIO conduits, Blood Magic teleposing).
+- Smart Copy "Interfaces → P2P" (AE2 1.20 has no interface P2P tunnel holding patterns) and wireless connector/hub relinking (removed from AE2).
 
-`C:\Users\erick\OneDrive\Documents\GregTech-Modern-7.5.2-1.20.1`
-
-## Current Port Layer
-
-- Modern mod id: `matter_manipulator`
-- Original mod id: `matter-manipulator`
-- Package root for the modern port: `com.raishxn.modern_manipulator`
-- Registered the four original manipulator tiers:
-  - Prototype Matter Manipulator
-  - Matter Manipulator MKI
-  - Matter Manipulator MKII
-  - Matter Manipulator MKIII
-- Registered the original 28 meta items as first-class 1.20 item registry entries.
-- Copied original item textures and uplink overlay textures into a valid 1.20 resource namespace.
-- Converted the initial item names from `en_US.lang` to `en_us.json`.
-- Ported the original tier capability flags and upgrade bit state.
-- Added a special crafting recipe for installing manipulator upgrades.
-- Added the first operational block action: remove selected blocks with GTNH-like EU cost scaling.
-- Changed removal into a persisted pending action processed over time using tier `placeSpeed` and `placeTicks`.
-- Added a client-side wireframe preview for the selected A/B region.
-
-## Next Port Targets
-
-1. Port persistent manipulator state from 1.7.10 NBT into a 1.20-friendly state class.
-2. Port energy storage and GTCEu EU behavior for the four manipulator tiers.
-3. Port upgrade installation recipes and capability gates.
-4. Port block selection, copy, exchange, move, and cable modes.
-5. Port client preview rendering using modern Forge rendering events.
-6. Port networking packets to SimpleChannel.
-7. Port the Quantum Uplink machine as a GTCEu Modern machine definition.
-8. Rebuild GTCEu recipe chains as datagen recipes.
+## Testing
+- `./gradlew runGameTestServer` runs the game tests (`gametest/MMGameTests`, `gametest/MMCompatGameTests`).
+- `./gradlew runData` regenerates the uplink machine models. Delete `src/generated/resources/assets/modern_manipulator/lang/` afterwards (the hand-written langs in `src/main/resources` are the real ones: en_us, pt_br, zh_cn).
