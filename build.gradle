@@ -108,6 +108,11 @@ legacyForge {
             systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
             programArguments.addAll('--nogui', '--world', 'world-extra')
         }
+        gameTestServer {
+            type = "gameTestServer"
+            sourceSet = sourceSets.main
+            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
+        }
         data {
             data()
             sourceSet = sourceSets.main

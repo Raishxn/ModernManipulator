@@ -64,7 +64,8 @@ public class BlockSpec implements ImmutableBlockSpec {
         blockState = null;
         objectId = null;
         itemTag = null;
-        state = Blocks.AIR.defaultBlockState();
+        // lazily parsed from blockState (gson uses this constructor too)
+        state = null;
         item = null;
         stack = null;
 
