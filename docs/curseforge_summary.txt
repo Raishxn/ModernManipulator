@@ -1,0 +1,5 @@
+=== Modrinth Summary (Max 140 chars) ===
+Handheld structure building, multiblock cloning, and AE2 automation for GregTech CEu Modern (Forge 1.20.1). GTNH Matter Manipulator port.
+
+=== CurseForge Summary (Max 255 chars) ===
+Next-generation handheld building, structure cloning, and AE2 automated fabrication for GregTech CEu Modern (Forge 1.20.1). Duplicate multiblocks, exchange blocks, and order missing parts via the Quantum Uplink. Faithful GTNH port.
