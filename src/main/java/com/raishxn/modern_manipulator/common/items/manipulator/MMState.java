@@ -28,6 +28,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -341,6 +344,11 @@ public class MMState {
             if (rep == null) {
                 rep = replacement.instantiate(world, x, y, z);
 
+                if (rep.spec.isBlockSpec()) {
+                    BlockState oriented = keepOrientation(world.getBlockState(pos), rep.getBlockState());
+                    if (oriented != rep.getBlockState()) rep.setBlock(oriented);
+                }
+
                 rep.analyze(world.getBlockEntity(pos), PendingBlock.ANALYZE_ALL);
                 rep.migrate();
             }
@@ -349,6 +357,37 @@ public class MMState {
         }
 
         return pending;
+    }
+
+    /**
+     * Copies the orientation of the block being exchanged onto its replacement. Facings are part of the block state in
+     * 1.20 (on 1.7.10 they were tile entity data, carried over by analyze), so the replacement would otherwise keep the
+     * facing it had when it was picked.
+     */
+    private static BlockState keepOrientation(BlockState existing, BlockState replacement) {
+        for (Property<?> property : existing.getProperties()) {
+            String name = property.getName();
+
+            if (!(property instanceof DirectionProperty || name.contains("facing") || name.equals("axis") ||
+                name.equals("rotation"))) continue;
+
+            Property<?> target = replacement.getBlock().getStateDefinition().getProperty(name);
+
+            if (target != null) replacement = copyValue(existing, property, replacement, target);
+        }
+
+        return replacement;
+    }
+
+    private static <T extends Comparable<T>> BlockState copyValue(BlockState from, Property<?> fromProperty, BlockState to,
+                                                                  Property<T> toProperty) {
+        Comparable<?> value = from.getValue(fromProperty);
+
+        for (T allowed : toProperty.getPossibleValues()) {
+            if (allowed.equals(value)) return to.setValue(toProperty, allowed);
+        }
+
+        return to;
     }
 
     private List<PendingBlock> getCableBlocks(Level world) {

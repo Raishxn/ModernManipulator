@@ -122,6 +122,37 @@ public class MMCompatGameTests {
     }
 
     @GameTest(template = "empty16")
+    public static void exchangeKeepsFacing(GameTestHelper helper) {
+        clear(helper);
+
+        ServerPlayer player = player(helper);
+        ItemStack stack = ((ItemMatterManipulator) MMItems.MK3.get()).createChargedStack();
+        MMState state = ItemMatterManipulator.getState(stack);
+
+        var lv = GTMachines.ENERGY_INPUT_HATCH[GTValues.LV].getBlock().defaultBlockState();
+        var hv = GTMachines.ENERGY_INPUT_HATCH[GTValues.HV].getBlock().defaultBlockState();
+        var facing = (net.minecraft.world.level.block.state.properties.DirectionProperty) lv.getBlock().getStateDefinition().getProperty("facing");
+        Direction original = lv.getValue(facing) == Direction.EAST ? Direction.WEST : Direction.EAST;
+
+        BlockPos pos = new BlockPos(2, 2, 2);
+        helper.setBlock(pos, lv.setValue(facing, original));
+
+        state.config.placeMode = PlaceMode.EXCHANGING;
+        state.config.coordA = loc(helper, 2, 2, 2);
+        state.config.coordB = loc(helper, 2, 2, 2);
+        state.config.replaceWhitelist = new com.raishxn.modern_manipulator.common.data.WeightedSpecList(new BlockSpec().setObject(lv));
+        state.config.replaceWith = new com.raishxn.modern_manipulator.common.data.WeightedSpecList(new BlockSpec().setObject(hv));
+
+        build(helper, stack, state, player);
+
+        var placed = helper.getBlockState(pos);
+        helper.assertTrue(placed.is(hv.getBlock()), "the hatch should be exchanged");
+        helper.assertTrue(placed.getValue(facing) == original, "the exchanged hatch should keep its facing, got " + placed.getValue(facing));
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16")
     public static void gtCableLine(GameTestHelper helper) {
         clear(helper);
 
