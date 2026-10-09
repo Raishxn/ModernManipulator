@@ -19,7 +19,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.IItemHandler;
 
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +33,15 @@ public class GTCompat {
 
     private GTCompat() {}
 
-    /** Forces every ldlib synced field of the machines/pipes to be sent to the clients again. */
+    /**
+     * Sends the full state of the machines/pipes to the clients again and makes them rebuild their models.
+     * GTCEu doesn't override getUpdatePacket, so sendBlockUpdated carries no block entity data: the client creates an
+     * empty block entity and relies on ldlib's async payload, which gets dropped when it arrives before the block entity
+     * exists client side. The vanilla data packet carries ldlib's full sync tag (see ldlib's BlockEntityMixin).
+     */
     public static void resync(net.minecraft.server.level.ServerLevel level, List<BlockPos> positions) {
+        it.unimi.dsi.fastutil.longs.LongArrayList synced = new it.unimi.dsi.fastutil.longs.LongArrayList();
+
         for (BlockPos pos : positions) {
             BlockEntity te = level.getBlockEntity(pos);
 
@@ -50,9 +56,19 @@ public class GTCompat {
                 continue;
             }
 
-            BlockState state = level.getBlockState(pos);
-            level.sendBlockUpdated(pos, state, state, net.minecraft.world.level.block.Block.UPDATE_ALL);
+            var packet = net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(te);
+            for (var player : level.getChunkSource().chunkMap.getPlayers(new net.minecraft.world.level.ChunkPos(pos), false)) {
+                player.connection.send(packet);
+            }
+
+            synced.add(pos.asLong());
         }
+
+        if (synced.isEmpty()) return;
+
+        // sent after the data packets so the models are rebuilt with the new connections/covers
+        com.raishxn.modern_manipulator.common.networking.Messages.RerenderBlocks.sendToPlayersAround(
+            new com.raishxn.modern_manipulator.common.items.manipulator.Location(level, positions.get(0)), synced);
     }
 
     public static void init() {
