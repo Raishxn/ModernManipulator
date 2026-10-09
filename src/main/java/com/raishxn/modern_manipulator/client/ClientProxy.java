@@ -47,6 +47,10 @@ public class ClientProxy {
 
     public static void setUplinkState(Location location, int state) {
         if (uplinkStateHandler != null) uplinkStateHandler.accept(location, state);
+
+        if (com.raishxn.modern_manipulator.common.utils.Mods.AppliedEnergistics2.isModLoaded()) {
+            UplinkClient.setState(location, state);
+        }
     }
 
     @SubscribeEvent

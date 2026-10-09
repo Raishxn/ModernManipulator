@@ -6,6 +6,8 @@ import com.raishxn.modern_manipulator.common.items.MMRecipes;
 import com.raishxn.modern_manipulator.common.networking.Messages;
 import com.raishxn.modern_manipulator.common.utils.Mods;
 
+import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.resources.ResourceLocation;
@@ -36,6 +38,7 @@ public class ModernManipulator {
         MMRecipes.SERIALIZERS.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addGenericListener(MachineDefinition.class, this::registerMachines);
 
         MinecraftForge.EVENT_BUS.register(new CommonEvents());
 
@@ -49,6 +52,12 @@ public class ModernManipulator {
             if (Mods.GregTech.isModLoaded()) com.raishxn.modern_manipulator.common.compat.gt.GTCompat.init();
             if (Mods.AppliedEnergistics2.isModLoaded()) com.raishxn.modern_manipulator.common.compat.ae.AECompat.init();
         });
+    }
+
+    private void registerMachines(GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> event) {
+        if (Mods.AppliedEnergistics2.isModLoaded()) {
+            com.raishxn.modern_manipulator.common.uplink.MMUplinkMachines.init();
+        }
     }
 
     public static ResourceLocation id(String path) {
