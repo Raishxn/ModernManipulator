@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="banner.png" alt="ModernManipulator Banner" width="100%">
+  
   <br><br>
   <h1>ModernManipulator</h1>
   <p><strong>Next-generation handheld building, structure duplication, and automated fabrication for GregTech CEu Modern</strong></p>
@@ -11,6 +11,7 @@
     <a href="https://www.curseforge.com/minecraft/mc-mods/gregtechceu-modern"><img src="https://img.shields.io/badge/GTCEu--Modern-7.5.3+-ea580c?style=for-the-badge" alt="GregTech CEu Modern 7.5.3+"></a>
     <a href="https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2"><img src="https://img.shields.io/badge/AE2-Compatible-818cf8?style=for-the-badge" alt="Applied Energistics 2"></a>
     <a href="LICENSE.MD"><img src="https://img.shields.io/badge/License-LGPL--3.0-blue?style=for-the-badge" alt="License LGPL-3.0"></a>
+  <img src="banner.png" alt="ModernManipulator Banner" width="100%">
   </p>
 </div>
 
