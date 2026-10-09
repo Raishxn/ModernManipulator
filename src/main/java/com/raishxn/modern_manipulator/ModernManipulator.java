@@ -1,11 +1,5 @@
 package com.raishxn.modern_manipulator;
 
-import com.raishxn.modern_manipulator.common.items.MMCreativeTabs;
-import com.raishxn.modern_manipulator.common.items.MMItems;
-import com.raishxn.modern_manipulator.common.items.MMRecipes;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-import com.raishxn.modern_manipulator.common.utils.Mods;
-
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
@@ -17,6 +11,11 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import com.raishxn.modern_manipulator.common.items.MMCreativeTabs;
+import com.raishxn.modern_manipulator.common.items.MMItems;
+import com.raishxn.modern_manipulator.common.items.MMRecipes;
+import com.raishxn.modern_manipulator.common.networking.Messages;
+import com.raishxn.modern_manipulator.common.utils.Mods;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,9 +38,10 @@ public class ModernManipulator {
 
         modEventBus.addListener(this::commonSetup);
         // the uplink structure uses trinium frames (as in GTNH), which GTCEu doesn't generate
-        modEventBus.addListener((com.gregtechceu.gtceu.api.data.chemical.material.event.PostMaterialEvent event) ->
-            com.gregtechceu.gtceu.common.data.GTMaterials.Trinium.addFlags(
-                com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.GENERATE_FRAME));
+        modEventBus.addListener(
+                (com.gregtechceu.gtceu.api.data.chemical.material.event.PostMaterialEvent event) -> com.gregtechceu.gtceu.common.data.GTMaterials.Trinium
+                        .addFlags(
+                                com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.GENERATE_FRAME));
         modEventBus.addGenericListener(MachineDefinition.class, this::registerMachines);
 
         MinecraftForge.EVENT_BUS.register(new CommonEvents());

@@ -1,11 +1,10 @@
 package com.raishxn.modern_manipulator.client.gui;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -22,14 +21,15 @@ public class DirectionDrawable {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
 
         Quaternionf rot = new Quaternionf().rotateX((float) Math.toRadians(camera.getXRot()))
-            .rotateY((float) Math.toRadians(camera.getYRot() + 180));
+                .rotateY((float) Math.toRadians(camera.getYRot() + 180));
 
         drawAxis(graphics, rot, new Vector3f(1, 0, 0), cx, cy, length, 0xFFFF0000);
         drawAxis(graphics, rot, new Vector3f(0, 0, 1), cx, cy, length, 0xFF4B4BFF);
         drawAxis(graphics, rot, new Vector3f(0, 1, 0), cx, cy, length, 0xFF00FF00);
     }
 
-    private static void drawAxis(GuiGraphics graphics, Quaternionf rot, Vector3f axis, int cx, int cy, int length, int color) {
+    private static void drawAxis(GuiGraphics graphics, Quaternionf rot, Vector3f axis, int cx, int cy, int length,
+                                 int color) {
         Vector3f v = rot.transform(new Vector3f(axis));
 
         int ex = cx + Math.round(-v.x * length);

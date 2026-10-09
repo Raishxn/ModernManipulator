@@ -1,11 +1,5 @@
 package com.raishxn.modern_manipulator.common.compat.ae;
 
-import com.raishxn.modern_manipulator.common.compat.MEConnection;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
-import com.raishxn.modern_manipulator.common.utils.BigItemStack;
-import com.raishxn.modern_manipulator.common.utils.ItemId;
-
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,6 +13,11 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.MEStorage;
 import appeng.blockentity.networking.WirelessAccessPointBlockEntity;
+import com.raishxn.modern_manipulator.common.compat.MEConnection;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
+import com.raishxn.modern_manipulator.common.utils.BigItemStack;
+import com.raishxn.modern_manipulator.common.utils.ItemId;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

@@ -1,8 +1,5 @@
 package com.raishxn.modern_manipulator.common.items;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -11,6 +8,9 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
 
 public class RecipeInstallUpgrade extends CustomRecipe {
 
@@ -72,7 +72,8 @@ public class RecipeInstallUpgrade extends CustomRecipe {
         return count;
     }
 
-    private record ManipulatorInfo(ItemStack stack, int slot, MMState state, ItemMatterManipulator.ManipulatorTier tier) {}
+    private record ManipulatorInfo(ItemStack stack, int slot, MMState state,
+                                   ItemMatterManipulator.ManipulatorTier tier) {}
 
     private static ManipulatorInfo findManipulator(CraftingContainer inv) {
         for (int i = 0; i < inv.getContainerSize(); i++) {

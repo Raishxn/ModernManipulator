@@ -1,10 +1,10 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 
 import java.util.List;
 

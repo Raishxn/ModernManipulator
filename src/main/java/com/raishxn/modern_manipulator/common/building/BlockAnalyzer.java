@@ -1,7 +1,11 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendWarningToPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import com.raishxn.modern_manipulator.GlobalMMConfig.DebugConfig;
 import com.raishxn.modern_manipulator.ModernManipulator;
@@ -11,14 +15,6 @@ import com.raishxn.modern_manipulator.common.utils.BigItemStack;
 import com.raishxn.modern_manipulator.common.utils.FluidId;
 import com.raishxn.modern_manipulator.common.utils.ItemId;
 import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-
 import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.joml.Vector3i;
@@ -26,6 +22,9 @@ import org.joml.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 
 public class BlockAnalyzer {
 
@@ -236,7 +235,8 @@ public class BlockAnalyzer {
      *
      * @param fromScratch When true, existing blocks will be ignored.
      */
-    public static RequiredItemAnalysis getRequiredItemsForBuild(Player player, List<PendingBlock> blocks, boolean fromScratch) {
+    public static RequiredItemAnalysis getRequiredItemsForBuild(Player player, List<PendingBlock> blocks,
+                                                                boolean fromScratch) {
         BlockItemCheckContext context = new BlockItemCheckContext();
         context.player = player;
         context.world = player.level();

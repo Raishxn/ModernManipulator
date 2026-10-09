@@ -1,9 +1,8 @@
 package com.raishxn.modern_manipulator.common.building.providers;
 
-import com.raishxn.modern_manipulator.common.building.IPseudoInventory;
-
 import net.minecraft.world.item.ItemStack;
 
+import com.raishxn.modern_manipulator.common.building.IPseudoInventory;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 

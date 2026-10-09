@@ -50,7 +50,8 @@ public class BoxRenderer {
 
         Matrix4f m = pose.last().pose();
 
-        float ox = (float) (aabb.minX - camera.x), oy = (float) (aabb.minY - camera.y), oz = (float) (aabb.minZ - camera.z);
+        float ox = (float) (aabb.minX - camera.x), oy = (float) (aabb.minY - camera.y),
+                oz = (float) (aabb.minZ - camera.z);
         float dX = (float) aabb.getXsize(), dY = (float) aabb.getYsize(), dZ = (float) aabb.getZsize();
 
         float r = colour.x, g = colour.y, b = colour.z, a = 0.25f;
@@ -77,13 +78,15 @@ public class BoxRenderer {
         // spotless:on
     }
 
-    private void v(Matrix4f m, float ox, float oy, float oz, float x, float y, float z, float u, float vv, float r, float g, float b,
+    private void v(Matrix4f m, float ox, float oy, float oz, float x, float y, float z, float u, float vv, float r,
+                   float g, float b,
                    float a) {
         boxes.vertex(m, ox + x, oy + y, oz + z).color(r, g, b, a).uv(u, vv).endVertex();
     }
 
     // the bottom face has 4 position args less, so it uses this overload
-    private void v(Matrix4f m, float ox, float oy, float oz, float x, float y, float u, float vv, float r, float g, float b, float a) {
+    private void v(Matrix4f m, float ox, float oy, float oz, float x, float y, float u, float vv, float r, float g,
+                   float b, float a) {
         v(m, ox, oy, oz, x, y, 0, u, vv, r, g, b, a);
     }
 
@@ -138,8 +141,9 @@ public class BoxRenderer {
 
         for (Direction dir : Direction.values()) {
             buffer.vertex(matrix, cx, cy, cz).color(r, g, b, a).endVertex();
-            buffer.vertex(matrix, cx + dir.getStepX() * RULER_LENGTH, cy + dir.getStepY() * RULER_LENGTH, cz + dir.getStepZ() * RULER_LENGTH)
-                .color(r, g, b, a).endVertex();
+            buffer.vertex(matrix, cx + dir.getStepX() * RULER_LENGTH, cy + dir.getStepY() * RULER_LENGTH,
+                    cz + dir.getStepZ() * RULER_LENGTH)
+                    .color(r, g, b, a).endVertex();
         }
 
         com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(buffer.end());

@@ -1,5 +1,9 @@
 package com.raishxn.modern_manipulator.client.gui;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.item.ItemStack;
+
 import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
 import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
@@ -10,10 +14,6 @@ import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
 import com.raishxn.modern_manipulator.common.networking.Messages;
 import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.world.item.ItemStack;
 
 import static com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.*;
 

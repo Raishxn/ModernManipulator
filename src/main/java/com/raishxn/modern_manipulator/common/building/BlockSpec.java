@@ -1,8 +1,5 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -25,6 +22,8 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.google.gson.annotations.SerializedName;
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -161,7 +160,8 @@ public class BlockSpec implements ImmutableBlockSpec {
 
                 // slabs need two items when doubled
                 if (!stack.isEmpty() && getBlockState().hasProperty(BlockStateProperties.SLAB_TYPE) &&
-                    getBlockState().getValue(BlockStateProperties.SLAB_TYPE) == net.minecraft.world.level.block.state.properties.SlabType.DOUBLE) {
+                        getBlockState().getValue(BlockStateProperties.SLAB_TYPE) ==
+                                net.minecraft.world.level.block.state.properties.SlabType.DOUBLE) {
                     stack.setCount(2);
                 }
             } else {
@@ -266,7 +266,8 @@ public class BlockSpec implements ImmutableBlockSpec {
 
     @Override
     public String toString() {
-        return "BlockSpec [isBlock=" + isBlock + ", state=" + blockState + ", objectId=" + objectId + ", tag=" + itemTag + "]";
+        return "BlockSpec [isBlock=" + isBlock + ", state=" + blockState + ", objectId=" + objectId + ", tag=" +
+                itemTag + "]";
     }
 
     public String toDisplayString() {
@@ -323,11 +324,12 @@ public class BlockSpec implements ImmutableBlockSpec {
      */
     public static boolean isSecondaryHalf(BlockState state) {
         if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF) &&
-            state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
+                state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
             return true;
         }
 
-        if (state.hasProperty(BlockStateProperties.BED_PART) && state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD) {
+        if (state.hasProperty(BlockStateProperties.BED_PART) &&
+                state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD) {
             return true;
         }
 

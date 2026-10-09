@@ -17,7 +17,8 @@ import java.util.BitSet;
 public class BitSetJsonAdapter implements JsonSerializer<BitSet>, JsonDeserializer<BitSet> {
 
     @Override
-    public BitSet deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public BitSet deserialize(JsonElement json, Type typeOfT,
+                              JsonDeserializationContext context) throws JsonParseException {
         String s = json.getAsString();
 
         if (s.isEmpty()) return new BitSet();

@@ -1,11 +1,5 @@
 package com.raishxn.modern_manipulator.client;
 
-import com.raishxn.modern_manipulator.GlobalMMConfig.InteractionConfig;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
@@ -17,6 +11,11 @@ import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.raishxn.modern_manipulator.GlobalMMConfig.InteractionConfig;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.raishxn.modern_manipulator.common.networking.Messages;
 import org.lwjgl.glfw.GLFW;
 
 public class MMKeyInputs {

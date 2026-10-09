@@ -1,11 +1,11 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.building.providers.IItemProvider;
-import com.raishxn.modern_manipulator.common.building.providers.ItemProviders;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+
+import com.raishxn.modern_manipulator.common.building.providers.IItemProvider;
+import com.raishxn.modern_manipulator.common.building.providers.ItemProviders;
 
 import java.util.Objects;
 
@@ -71,7 +71,8 @@ public class InventoryAnalysis {
         if (adapter.getSizeInventory(te) != mItems.length) {
             if (adapter.getSizeInventory(te) != 0) {
                 context.warn(
-                    Component.translatable("mm.info.warning.inventory_was_the_wrong_size", mItems.length, adapter.getSizeInventory(te)));
+                        Component.translatable("mm.info.warning.inventory_was_the_wrong_size", mItems.length,
+                                adapter.getSizeInventory(te)));
             }
             return false;
         }
@@ -90,7 +91,8 @@ public class InventoryAnalysis {
 
                 if (!stack.isEmpty()) {
                     if (!adapter.canExtract(te, slot)) {
-                        context.warn(Component.translatable("mm.info.warning.could_not_extract_item_in_slot", slot, stack.getHoverName()));
+                        context.warn(Component.translatable("mm.info.warning.could_not_extract_item_in_slot", slot,
+                                stack.getHoverName()));
                         continue;
                     }
 
@@ -106,14 +108,16 @@ public class InventoryAnalysis {
                     ItemStack preview = target.getStack(null, false);
 
                     if (!adapter.canInsert(te, slot, preview)) {
-                        context.warn(Component.translatable("mm.info.warning.invalid_item_for_slot", slot, preview.getHoverName()));
+                        context.warn(Component.translatable("mm.info.warning.invalid_item_for_slot", slot,
+                                preview.getHoverName()));
                         continue;
                     }
 
                     ItemStack toInsert = target.getStack(context, consume);
 
                     if (toInsert == null) {
-                        context.warn(Component.translatable("mm.info.warning.could_not_gather_item_for_inventory", preview.getHoverName()));
+                        context.warn(Component.translatable("mm.info.warning.could_not_gather_item_for_inventory",
+                                preview.getHoverName()));
                         success = false;
                     } else {
                         if (!simulate) {

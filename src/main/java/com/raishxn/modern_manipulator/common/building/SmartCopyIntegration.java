@@ -1,10 +1,10 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 
 import java.util.ArrayList;
 import java.util.List;

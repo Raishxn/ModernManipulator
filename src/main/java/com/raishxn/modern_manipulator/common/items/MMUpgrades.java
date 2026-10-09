@@ -1,9 +1,9 @@
 package com.raishxn.modern_manipulator.common.items;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
 
 import java.util.function.Supplier;
 

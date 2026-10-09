@@ -1,20 +1,5 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendWarningToPlayer;
-
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.common.compat.BuildHooks;
-import com.raishxn.modern_manipulator.common.compat.PlacementHandlers;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
-import com.raishxn.modern_manipulator.common.utils.BigItemStack;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,6 +11,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.compat.BuildHooks;
+import com.raishxn.modern_manipulator.common.compat.PlacementHandlers;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.raishxn.modern_manipulator.common.networking.Messages;
+import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
+import com.raishxn.modern_manipulator.common.utils.BigItemStack;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.booleans.BooleanObjectImmutablePair;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -36,6 +31,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 
 /**
  * Handles all building logic.
@@ -293,10 +292,10 @@ public class PendingBuild extends AbstractBuildable {
         if (extracted != null && i < toPlace.size()) {
             sendWarningToPlayer(player, "mm.info.warning.could_not_find", toPlace.size() - i);
             sendWarningToPlayer(
-                player,
-                "mm.info.warning.of_item",
-                first.getDisplayNameChat(),
-                total - (long) (toPlace.size() - i) * perBlock.getCount());
+                    player,
+                    "mm.info.warning.of_item",
+                    first.getDisplayNameChat(),
+                    total - (long) (toPlace.size() - i) * perBlock.getCount());
         }
 
         sendInfoToPlayer(player, "mm.info.placed_remaining", i, pendingBlocks.size());
@@ -304,8 +303,9 @@ public class PendingBuild extends AbstractBuildable {
         if (extracted != null && extracted.stackSize >= perBlock.getCount() && !perBlock.isEmpty()) {
             // extra stuff left over somehow
             ModernManipulator.LOG.error(
-                "Didn't consume enough items! " + perBlock.getHoverName().getString() + "; expected to consume " + total +
-                    ", but consumed " + (total - extracted.stackSize));
+                    "Didn't consume enough items! " + perBlock.getHoverName().getString() + "; expected to consume " +
+                            total +
+                            ", but consumed " + (total - extracted.stackSize));
             givePlayerItems(extracted.toStacks().toArray(new ItemStack[0]));
         }
 
@@ -436,7 +436,8 @@ public class PendingBuild extends AbstractBuildable {
         @Override
         public boolean tryApplyAction(double complexity) {
             return PendingBuild.this
-                .tryConsumePower(manipulatorItemStack, pendingBlock.x, pendingBlock.y, pendingBlock.z, EU_PER_ACTION * complexity);
+                    .tryConsumePower(manipulatorItemStack, pendingBlock.x, pendingBlock.y, pendingBlock.z,
+                            EU_PER_ACTION * complexity);
         }
 
         @Override
@@ -457,7 +458,8 @@ public class PendingBuild extends AbstractBuildable {
         private Component getBlockName() {
             if (!pendingBlock.isInWorld(player.level())) return null;
 
-            return BlockSpec.fromBlock(null, player.level(), pendingBlock.x, pendingBlock.y, pendingBlock.z).getChatComponent();
+            return BlockSpec.fromBlock(null, player.level(), pendingBlock.x, pendingBlock.y, pendingBlock.z)
+                    .getChatComponent();
         }
 
         @Override
@@ -465,9 +467,11 @@ public class PendingBuild extends AbstractBuildable {
             Component blockName = getBlockName();
 
             if (blockName != null) {
-                sendWarningToPlayer(player, "mm.info.warning.with_block", pendingBlock.x, pendingBlock.y, pendingBlock.z, blockName, message);
+                sendWarningToPlayer(player, "mm.info.warning.with_block", pendingBlock.x, pendingBlock.y,
+                        pendingBlock.z, blockName, message);
             } else {
-                sendWarningToPlayer(player, "mm.info.warning.only_message", pendingBlock.x, pendingBlock.y, pendingBlock.z, message);
+                sendWarningToPlayer(player, "mm.info.warning.only_message", pendingBlock.x, pendingBlock.y,
+                        pendingBlock.z, message);
             }
 
             PendingBuild.this.warnings.add(BlockPos.asLong(pendingBlock.x, pendingBlock.y, pendingBlock.z));
@@ -478,9 +482,11 @@ public class PendingBuild extends AbstractBuildable {
             Component blockName = getBlockName();
 
             if (blockName != null) {
-                sendErrorToPlayer(player, "mm.info.error.with_block", pendingBlock.x, pendingBlock.y, pendingBlock.z, blockName, message);
+                sendErrorToPlayer(player, "mm.info.error.with_block", pendingBlock.x, pendingBlock.y, pendingBlock.z,
+                        blockName, message);
             } else {
-                sendErrorToPlayer(player, "mm.info.error.only_message", pendingBlock.x, pendingBlock.y, pendingBlock.z, message);
+                sendErrorToPlayer(player, "mm.info.error.only_message", pendingBlock.x, pendingBlock.y, pendingBlock.z,
+                        message);
             }
 
             PendingBuild.this.errors.add(BlockPos.asLong(pendingBlock.x, pendingBlock.y, pendingBlock.z));

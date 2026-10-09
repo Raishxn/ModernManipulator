@@ -1,12 +1,12 @@
 package com.raishxn.modern_manipulator.common.compat;
 
-import com.raishxn.modern_manipulator.common.building.IBlockApplyContext;
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+
+import com.raishxn.modern_manipulator.common.building.IBlockApplyContext;
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,8 @@ public class PlacementHandlers {
          * @return True when this handler placed the block, false to let the next handler (or the default logic) handle
          *         it.
          */
-        boolean place(Level world, BlockPos pos, PendingBlock pending, ItemStack stack, Player player, IBlockApplyContext context);
+        boolean place(Level world, BlockPos pos, PendingBlock pending, ItemStack stack, Player player,
+                      IBlockApplyContext context);
     }
 
     private static final List<IPlacementHandler> HANDLERS = new ArrayList<>();
@@ -35,7 +36,8 @@ public class PlacementHandlers {
         HANDLERS.add(handler);
     }
 
-    public static boolean place(Level world, BlockPos pos, PendingBlock pending, ItemStack stack, Player player, IBlockApplyContext context) {
+    public static boolean place(Level world, BlockPos pos, PendingBlock pending, ItemStack stack, Player player,
+                                IBlockApplyContext context) {
         for (IPlacementHandler handler : HANDLERS) {
             if (handler.place(world, pos, pending, stack, player, context)) return true;
         }

@@ -1,13 +1,7 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendWarningToPlayer;
-
-import com.raishxn.modern_manipulator.common.compat.BlockRemovers;
-import com.raishxn.modern_manipulator.common.items.MMUpgrades;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.utils.MMUtils;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.capability.IElectricItem;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,12 +29,18 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
-import com.gregtechceu.gtceu.api.capability.IElectricItem;
+import com.raishxn.modern_manipulator.common.compat.BlockRemovers;
+import com.raishxn.modern_manipulator.common.items.MMUpgrades;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.utils.MMUtils;
 import it.unimi.dsi.fastutil.Pair;
 
 import java.util.HashMap;
 import java.util.List;
+
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendWarningToPlayer;
 
 /**
  * Handles all generic manipulator building logic.
@@ -157,13 +157,13 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         if (blockState.getBlock() instanceof LiquidBlock && fluidState.isSource()) {
             givePlayerFluids(new FluidStack(fluidState.getType(), 1000));
         } else if (blockState.getBlock() instanceof BucketPickup && !fluidState.isEmpty() && fluidState.isSource() &&
-            !(blockState.getBlock() instanceof LiquidBlock)) {
-                // waterlogged blocks: drop the block and the fluid
-                givePlayerFluids(new FluidStack(fluidState.getType(), 1000));
-                givePlayerDrops(world, pos, blockState, te);
-            } else {
-                givePlayerDrops(world, pos, blockState, te);
-            }
+                !(blockState.getBlock() instanceof LiquidBlock)) {
+                    // waterlogged blocks: drop the block and the fluid
+                    givePlayerFluids(new FluidStack(fluidState.getType(), 1000));
+                    givePlayerDrops(world, pos, blockState, te);
+                } else {
+                    givePlayerDrops(world, pos, blockState, te);
+                }
 
         try {
             BlockCaptureDrops.captureDrops(world);
@@ -256,18 +256,21 @@ public abstract class AbstractBuildable extends MMInventory implements IBuildabl
         boolean isBlocked;
 
         if (isPlacement) {
-            isBlocked = ForgeEventFactory.onBlockPlace(player, BlockSnapshot.create(world.dimension(), world, pos), Direction.UP);
+            isBlocked = ForgeEventFactory.onBlockPlace(player, BlockSnapshot.create(world.dimension(), world, pos),
+                    Direction.UP);
         } else {
-            isBlocked = MinecraftForge.EVENT_BUS.post(new BlockEvent.BreakEvent(world, pos, world.getBlockState(pos), player));
+            isBlocked = MinecraftForge.EVENT_BUS
+                    .post(new BlockEvent.BreakEvent(world, pos, world.getBlockState(pos), player));
         }
 
         var server = ServerLifecycleHooks.getCurrentServer();
 
         boolean spawnProtected = server != null && world instanceof ServerLevel serverLevel &&
-            server.isUnderSpawnProtection(serverLevel, pos, player);
+                server.isUnderSpawnProtection(serverLevel, pos, player);
 
         // if this block is protected, ignore it completely and print a warning
-        if (isBlocked || !world.mayInteract(player, pos) || spawnProtected || !world.getWorldBorder().isWithinBounds(pos)) {
+        if (isBlocked || !world.mayInteract(player, pos) || spawnProtected ||
+                !world.getWorldBorder().isWithinBounds(pos)) {
             if (!printedProtectedBlockWarning) {
                 sendWarningToPlayer(player, "mm.info.warning.protected_area");
                 printedProtectedBlockWarning = true;

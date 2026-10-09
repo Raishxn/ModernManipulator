@@ -1,12 +1,11 @@
 package com.raishxn.modern_manipulator;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
 import it.unimi.dsi.fastutil.longs.LongList;
 
 /**
@@ -17,23 +16,28 @@ public class CommonProxy {
     private CommonProxy() {}
 
     public static Player getClientPlayer() {
-        return DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.getPlayer());
+        return DistExecutor.unsafeCallWhenOn(Dist.CLIENT,
+                () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.getPlayer());
     }
 
     public static void openRadialMenu(Player player, ItemStack stack) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.openRadialMenu(stack));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.openRadialMenu(stack));
     }
 
     public static void setStatusHints(LongList errors, LongList warnings) {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-            () -> () -> com.raishxn.modern_manipulator.client.rendering.MMRenderer.setStatusHints(errors, warnings));
+                () -> () -> com.raishxn.modern_manipulator.client.rendering.MMRenderer.setStatusHints(errors,
+                        warnings));
     }
 
     public static void rerenderBlocks(LongList positions) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.rerenderBlocks(positions));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.rerenderBlocks(positions));
     }
 
     public static void setUplinkState(Location location, int state) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.setUplinkState(location, state));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.setUplinkState(location, state));
     }
 }

@@ -2,7 +2,6 @@ package com.raishxn.modern_manipulator.common.data;
 
 import com.raishxn.modern_manipulator.common.building.BlockSpec;
 import com.raishxn.modern_manipulator.common.building.ImmutableBlockSpec;
-
 import it.unimi.dsi.fastutil.objects.ObjectIntMutablePair;
 
 import java.util.ArrayList;
@@ -53,7 +52,9 @@ public class WeightedSpecList {
 
     public boolean contains(BlockSpec spec) {
         for (var p : specs) {
-            if (Objects.equals(p.first(), spec)) { return true; }
+            if (Objects.equals(p.first(), spec)) {
+                return true;
+            }
         }
 
         return false;
@@ -61,7 +62,9 @@ public class WeightedSpecList {
 
     public boolean containsEquivalent(BlockSpec spec) {
         for (var p : specs) {
-            if (Objects.equals(p.first(), spec) || p.first().isEquivalent(spec)) { return true; }
+            if (Objects.equals(p.first(), spec) || p.first().isEquivalent(spec)) {
+                return true;
+            }
         }
 
         return false;

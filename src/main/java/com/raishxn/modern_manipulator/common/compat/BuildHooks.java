@@ -1,11 +1,11 @@
 package com.raishxn.modern_manipulator.common.compat;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+
 import com.raishxn.modern_manipulator.common.building.IBlockApplyContext;
 import com.raishxn.modern_manipulator.common.building.PendingBlock;
 import com.raishxn.modern_manipulator.common.building.PendingBuild;
-
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,8 @@ public class BuildHooks {
 
         default void onBlockApplied(PendingBuild build, Level world, BlockPos pos, PendingBlock block) {}
 
-        default void onBlocksPlaced(PendingBuild build, Level world, List<PendingBlock> placed, IBlockApplyContext context) {}
+        default void onBlocksPlaced(PendingBuild build, Level world, List<PendingBlock> placed,
+                                    IBlockApplyContext context) {}
 
         /** When true, an equivalent existing block will still be removed and replaced. */
         default boolean requiresReplacement(Level world, BlockPos pos, PendingBlock block) {
@@ -45,7 +46,8 @@ public class BuildHooks {
         for (IBuildHook hook : HOOKS) hook.onBlockApplied(build, world, pos, block);
     }
 
-    public static void onBlocksPlaced(PendingBuild build, Level world, List<PendingBlock> placed, IBlockApplyContext context) {
+    public static void onBlocksPlaced(PendingBuild build, Level world, List<PendingBlock> placed,
+                                      IBlockApplyContext context) {
         for (IBuildHook hook : HOOKS) hook.onBlocksPlaced(build, world, placed, context);
     }
 

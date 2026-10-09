@@ -1,24 +1,5 @@
 package com.raishxn.modern_manipulator.common.items.manipulator;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
-
-import com.raishxn.modern_manipulator.CommonProxy;
-import com.raishxn.modern_manipulator.GlobalMMConfig.BuildingConfig;
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.common.building.BlockSpec;
-import com.raishxn.modern_manipulator.common.building.IBuildable;
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-import com.raishxn.modern_manipulator.common.building.PendingBuild;
-import com.raishxn.modern_manipulator.common.building.PendingMove;
-import com.raishxn.modern_manipulator.common.compat.CableHandlers;
-import com.raishxn.modern_manipulator.common.data.WeightedSpecList;
-import com.raishxn.modern_manipulator.common.items.MMUpgrades;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PendingAction;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
@@ -54,6 +35,21 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
+import com.raishxn.modern_manipulator.CommonProxy;
+import com.raishxn.modern_manipulator.GlobalMMConfig.BuildingConfig;
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.building.BlockSpec;
+import com.raishxn.modern_manipulator.common.building.IBuildable;
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
+import com.raishxn.modern_manipulator.common.building.PendingBuild;
+import com.raishxn.modern_manipulator.common.building.PendingMove;
+import com.raishxn.modern_manipulator.common.compat.CableHandlers;
+import com.raishxn.modern_manipulator.common.data.WeightedSpecList;
+import com.raishxn.modern_manipulator.common.items.MMUpgrades;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PendingAction;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.raishxn.modern_manipulator.common.networking.Messages;
+import com.raishxn.modern_manipulator.common.utils.MMUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
@@ -66,6 +62,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 
 public class ItemMatterManipulator extends Item {
 
@@ -150,8 +149,9 @@ public class ItemMatterManipulator extends Item {
             this.voltageTier = voltageTier;
             this.maxCharge = maxCharge;
             this.capabilities = capabilities;
-            this.allowedUpgrades = Collections.unmodifiableSet(allowedUpgrades.isEmpty() ? EnumSet.noneOf(MMUpgrades.class) :
-                EnumSet.copyOf(allowedUpgrades));
+            this.allowedUpgrades = Collections
+                    .unmodifiableSet(allowedUpgrades.isEmpty() ? EnumSet.noneOf(MMUpgrades.class) :
+                            EnumSet.copyOf(allowedUpgrades));
         }
 
         /** The amount of blocks placed per place tick. MK3's speed is configurable. */
@@ -166,14 +166,15 @@ public class ItemMatterManipulator extends Item {
     public @Nullable ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
         return new ICapabilityProvider() {
 
-            private final LazyOptional<IElectricItem> electricItem = LazyOptional.of(() -> new ElectricItem(stack, tier.maxCharge,
-                tier.voltageTier, true, false) {
+            private final LazyOptional<IElectricItem> electricItem = LazyOptional
+                    .of(() -> new ElectricItem(stack, tier.maxCharge,
+                            tier.voltageTier, true, false) {
 
-                @Override
-                public long getTransferLimit() {
-                    return GTValues.V[ItemMatterManipulator.this.tier.voltageTier] * 16;
-                }
-            });
+                        @Override
+                        public long getTransferLimit() {
+                            return GTValues.V[ItemMatterManipulator.this.tier.voltageTier] * 16;
+                        }
+                    });
 
             @Override
             public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
@@ -495,7 +496,7 @@ public class ItemMatterManipulator extends Item {
             }
 
             if (state.config.placeMode == PlaceMode.GEOMETRY || state.config.placeMode == PlaceMode.EXCHANGING ||
-                state.config.placeMode == PlaceMode.CABLES) {
+                    state.config.placeMode == PlaceMode.CABLES) {
                 state.config.coordA = location;
                 state.config.coordB = null;
                 state.config.coordC = null;
@@ -522,13 +523,15 @@ public class ItemMatterManipulator extends Item {
      *
      * @return True when the action was successfully handled. Treated as a no-op when false.
      */
-    public boolean handleAction(ItemStack itemStack, Level world, Player player, MMState state, @Nullable BlockHitResult hit) {
+    public boolean handleAction(ItemStack itemStack, Level world, Player player, MMState state,
+                                @Nullable BlockHitResult hit) {
         switch (state.config.action) {
             case MOVING_COORDS -> {
                 Vector3i lookingAt = MMUtils.getLookingAtLocation(player);
 
-                if (state.config.placeMode == PlaceMode.GEOMETRY && state.config.coordAOffset == null && state.config.coordBOffset != null &&
-                    state.config.coordCOffset == null && state.config.shape.requiresC()) {
+                if (state.config.placeMode == PlaceMode.GEOMETRY && state.config.coordAOffset == null &&
+                        state.config.coordBOffset != null &&
+                        state.config.coordCOffset == null && state.config.shape.requiresC()) {
                     state.config.coordA = state.config.getCoordA(world, lookingAt);
                     state.config.coordB = state.config.getCoordB(world, lookingAt);
                     state.config.coordC = null;
@@ -627,7 +630,8 @@ public class ItemMatterManipulator extends Item {
         }
     }
 
-    public static void onMMBPressedInGUI(Player player, ItemStack stack, MMState state, final boolean isSneaking, ItemStack hoveredStack) {
+    public static void onMMBPressedInGUI(Player player, ItemStack stack, MMState state, final boolean isSneaking,
+                                         ItemStack hoveredStack) {
         BlockSpec block = BlockSpec.fromStack(null, hoveredStack);
         Level world = player.level();
 
@@ -646,7 +650,8 @@ public class ItemMatterManipulator extends Item {
         }
     }
 
-    private static void onPickBlock(Level world, Player player, ItemStack stack, MMState state, @Nullable BlockHitResult hit,
+    private static void onPickBlock(Level world, Player player, ItemStack stack, MMState state,
+                                    @Nullable BlockHitResult hit,
                                     final boolean add, @Nullable BlockSpec block) {
         if (block == null) block = BlockSpec.fromPickBlock(world, player, hit);
 
@@ -693,7 +698,8 @@ public class ItemMatterManipulator extends Item {
         }
     }
 
-    private static void onExchangeSetTarget(Level world, Player player, ItemStack stack, MMState state, @Nullable BlockHitResult hit,
+    private static void onExchangeSetTarget(Level world, Player player, ItemStack stack, MMState state,
+                                            @Nullable BlockHitResult hit,
                                             @Nullable BlockSpec block) {
         if (block == null) block = BlockSpec.fromPickBlock(world, player, hit);
 
@@ -705,7 +711,8 @@ public class ItemMatterManipulator extends Item {
         sendInfoToPlayer(player, "mm.info.set_block_to_replace_with", block.getChatComponent());
     }
 
-    private void onExchangeAddWhitelist(Level world, Player player, ItemStack stack, MMState state, @Nullable BlockHitResult hit) {
+    private void onExchangeAddWhitelist(Level world, Player player, ItemStack stack, MMState state,
+                                        @Nullable BlockHitResult hit) {
         BlockSpec block = BlockSpec.fromPickBlock(world, player, hit);
 
         if (hit != null) checkForCables(state, block, world, hit.getBlockPos());
@@ -719,7 +726,8 @@ public class ItemMatterManipulator extends Item {
         sendInfoToPlayer(player, "mm.info.added_block_to_exchange_whitelist", block.getChatComponent());
     }
 
-    private static void onExchangeSetWhitelist(Level world, Player player, ItemStack stack, MMState state, @Nullable BlockHitResult hit,
+    private static void onExchangeSetWhitelist(Level world, Player player, ItemStack stack, MMState state,
+                                               @Nullable BlockHitResult hit,
                                                @Nullable BlockSpec block) {
         if (block == null) block = BlockSpec.fromPickBlock(world, player, hit);
 
@@ -731,7 +739,8 @@ public class ItemMatterManipulator extends Item {
         sendInfoToPlayer(player, "mm.info.set_exchange_whitelist_to_only_contain", block.getChatComponent());
     }
 
-    private static void onPickCable(Level world, Player player, ItemStack stack, MMState state, @Nullable BlockHitResult hit,
+    private static void onPickCable(Level world, Player player, ItemStack stack, MMState state,
+                                    @Nullable BlockHitResult hit,
                                     @Nullable BlockSpec cable) {
         if (cable == null) cable = new BlockSpec();
 
@@ -765,7 +774,8 @@ public class ItemMatterManipulator extends Item {
             return;
         }
 
-        state.config.arraySpan = state.config.getArrayMult(world, state.config.coordA, state.config.coordB, state.config.coordC, lookingAt);
+        state.config.arraySpan = state.config.getArrayMult(world, state.config.coordA, state.config.coordB,
+                state.config.coordC, lookingAt);
     }
 
     /**
@@ -808,7 +818,8 @@ public class ItemMatterManipulator extends Item {
 
         if (ticksUsed == 1) {
             switch (state.config.placeMode) {
-                case GEOMETRY, COPYING, EXCHANGING, CABLES -> PENDING_BUILDS.put(player, getPendingBuild(player, stack, state));
+                case GEOMETRY, COPYING, EXCHANGING, CABLES -> PENDING_BUILDS.put(player,
+                        getPendingBuild(player, stack, state));
                 case MOVING -> PENDING_BUILDS.put(player, getPendingMove(player, stack, state));
             }
         }
@@ -850,7 +861,8 @@ public class ItemMatterManipulator extends Item {
         if (tier.maxRange != -1) {
             int maxRange2 = tier.maxRange * tier.maxRange;
 
-            Location playerLocation = new Location(player.level(), Mth.floor(player.getX()), Mth.floor(player.getY()), Mth.floor(player.getZ()));
+            Location playerLocation = new Location(player.level(), Mth.floor(player.getX()), Mth.floor(player.getY()),
+                    Mth.floor(player.getZ()));
 
             blocks.removeIf(block -> block.distanceTo2(playerLocation) > maxRange2);
         }

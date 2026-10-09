@@ -1,11 +1,5 @@
 package com.raishxn.modern_manipulator.common.uplink;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
-
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.common.items.MMItems;
-import com.raishxn.modern_manipulator.common.utils.BigItemStack;
-
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.integration.ae2.machine.feature.IGridConnectedMachine;
@@ -46,6 +40,9 @@ import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
 import com.google.common.collect.ImmutableSet;
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.items.MMItems;
+import com.raishxn.modern_manipulator.common.utils.BigItemStack;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -57,16 +54,20 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
+
 /**
  * The quantum uplink's ME connector hatch.
  * Provides the plans as fake processing patterns, and requests the auto plans so that the ME system crafts every
  * missing item. Once a plan's pattern is pushed, its inputs are returned to the ME system and the job is cancelled.
  */
 public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
-                                       implements IGridConnectedMachine, ICraftingProvider, ICraftingRequester, ICraftingSimulationRequester {
+                                        implements IGridConnectedMachine, ICraftingProvider, ICraftingRequester,
+                                        ICraftingSimulationRequester {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MMUplinkMEHatchPartMachine.class,
-        MultiblockPartMachine.MANAGED_FIELD_HOLDER);
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
+            MMUplinkMEHatchPartMachine.class,
+            MultiblockPartMachine.MANAGED_FIELD_HOLDER);
 
     @Persisted
     protected final GridNodeHolder nodeHolder;
@@ -296,7 +297,8 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
     }
 
     public void addRequest(Player requester, String requestName, List<BigItemStack> requiredItems, boolean autocraft) {
-        ManipulatorRequest request = new ManipulatorRequest(this, requester.getUUID(), requestName, requiredItems, discriminator++);
+        ManipulatorRequest request = new ManipulatorRequest(this, requester.getUUID(), requestName, requiredItems,
+                discriminator++);
 
         if (autocraft) {
             autoRequests.add(request);
@@ -403,7 +405,8 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
 
         private IPatternDetails pattern;
 
-        ManipulatorRequest(MMUplinkMEHatchPartMachine hatch, UUID requester, String requestName, List<BigItemStack> requiredItems,
+        ManipulatorRequest(MMUplinkMEHatchPartMachine hatch, UUID requester, String requestName,
+                           List<BigItemStack> requiredItems,
                            int discriminator) {
             this.hatch = hatch;
             this.requester = requester;
@@ -416,7 +419,6 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
             // add a number so that holograms with the same name are still different
             hologram.getOrCreateTag().putInt("discriminator", discriminator);
         }
-
 
         public AEItemKey getHologramKey() {
             return AEItemKey.of(hologram);
@@ -453,12 +455,14 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
 
                 for (Tag t : tag.getList("items", Tag.TAG_COMPOUND)) {
                     CompoundTag itemTag = (CompoundTag) t;
-                    items.add(BigItemStack.create(com.raishxn.modern_manipulator.common.utils.ItemId.create(itemTag), itemTag.getLong("amount")));
+                    items.add(BigItemStack.create(com.raishxn.modern_manipulator.common.utils.ItemId.create(itemTag),
+                            itemTag.getLong("amount")));
                 }
 
                 if (items.isEmpty()) return null;
 
-                return new ManipulatorRequest(hatch, tag.getUUID("requester"), tag.getString("name"), items, tag.getInt("discriminator"));
+                return new ManipulatorRequest(hatch, tag.getUUID("requester"), tag.getString("name"), items,
+                        tag.getInt("discriminator"));
             } catch (Exception e) {
                 ModernManipulator.LOG.error("Could not load manipulator plan", e);
                 return null;
@@ -480,8 +484,8 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
                 }
 
                 ItemStack encoded = PatternDetailsHelper.encodeProcessingPattern(
-                    inputs.toArray(new GenericStack[0]),
-                    new GenericStack[] { new GenericStack(getHologramKey(), 1) });
+                        inputs.toArray(new GenericStack[0]),
+                        new GenericStack[] { new GenericStack(getHologramKey(), 1) });
 
                 pattern = PatternDetailsHelper.decodePattern(encoded, hatch.getLevel());
             }
@@ -510,7 +514,8 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
             var crafting = grid.getCraftingService();
 
             if (job == null) {
-                job = crafting.beginCraftingCalculation(hatch.getLevel(), hatch, getHologramKey(), 1, CalculationStrategy.REPORT_MISSING_ITEMS);
+                job = crafting.beginCraftingCalculation(hatch.getLevel(), hatch, getHologramKey(), 1,
+                        CalculationStrategy.REPORT_MISSING_ITEMS);
             }
 
             if (job == null) return false;
@@ -534,7 +539,8 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
                 var result = crafting.submitJob(plan, hatch, null, false, hatch.getRequestSource());
 
                 if (!result.successful() || result.link() == null) {
-                    if (player != null) com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer(player, "mm.info.error.craft_failed", requestName);
+                    if (player != null) com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer(player,
+                            "mm.info.error.craft_failed", requestName);
                     return false;
                 }
 
@@ -544,7 +550,8 @@ public class MMUplinkMEHatchPartMachine extends MultiblockPartMachine
             } catch (Exception e) {
                 ModernManipulator.LOG.error("Could not submit the crafting job for plan {}", requestName, e);
                 Player player = getPlayer();
-                if (player != null) com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer(player, "mm.info.error.craft_failed", requestName);
+                if (player != null) com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer(player,
+                        "mm.info.error.craft_failed", requestName);
                 return false;
             }
 

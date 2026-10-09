@@ -1,11 +1,10 @@
 package com.raishxn.modern_manipulator.common.compat;
 
+import net.minecraft.world.entity.player.Player;
+
 import com.raishxn.modern_manipulator.common.items.manipulator.Location;
 import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
 import com.raishxn.modern_manipulator.common.utils.BigItemStack;
-
-import net.minecraft.world.entity.player.Player;
-
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

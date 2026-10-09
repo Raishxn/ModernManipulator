@@ -1,7 +1,5 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.MutableComponent;
@@ -11,6 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -87,7 +86,8 @@ public interface ImmutableBlockSpec {
             int result;
 
             result = String.CASE_INSENSITIVE_ORDER
-                .compare(BuiltInRegistries.ITEM.getKey(a.getItem()).toString(), BuiltInRegistries.ITEM.getKey(b.getItem()).toString());
+                    .compare(BuiltInRegistries.ITEM.getKey(a.getItem()).toString(),
+                            BuiltInRegistries.ITEM.getKey(b.getItem()).toString());
             if (result != 0) return result;
 
             CompoundTag ta = a.getTag();

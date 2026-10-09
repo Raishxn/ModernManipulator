@@ -1,8 +1,8 @@
 package com.raishxn.modern_manipulator.common.compat;
 
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-
 import net.minecraft.world.level.block.entity.BlockEntity;
+
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -15,7 +15,8 @@ import java.lang.reflect.Type;
 public class DirectionJsonAdapter implements JsonSerializer<Direction>, JsonDeserializer<Direction> {
 
     @Override
-    public Direction deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public Direction deserialize(JsonElement json, Type typeOfT,
+                                 JsonDeserializationContext context) throws JsonParseException {
         if (json.getAsJsonPrimitive().isNumber()) {
             int i = json.getAsInt();
             return i >= 0 && i < 6 ? Direction.from3DDataValue(i) : null;

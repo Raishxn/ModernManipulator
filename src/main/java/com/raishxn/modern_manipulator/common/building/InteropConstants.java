@@ -1,13 +1,13 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.utils.Mods;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+
+import com.raishxn.modern_manipulator.common.utils.Mods;
 
 /**
  * Various constants or static methods used for interop.
@@ -22,7 +22,8 @@ public class InteropConstants {
 
     public static Block getAECableBus() {
         if (aeCableBus == null) {
-            aeCableBus = Mods.AppliedEnergistics2.isModLoaded() ? BuiltInRegistries.BLOCK.get(AE_CABLE_BUS) : Blocks.AIR;
+            aeCableBus = Mods.AppliedEnergistics2.isModLoaded() ? BuiltInRegistries.BLOCK.get(AE_CABLE_BUS) :
+                    Blocks.AIR;
         }
 
         return aeCableBus;

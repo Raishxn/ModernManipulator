@@ -1,13 +1,5 @@
 package com.raishxn.modern_manipulator.common.compat.gt;
 
-import com.raishxn.modern_manipulator.common.building.BlockSpec;
-import com.raishxn.modern_manipulator.common.building.ImmutableBlockSpec;
-import com.raishxn.modern_manipulator.common.building.InventoryAdapter;
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-import com.raishxn.modern_manipulator.common.compat.BlockRemovers;
-import com.raishxn.modern_manipulator.common.compat.CableHandlers;
-import com.raishxn.modern_manipulator.common.compat.TileAnalyzers;
-
 import com.gregtechceu.gtceu.api.block.OreBlock;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
@@ -21,6 +13,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 
+import com.raishxn.modern_manipulator.common.building.BlockSpec;
+import com.raishxn.modern_manipulator.common.building.ImmutableBlockSpec;
+import com.raishxn.modern_manipulator.common.building.InventoryAdapter;
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
+import com.raishxn.modern_manipulator.common.compat.BlockRemovers;
+import com.raishxn.modern_manipulator.common.compat.CableHandlers;
+import com.raishxn.modern_manipulator.common.compat.TileAnalyzers;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
@@ -36,7 +35,8 @@ public class GTCompat {
     /**
      * Sends the full state of the machines/pipes to the clients again and makes them rebuild their models.
      * GTCEu doesn't override getUpdatePacket, so sendBlockUpdated carries no block entity data: the client creates an
-     * empty block entity and relies on ldlib's async payload, which gets dropped when it arrives before the block entity
+     * empty block entity and relies on ldlib's async payload, which gets dropped when it arrives before the block
+     * entity
      * exists client side. The vanilla data packet carries ldlib's full sync tag (see ldlib's BlockEntityMixin).
      */
     public static void resync(net.minecraft.server.level.ServerLevel level, List<BlockPos> positions) {
@@ -57,7 +57,8 @@ public class GTCompat {
             }
 
             var packet = net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(te);
-            for (var player : level.getChunkSource().chunkMap.getPlayers(new net.minecraft.world.level.ChunkPos(pos), false)) {
+            for (var player : level.getChunkSource().chunkMap.getPlayers(new net.minecraft.world.level.ChunkPos(pos),
+                    false)) {
                 player.connection.send(packet);
             }
 
@@ -68,7 +69,7 @@ public class GTCompat {
 
         // sent after the data packets so the models are rebuilt with the new connections/covers
         com.raishxn.modern_manipulator.common.networking.Messages.RerenderBlocks.sendToPlayersAround(
-            new com.raishxn.modern_manipulator.common.items.manipulator.Location(level, positions.get(0)), synced);
+                new com.raishxn.modern_manipulator.common.items.manipulator.Location(level, positions.get(0)), synced);
     }
 
     private record PendingResync(net.minecraft.server.level.ServerLevel level, List<BlockPos> positions, int tick) {}
@@ -129,31 +130,33 @@ public class GTCompat {
         // arrive before the block itself (block changes are only broadcast during the next tick's chunk tick) and gets
         // dropped. Everything is re-sent at the end of the next tick, after that broadcast.
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(GTCompat::onServerTick);
-        com.raishxn.modern_manipulator.common.compat.BuildHooks.register(new com.raishxn.modern_manipulator.common.compat.BuildHooks.IBuildHook() {
+        com.raishxn.modern_manipulator.common.compat.BuildHooks
+                .register(new com.raishxn.modern_manipulator.common.compat.BuildHooks.IBuildHook() {
 
-            @Override
-            public void onBlocksPlaced(com.raishxn.modern_manipulator.common.building.PendingBuild build, Level world, List<PendingBlock> placed,
-                                       com.raishxn.modern_manipulator.common.building.IBlockApplyContext context) {
-                if (!(world instanceof net.minecraft.server.level.ServerLevel serverLevel)) return;
+                    @Override
+                    public void onBlocksPlaced(com.raishxn.modern_manipulator.common.building.PendingBuild build,
+                                               Level world, List<PendingBlock> placed,
+                                               com.raishxn.modern_manipulator.common.building.IBlockApplyContext context) {
+                        if (!(world instanceof net.minecraft.server.level.ServerLevel serverLevel)) return;
 
-                List<BlockPos> positions = new java.util.ArrayList<>();
+                        List<BlockPos> positions = new java.util.ArrayList<>();
 
-                for (PendingBlock block : placed) {
-                    if (block.gt != null) positions.add(new BlockPos(block.x, block.y, block.z));
-                }
+                        for (PendingBlock block : placed) {
+                            if (block.gt != null) positions.add(new BlockPos(block.x, block.y, block.z));
+                        }
 
-                if (positions.isEmpty()) return;
+                        if (positions.isEmpty()) return;
 
-                scheduleResync(serverLevel, positions);
-            }
-        });
+                        scheduleResync(serverLevel, positions);
+                    }
+                });
 
         PendingBlock.ITEM_PREVIEW_BLOCKS.add(state -> state.getBlock() instanceof PipeBlock<?, ?, ?>);
 
         BlockRemovers.registerOreChecker(state -> state.getBlock() instanceof OreBlock);
 
         BlockRemovers.registerTankBlacklist(te -> te instanceof IMachineBlockEntity mbe &&
-            mbe.getMetaMachine().getClass().getSimpleName().contains("Stocking"));
+                mbe.getMetaMachine().getClass().getSimpleName().contains("Stocking"));
 
         CableHandlers.register(new CableHandlers.ICableHandler() {
 

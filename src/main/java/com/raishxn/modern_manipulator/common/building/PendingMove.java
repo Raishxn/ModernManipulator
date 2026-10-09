@@ -1,16 +1,5 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
-
-import com.raishxn.modern_manipulator.common.building.movers.BlockMover;
-import com.raishxn.modern_manipulator.common.building.movers.BlockMovers;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
@@ -19,12 +8,22 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.raishxn.modern_manipulator.common.building.movers.BlockMover;
+import com.raishxn.modern_manipulator.common.building.movers.BlockMovers;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator.ManipulatorTier;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.utils.MMUtils;
 import it.unimi.dsi.fastutil.Pair;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendErrorToPlayer;
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 
 /**
  * Handles all moving logic.
@@ -101,7 +100,8 @@ public class PendingMove extends AbstractBuildable {
 
             // if either block is protected, ignore them completely and print a warning
             if (!isEditable(world, s.x, s.y, s.z, false) || !isEditable(world, d.x, d.y, d.z, true)) {
-                sendErrorToPlayer(player, "mm.info.error.could_not_move_protected_block.new", s.x, s.y, s.z, source.getChatComponent());
+                sendErrorToPlayer(player, "mm.info.error.could_not_move_protected_block.new", s.x, s.y, s.z,
+                        source.getChatComponent());
                 iter.remove();
                 continue;
             }
@@ -115,12 +115,12 @@ public class PendingMove extends AbstractBuildable {
 
             if (sourceState.getDestroySpeed(world, sPos) < 0) {
                 sendErrorToPlayer(
-                    player,
-                    "mm.info.error.could_not_move_invulnerable_block.new",
-                    s.x,
-                    s.y,
-                    s.z,
-                    source.getChatComponent());
+                        player,
+                        "mm.info.error.could_not_move_invulnerable_block.new",
+                        s.x,
+                        s.y,
+                        s.z,
+                        source.getChatComponent());
                 iter.remove();
                 continue;
             }
@@ -138,7 +138,8 @@ public class PendingMove extends AbstractBuildable {
             canPlace &= targetState.getDestroySpeed(world, dPos) >= 0;
 
             if (!canPlace) {
-                sendErrorToPlayer(player, "mm.info.error.could_not_move_blocked_block.new", d.x, d.y, d.z, source.getChatComponent());
+                sendErrorToPlayer(player, "mm.info.error.could_not_move_blocked_block.new", d.x, d.y, d.z,
+                        source.getChatComponent());
                 iter.remove();
                 continue;
             }
@@ -167,7 +168,8 @@ public class PendingMove extends AbstractBuildable {
 
             // try to move the source block into the (now empty) target block
             if (!moveBlock(this, world, s, source, d, target)) {
-                sendErrorToPlayer(player, "mm.info.error.could_not_move_block.new", s.x, s.y, s.z, source.getChatComponent());
+                sendErrorToPlayer(player, "mm.info.error.could_not_move_block.new", s.x, s.y, s.z,
+                        source.getChatComponent());
             }
 
             changed.add(sPos);
@@ -209,9 +211,7 @@ public class PendingMove extends AbstractBuildable {
     }
 
     @Override
-    public void onStopped() {
-
-    }
+    public void onStopped() {}
 
     private void initMoves() {
         moves = new ArrayList<>();
@@ -263,14 +263,16 @@ public class PendingMove extends AbstractBuildable {
                     int dY = y - y1;
                     int dZ = z - z1;
 
-                    moves.add(Pair.of(new Location(worldId, x, y, z), new Location(worldId, dest.x + dX, dest.y + dY, dest.z + dZ)));
+                    moves.add(Pair.of(new Location(worldId, x, y, z),
+                            new Location(worldId, dest.x + dX, dest.y + dY, dest.z + dZ)));
                 }
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static boolean moveBlock(PendingMove pendingMove, Level world, Location s, BlockSpec spec1, Location d, BlockSpec spec2) {
+    public static boolean moveBlock(PendingMove pendingMove, Level world, Location s, BlockSpec spec1, Location d,
+                                    BlockSpec spec2) {
         Level worldS = s.isInWorld(world) ? world : s.getWorld();
         Level worldD = d.isInWorld(world) ? world : d.getWorld();
 

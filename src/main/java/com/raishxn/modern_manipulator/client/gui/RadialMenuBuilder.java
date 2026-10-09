@@ -1,10 +1,10 @@
 package com.raishxn.modern_manipulator.client.gui;
 
-import com.raishxn.modern_manipulator.client.gui.RadialMenu.RadialMenuClickHandler;
-import com.raishxn.modern_manipulator.client.gui.RadialMenu.RadialMenuOption;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
+
+import com.raishxn.modern_manipulator.client.gui.RadialMenu.RadialMenuClickHandler;
+import com.raishxn.modern_manipulator.client.gui.RadialMenu.RadialMenuOption;
 
 import java.util.ArrayList;
 import java.util.List;

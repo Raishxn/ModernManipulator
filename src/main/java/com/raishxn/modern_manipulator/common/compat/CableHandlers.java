@@ -1,13 +1,12 @@
 package com.raishxn.modern_manipulator.common.compat;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+
 import com.raishxn.modern_manipulator.common.building.BlockSpec;
 import com.raishxn.modern_manipulator.common.building.ImmutableBlockSpec;
 import com.raishxn.modern_manipulator.common.building.PendingBlock;
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
@@ -40,7 +39,8 @@ public class CableHandlers {
          * Creates the pending block used to exchange a block for the given replacement, if this handler needs special
          * logic.
          */
-        default @Nullable PendingBlock instantiateExchange(MMState state, ImmutableBlockSpec replacement, Level world, BlockPos pos) {
+        default @Nullable PendingBlock instantiateExchange(MMState state, ImmutableBlockSpec replacement, Level world,
+                                                           BlockPos pos) {
             return null;
         }
 
@@ -56,7 +56,8 @@ public class CableHandlers {
          *
          * @return True when this handler handled the cable spec
          */
-        boolean getCables(Vector3i a, Vector3i b, List<Vector3i> voxels, List<PendingBlock> out, Level world, ImmutableBlockSpec cable);
+        boolean getCables(Vector3i a, Vector3i b, List<Vector3i> voxels, List<PendingBlock> out, Level world,
+                          ImmutableBlockSpec cable);
     }
 
     private static final List<ICableHandler> HANDLERS = new ArrayList<>();
@@ -83,7 +84,8 @@ public class CableHandlers {
         return false;
     }
 
-    public static @Nullable PendingBlock instantiateExchange(MMState state, ImmutableBlockSpec replacement, Level world, BlockPos pos) {
+    public static @Nullable PendingBlock instantiateExchange(MMState state, ImmutableBlockSpec replacement, Level world,
+                                                             BlockPos pos) {
         for (ICableHandler handler : HANDLERS) {
             PendingBlock block = handler.instantiateExchange(state, replacement, world, pos);
             if (block != null) return block;
@@ -101,7 +103,8 @@ public class CableHandlers {
         return null;
     }
 
-    public static void getCables(Vector3i a, Vector3i b, List<Vector3i> voxels, List<PendingBlock> out, Level world, ImmutableBlockSpec cable) {
+    public static void getCables(Vector3i a, Vector3i b, List<Vector3i> voxels, List<PendingBlock> out, Level world,
+                                 ImmutableBlockSpec cable) {
         for (ICableHandler handler : HANDLERS) {
             if (handler.getCables(a, b, voxels, out, world, cable)) return;
         }

@@ -1,9 +1,9 @@
 package com.raishxn.modern_manipulator.common.building.movers;
 
-import com.raishxn.modern_manipulator.common.building.PendingMove;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+
+import com.raishxn.modern_manipulator.common.building.PendingMove;
 
 public interface BlockMover<State> {
 

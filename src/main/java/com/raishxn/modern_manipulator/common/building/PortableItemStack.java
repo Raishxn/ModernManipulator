@@ -1,7 +1,5 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.building.providers.IItemProvider;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -10,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.google.gson.annotations.SerializedName;
+import com.raishxn.modern_manipulator.common.building.providers.IItemProvider;
 
 import java.util.Objects;
 
@@ -108,6 +107,7 @@ public class PortableItemStack implements IItemProvider {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof PortableItemStack other)) return false;
-        return Objects.equals(item, other.item) && Objects.equals(amount, other.amount) && Objects.equals(nbt, other.nbt);
+        return Objects.equals(item, other.item) && Objects.equals(amount, other.amount) &&
+                Objects.equals(nbt, other.nbt);
     }
 }

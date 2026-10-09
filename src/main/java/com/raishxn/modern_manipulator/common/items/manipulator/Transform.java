@@ -1,23 +1,22 @@
 package com.raishxn.modern_manipulator.common.items.manipulator;
 
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+
+import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
+import com.raishxn.modern_manipulator.common.networking.Messages;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+
 import static net.minecraft.core.Direction.DOWN;
 import static net.minecraft.core.Direction.EAST;
 import static net.minecraft.core.Direction.NORTH;
 import static net.minecraft.core.Direction.SOUTH;
 import static net.minecraft.core.Direction.UP;
 import static net.minecraft.core.Direction.WEST;
-
-import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.Rotation;
-
-import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
 
 /**
  * Represents the rotation and flipping.
@@ -30,7 +29,7 @@ public class Transform {
     public transient Matrix4f rotation;
 
     public static final int FLIP_X = 0b1, FLIP_Y = 0b10, FLIP_Z = 0b100, FORWARD_MASK = 0b111000, FORWARD_SHIFT = 3,
-        UP_MASK = 0b111000000, UP_SHIFT = 6;
+            UP_MASK = 0b111000000, UP_SHIFT = 6;
 
     public static void sendRotate(Direction dir, boolean positive) {
         Messages.RotateTransform.sendToServer((dir.ordinal() & 0xFF) | (positive ? 1 : 0) << 8);
@@ -141,8 +140,9 @@ public class Transform {
 
     @Override
     public String toString() {
-        return "Transform [flipX=" + flipX + ", flipY=" + flipY + ", flipZ=" + flipZ + ", forward=" + forward + ", up=" +
-            up + "]";
+        return "Transform [flipX=" + flipX + ", flipY=" + flipY + ", flipZ=" + flipZ + ", forward=" + forward +
+                ", up=" +
+                up + "]";
     }
 
     @Override

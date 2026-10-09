@@ -1,15 +1,5 @@
 package com.raishxn.modern_manipulator.common.compat.gt;
 
-import com.raishxn.modern_manipulator.common.building.BlockSpec;
-import com.raishxn.modern_manipulator.common.building.IBlockApplyContext;
-import com.raishxn.modern_manipulator.common.building.ITileAnalysisIntegration;
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-import com.raishxn.modern_manipulator.common.building.SmartCopyIntegration;
-import com.raishxn.modern_manipulator.common.building.SmartCopyIntegration.SmartCopyAction;
-import com.raishxn.modern_manipulator.common.compat.SmartCopyHandlers;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.common.data.machines.GTAEMachines;
 import com.gregtechceu.gtceu.integration.ae2.machine.MEPatternBufferPartMachine;
@@ -20,6 +10,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+
+import com.raishxn.modern_manipulator.common.building.BlockSpec;
+import com.raishxn.modern_manipulator.common.building.IBlockApplyContext;
+import com.raishxn.modern_manipulator.common.building.ITileAnalysisIntegration;
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
+import com.raishxn.modern_manipulator.common.building.SmartCopyIntegration;
+import com.raishxn.modern_manipulator.common.building.SmartCopyIntegration.SmartCopyAction;
+import com.raishxn.modern_manipulator.common.compat.SmartCopyHandlers;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 
 import java.util.List;
 
@@ -84,7 +84,7 @@ public class GTSmartCopy {
         @Override
         public boolean apply(IBlockApplyContext ctx) {
             if (ctx.getTileEntity() instanceof IMachineBlockEntity mbe &&
-                mbe.getMetaMachine() instanceof MEPatternBufferProxyPartMachine proxy) {
+                    mbe.getMetaMachine() instanceof MEPatternBufferProxyPartMachine proxy) {
                 if (proxy.getBuffer() == null || !source.equals(proxy.getBuffer().getPos())) {
                     proxy.setBuffer(source);
                 }

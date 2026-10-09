@@ -1,5 +1,8 @@
 package com.raishxn.modern_manipulator.common.items.manipulator;
 
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+
 import com.raishxn.modern_manipulator.common.building.BlockSpec;
 import com.raishxn.modern_manipulator.common.data.WeightedSpecList;
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
@@ -7,10 +10,6 @@ import com.raishxn.modern_manipulator.common.items.manipulator.MMState.BlockSele
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PendingAction;
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
-
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -110,9 +109,9 @@ public class MMConfig {
             Vector3i min = min(), max = max();
 
             a.set(v)
-                .min(min);
+                    .min(min);
             b.set(v)
-                .max(max);
+                    .max(max);
 
             return this;
         }
@@ -121,9 +120,9 @@ public class MMConfig {
             Vector3i min = min(), max = max();
 
             a.set(min)
-                .min(other.min());
+                    .min(other.min());
             b.set(max)
-                .max(other.max());
+                    .max(other.max());
 
             return this;
         }
@@ -186,28 +185,26 @@ public class MMConfig {
             Vector3i size = size();
 
             return String.format(
-                "dX=%,d dY=%,d dZ=%,d V=%,d",
-                Math.abs(size.x),
-                Math.abs(size.y),
-                Math.abs(size.z),
-                size.x * size.y * size.z
-            );
+                    "dX=%,d dY=%,d dZ=%,d V=%,d",
+                    Math.abs(size.x),
+                    Math.abs(size.y),
+                    Math.abs(size.z),
+                    size.x * size.y * size.z);
         }
     }
 
     public Vector3i getArrayMult(
-        Level world,
-        Location sourceA,
-        Location sourceB,
-        Location dest,
-        Vector3i lookingAt
-    ) {
+                                 Level world,
+                                 Location sourceA,
+                                 Location sourceB,
+                                 Location dest,
+                                 Vector3i lookingAt) {
         if (!Location.areCompatible(sourceA, sourceB, dest)) return new Vector3i(1);
 
         Vector3i array = new Vector3i(lookingAt).sub(dest.toVec());
 
         Vector3i delta = sourceB.toVec()
-            .sub(sourceA.toVec());
+                .sub(sourceA.toVec());
 
         if (transform != null) {
             Vector3f v2 = new Vector3f(array).mulTransposeDirection(new Matrix4f(transform.getRotation()).invert());

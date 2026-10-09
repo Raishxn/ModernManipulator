@@ -1,9 +1,9 @@
 package com.raishxn.modern_manipulator.common.building;
 
+import net.minecraft.world.item.Item;
+
 import com.raishxn.modern_manipulator.common.compat.ae.AECompat;
 import com.raishxn.modern_manipulator.common.utils.Mods;
-
-import net.minecraft.world.item.Item;
 
 /**
  * Small item helpers that dispatch to optional integrations without loading their classes.

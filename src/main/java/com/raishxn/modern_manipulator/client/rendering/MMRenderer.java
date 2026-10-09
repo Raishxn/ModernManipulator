@@ -1,18 +1,5 @@
 package com.raishxn.modern_manipulator.client.rendering;
 
-import com.raishxn.modern_manipulator.GlobalMMConfig;
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.common.building.BlockSpec;
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
-import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -27,6 +14,18 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.raishxn.modern_manipulator.GlobalMMConfig;
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.building.BlockSpec;
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
+import com.raishxn.modern_manipulator.common.utils.MMUtils;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.joml.Vector3f;
@@ -89,8 +88,8 @@ public class MMRenderer {
             long now = System.currentTimeMillis();
             if ((now - lastExceptionPrint) > 10_000 && Minecraft.getInstance().player != null) {
                 Minecraft.getInstance().player.sendSystemMessage(Component.literal(
-                    "Could not render preview due to a crash. Check the logs for more info. Building will not work - items may be voided if you try.")
-                    .withStyle(ChatFormatting.RED));
+                        "Could not render preview due to a crash. Check the logs for more info. Building will not work - items may be voided if you try.")
+                        .withStyle(ChatFormatting.RED));
                 lastExceptionPrint = now;
             }
         }
@@ -161,7 +160,8 @@ public class MMRenderer {
     }
 
     private static Location playerLocation(Player player) {
-        return new Location(player.level(), Mth.floor(player.getX()), Mth.floor(player.getY()), Mth.floor(player.getZ()));
+        return new Location(player.level(), Mth.floor(player.getX()), Mth.floor(player.getY()),
+                Mth.floor(player.getZ()));
     }
 
     private static void rulers(Location l, float r, float g, float b) {
@@ -186,7 +186,8 @@ public class MMRenderer {
 
         boolean isValid = isAValid && isBValid;
 
-        // For cylinders, coord B must be pinned to one of the axis planes and coord C must be on the normal of that plane
+        // For cylinders, coord B must be pinned to one of the axis planes and coord C must be on the normal of that
+        // plane
         if (state.config.placeMode == PlaceMode.GEOMETRY && state.config.shape == Shape.CYLINDER) {
             isValid &= isCValid;
 
@@ -244,7 +245,8 @@ public class MMRenderer {
         }
     }
 
-    private static void updateHints(Player player, MMState state, ItemMatterManipulator manipulator, Location playerLocation,
+    private static void updateHints(Player player, MMState state, ItemMatterManipulator manipulator,
+                                    Location playerLocation,
                                     String hudText) {
         long now = System.currentTimeMillis();
 
@@ -256,10 +258,10 @@ public class MMRenderer {
         }
 
         needsAnalysis = needsAnalysis || (now - lastAnalysisMS) >= ANALYSIS_INTERVAL_MS || lastDrawer != manipulator ||
-            !Objects.equals(lastAnalyzedConfig, state.config);
+                !Objects.equals(lastAnalyzedConfig, state.config);
 
         needsHintDraw = needsHintDraw || needsAnalysis || lastPlayerPosition == null ||
-            (lastPlayerPosition.distanceTo(playerLocation) > 2 && manipulator.tier.maxRange != -1);
+                (lastPlayerPosition.distanceTo(playerLocation) > 2 && manipulator.tier.maxRange != -1);
 
         if (needsAnalysis) {
             lastAnalysisMS = now;
@@ -360,8 +362,9 @@ public class MMRenderer {
 
             Vector3i span = state.config.arraySpan;
             if (span != null) {
-                array = String.format(" stX=%d stY=%d stZ=%d", span.x >= 0 ? span.x + 1 : span.x, span.y >= 0 ? span.y + 1 : span.y,
-                    span.z >= 0 ? span.z + 1 : span.z);
+                array = String.format(" stX=%d stY=%d stZ=%d", span.x >= 0 ? span.x + 1 : span.x,
+                        span.y >= 0 ? span.y + 1 : span.y,
+                        span.z >= 0 ? span.z + 1 : span.z);
             }
 
             hudOnce(pasteDeltas.describe() + array);
@@ -398,7 +401,8 @@ public class MMRenderer {
         int maxHints = GlobalMMConfig.RenderingConfig.maxHints.get();
 
         RenderHints.INSTANCE.start();
-        RenderHints.INSTANCE.setDepthTest(!GlobalMMConfig.RenderingConfig.hintsOnTop.get() && state.config.placeMode != PlaceMode.EXCHANGING);
+        RenderHints.INSTANCE.setDepthTest(
+                !GlobalMMConfig.RenderingConfig.hintsOnTop.get() && state.config.placeMode != PlaceMode.EXCHANGING);
 
         if (analysisCache != null) {
             for (PendingBlock pendingBlock : analysisCache) {
@@ -412,7 +416,8 @@ public class MMRenderer {
 
                 BlockSpec.fromBlock(pooled, world, pos);
 
-                if (pooled.isEquivalent(pendingBlock.spec) && pooled.getBlockState() == pendingBlock.getBlockState()) continue;
+                if (pooled.isEquivalent(pendingBlock.spec) && pooled.getBlockState() == pendingBlock.getBlockState())
+                    continue;
 
                 if (++i > maxHints) break;
 
@@ -424,9 +429,11 @@ public class MMRenderer {
                 if (errors != null && errors.remove(packed)) tint = ERROR;
 
                 if (pendingBlock.spec.isAir()) {
-                    RenderHints.INSTANCE.addHint(pendingBlock.x, pendingBlock.y, pendingBlock.z, null, tint == WHITE ? ERROR : tint);
+                    RenderHints.INSTANCE.addHint(pendingBlock.x, pendingBlock.y, pendingBlock.z, null,
+                            tint == WHITE ? ERROR : tint);
                 } else {
-                    RenderHints.INSTANCE.addHint(pendingBlock.x, pendingBlock.y, pendingBlock.z, pendingBlock.getPreviewState(), pendingBlock.getPreviewStack(), tint);
+                    RenderHints.INSTANCE.addHint(pendingBlock.x, pendingBlock.y, pendingBlock.z,
+                            pendingBlock.getPreviewState(), pendingBlock.getPreviewStack(), tint);
                 }
             }
         }

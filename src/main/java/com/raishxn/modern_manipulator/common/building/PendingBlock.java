@@ -1,10 +1,5 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.building.providers.IItemProvider;
-import com.raishxn.modern_manipulator.common.compat.TileAnalyzers;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -15,6 +10,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.raishxn.modern_manipulator.common.building.providers.IItemProvider;
+import com.raishxn.modern_manipulator.common.compat.TileAnalyzers;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -326,8 +325,9 @@ public class PendingBlock extends Location {
         if (getClass() != obj.getClass()) return false;
         PendingBlock other = (PendingBlock) obj;
         return Objects.equals(spec, other.spec) && Objects.equals(gt, other.gt) && Objects.equals(ae, other.ae) &&
-            Objects.equals(nbt, other.nbt) && Objects.equals(inventory, other.inventory) && renderOrder == other.renderOrder &&
-            buildOrder == other.buildOrder;
+                Objects.equals(nbt, other.nbt) && Objects.equals(inventory, other.inventory) &&
+                renderOrder == other.renderOrder &&
+                buildOrder == other.buildOrder;
     }
 
     /**
@@ -335,10 +335,10 @@ public class PendingBlock extends Location {
      */
     public static Comparator<PendingBlock> getComparator() {
         return Comparator.comparingInt((PendingBlock b) -> b.buildOrder)
-            .thenComparing(b -> b.spec, ImmutableBlockSpec.getComparator())
-            .thenComparingInt(b -> b.x >> 4)
-            .thenComparingInt(b -> b.z >> 4)
-            .thenComparingLong(value -> BlockPos.asLong(value.x, value.y, value.z));
+                .thenComparing(b -> b.spec, ImmutableBlockSpec.getComparator())
+                .thenComparingInt(b -> b.x >> 4)
+                .thenComparingInt(b -> b.z >> 4)
+                .thenComparingLong(value -> BlockPos.asLong(value.x, value.y, value.z));
     }
 
     public static PendingBlock fromBlock(Level world, int x, int y, int z) {

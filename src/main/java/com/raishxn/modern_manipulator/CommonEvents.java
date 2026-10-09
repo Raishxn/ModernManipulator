@@ -1,14 +1,14 @@
 package com.raishxn.modern_manipulator;
 
-import com.raishxn.modern_manipulator.common.building.BlockCaptureDrops;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+
+import com.raishxn.modern_manipulator.common.building.BlockCaptureDrops;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
 
 public class CommonEvents {
 

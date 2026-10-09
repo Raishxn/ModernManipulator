@@ -1,7 +1,5 @@
 package com.raishxn.modern_manipulator.client.rendering;
 
-import com.raishxn.modern_manipulator.ModernManipulator;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
@@ -26,6 +24,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.raishxn.modern_manipulator.ModernManipulator;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -138,7 +137,8 @@ public class RenderHints {
         }
 
         @Override
-        public void vertex(float x, float y, float z, float r, float g, float b, float a, float u, float v, int overlay, int light,
+        public void vertex(float x, float y, float z, float r, float g, float b, float a, float u, float v, int overlay,
+                           int light,
                            float nx, float ny, float nz) {
             // fake a bit of directional shading so that the shape stays readable without lighting
             float shade = 0.75f + 0.25f * Math.abs(ny) + 0.1f * Math.abs(nz);
@@ -213,7 +213,8 @@ public class RenderHints {
 
         RandomSource random = RandomSource.create(42);
 
-        BufferBuilder buffer = new BufferBuilder(Math.max(256, hints.size() * 24 * DefaultVertexFormat.POSITION_COLOR_TEX.getVertexSize()));
+        BufferBuilder buffer = new BufferBuilder(
+                Math.max(256, hints.size() * 24 * DefaultVertexFormat.POSITION_COLOR_TEX.getVertexSize()));
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
 
         GhostConsumer consumer = new GhostConsumer(buffer);
@@ -231,46 +232,47 @@ public class RenderHints {
                     pose.scale(1.6f, 1.6f, 1.6f);
 
                     mc.getItemRenderer()
-                        .renderStatic(
-                            hint.stack,
-                            ItemDisplayContext.FIXED,
-                            LightTexture.FULL_BRIGHT,
-                            OverlayTexture.NO_OVERLAY,
-                            pose,
-                            renderType -> consumer,
-                            mc.level,
-                            0);
-                } else if (hint.state != null && !hint.state.isAir() && hint.state.getRenderShape() == RenderShape.MODEL) {
-                    consumer.setTint(hint.tint, GHOST_ALPHA);
+                            .renderStatic(
+                                    hint.stack,
+                                    ItemDisplayContext.FIXED,
+                                    LightTexture.FULL_BRIGHT,
+                                    OverlayTexture.NO_OVERLAY,
+                                    pose,
+                                    renderType -> consumer,
+                                    mc.level,
+                                    0);
+                } else
+                    if (hint.state != null && !hint.state.isAir() && hint.state.getRenderShape() == RenderShape.MODEL) {
+                        consumer.setTint(hint.tint, GHOST_ALPHA);
 
-                    pose.translate(-0.5, -0.5, -0.5);
+                        pose.translate(-0.5, -0.5, -0.5);
 
-                    BakedModel model = mc.getBlockRenderer().getBlockModel(hint.state);
+                        BakedModel model = mc.getBlockRenderer().getBlockModel(hint.state);
 
-                    for (RenderType renderType : model.getRenderTypes(hint.state, random, ModelData.EMPTY)) {
-                        mc.getBlockRenderer()
-                            .getModelRenderer()
-                            .renderModel(
-                                pose.last(),
-                                consumer,
-                                hint.state,
-                                model,
-                                1f,
-                                1f,
-                                1f,
-                                LightTexture.FULL_BRIGHT,
-                                OverlayTexture.NO_OVERLAY,
-                                ModelData.EMPTY,
-                                renderType);
+                        for (RenderType renderType : model.getRenderTypes(hint.state, random, ModelData.EMPTY)) {
+                            mc.getBlockRenderer()
+                                    .getModelRenderer()
+                                    .renderModel(
+                                            pose.last(),
+                                            consumer,
+                                            hint.state,
+                                            model,
+                                            1f,
+                                            1f,
+                                            1f,
+                                            LightTexture.FULL_BRIGHT,
+                                            OverlayTexture.NO_OVERLAY,
+                                            ModelData.EMPTY,
+                                            renderType);
+                        }
+                    } else {
+                        // removal or status marker
+                        consumer.setTint(hint.tint, 0x80);
+
+                        pose.translate(-0.5, -0.5, -0.5);
+
+                        cube(consumer, pose.last().pose(), hintSprite);
                     }
-                } else {
-                    // removal or status marker
-                    consumer.setTint(hint.tint, 0x80);
-
-                    pose.translate(-0.5, -0.5, -0.5);
-
-                    cube(consumer, pose.last().pose(), hintSprite);
-                }
             } catch (Throwable t) {
                 ModernManipulator.LOG.debug("Could not draw hint for {}", hint.state, t);
             }
@@ -290,12 +292,12 @@ public class RenderHints {
         float u0 = sprite.getU0(), u1 = sprite.getU1(), v0 = sprite.getV0(), v1 = sprite.getV1();
 
         float[][] faces = {
-            { 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1 },
-            { 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0 },
-            { 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0 },
-            { 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1 },
-            { 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1 },
-            { 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0 },
+                { 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1 },
+                { 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0 },
+                { 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0 },
+                { 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1 },
+                { 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1 },
+                { 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0 },
         };
 
         float[][] uvs = { { u0, v0 }, { u0, v1 }, { u1, v1 }, { u1, v0 } };
@@ -329,7 +331,8 @@ public class RenderHints {
         }
 
         vbo.bind();
-        vbo.drawWithShader(pose.last().pose(), projection, MMShaders.GHOST != null ? MMShaders.GHOST : GameRenderer.getPositionColorTexShader());
+        vbo.drawWithShader(pose.last().pose(), projection,
+                MMShaders.GHOST != null ? MMShaders.GHOST : GameRenderer.getPositionColorTexShader());
         VertexBuffer.unbind();
 
         RenderSystem.enableDepthTest();

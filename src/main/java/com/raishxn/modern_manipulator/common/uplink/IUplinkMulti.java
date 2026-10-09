@@ -1,11 +1,10 @@
 package com.raishxn.modern_manipulator.common.uplink;
 
+import net.minecraft.world.entity.player.Player;
+
 import com.raishxn.modern_manipulator.common.items.manipulator.Location;
 import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
 import com.raishxn.modern_manipulator.common.utils.BigItemStack;
-
-import net.minecraft.world.entity.player.Player;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 
@@ -59,8 +58,9 @@ public interface IUplinkMulti {
      */
     double drainPower(double requestedEU);
 
-    ObjectObjectImmutablePair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate,
-        boolean fuzzy);
+    ObjectObjectImmutablePair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems,
+                                                                                boolean simulate,
+                                                                                boolean fuzzy);
 
     UplinkStatus tryGivePlayerItems(List<BigItemStack> items);
 

@@ -51,11 +51,11 @@ public final class GlobalMMConfig {
 
         common.push("interaction");
         InteractionConfig.pasteAutoClear = common
-            .comment("Clear the paste region when the copy or cut regions are marked")
-            .define("pasteAutoClear", true);
+                .comment("Clear the paste region when the copy or cut regions are marked")
+                .define("pasteAutoClear", true);
         InteractionConfig.resetTransform = common
-            .comment("Clear the transform and the stacking amount when the coordinates are cleared")
-            .define("resetTransform", true);
+                .comment("Clear the transform and the stacking amount when the coordinates are cleared")
+                .define("resetTransform", true);
         common.pop();
 
         common.push("debug");
@@ -64,11 +64,11 @@ public final class GlobalMMConfig {
 
         common.push("building");
         BuildingConfig.meEmptying = common
-            .comment("Empty ME Output Hatches/Busses when they're removed. Server only.")
-            .define("meEmptying", true);
+                .comment("Empty ME Output Hatches/Busses when they're removed. Server only.")
+                .define("meEmptying", true);
         BuildingConfig.mk3BlocksPerPlace = common
-            .comment("High values may cause world desync and lag. Server only. Requires restart.")
-            .defineInRange("mk3BlocksPerPlace", 256, 1, Integer.MAX_VALUE);
+                .comment("High values may cause world desync and lag. Server only. Requires restart.")
+                .defineInRange("mk3BlocksPerPlace", 256, 1, Integer.MAX_VALUE);
         common.pop();
 
         COMMON_SPEC = common.build();
@@ -77,15 +77,15 @@ public final class GlobalMMConfig {
 
         client.push("rendering");
         RenderingConfig.maxHints = client
-            .comment("Controls how many blocks are shown in the preview. Client only.")
-            .defineInRange("maxHints", 1_000_000, 0, Integer.MAX_VALUE);
+                .comment("Controls how many blocks are shown in the preview. Client only.")
+                .defineInRange("maxHints", 1_000_000, 0, Integer.MAX_VALUE);
         RenderingConfig.statusExpiration = client
-            .comment(
-                "Controls the duration of the build status warning/error hints (seconds). Client only. Set to 0 to never clear hints.")
-            .defineInRange("statusExpiration", 60, 0, Integer.MAX_VALUE);
+                .comment(
+                        "Controls the duration of the build status warning/error hints (seconds). Client only. Set to 0 to never clear hints.")
+                .defineInRange("statusExpiration", 60, 0, Integer.MAX_VALUE);
         RenderingConfig.hintsOnTop = client
-            .comment("When true, hints will always be drawn on top of the terrain. Client only.")
-            .define("hintsOnTop", true);
+                .comment("When true, hints will always be drawn on top of the terrain. Client only.")
+                .define("hintsOnTop", true);
         client.pop();
 
         CLIENT_SPEC = client.build();

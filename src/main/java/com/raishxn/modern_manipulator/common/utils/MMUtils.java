@@ -1,8 +1,5 @@
 package com.raishxn.modern_manipulator.common.utils;
 
-import com.raishxn.modern_manipulator.common.building.IPseudoInventory;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,6 +18,8 @@ import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.raishxn.modern_manipulator.common.building.IPseudoInventory;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
@@ -139,13 +138,13 @@ public class MMUtils {
         Vec3 modifiedPosVec = posVec.add(lookVec.scale(reachDistance));
 
         BlockHitResult hit = player.level()
-            .clip(
-                new ClipContext(
-                    posVec,
-                    modifiedPosVec,
-                    ClipContext.Block.OUTLINE,
-                    includeLiquids ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE,
-                    player));
+                .clip(
+                        new ClipContext(
+                                posVec,
+                                modifiedPosVec,
+                                ClipContext.Block.OUTLINE,
+                                includeLiquids ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE,
+                                player));
 
         return hit.getType() != HitResult.Type.BLOCK ? null : hit;
     }
@@ -161,7 +160,7 @@ public class MMUtils {
         Vec3 end = start.add(look.scale(dist));
 
         BlockHitResult hit = player.level()
-            .clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+                .clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
 
         Vector3i target;
 

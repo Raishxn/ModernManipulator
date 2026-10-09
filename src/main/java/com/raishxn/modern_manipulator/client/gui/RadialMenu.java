@@ -119,7 +119,7 @@ public class RadialMenu {
             if (option.isHidden) continue;
 
             boolean isHoveredOver = mouseRadius >= innerRadius && mouseRadius <= outerRadius &&
-                isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
+                    isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
 
             float c = isHoveredOver ? 0.25f : 0f;
 
@@ -158,14 +158,14 @@ public class RadialMenu {
             if (option.isHidden) continue;
 
             radialText(
-                graphics,
-                width,
-                height,
-                (innerRadius + outerRadius) / 2,
-                (option.startTheta + option.endTheta) / 2,
-                60, // hardcoded wordwrap width, not great but idk how to fix it
-                0xFFCCCCCC,
-                option.label.get());
+                    graphics,
+                    width,
+                    height,
+                    (innerRadius + outerRadius) / 2,
+                    (option.startTheta + option.endTheta) / 2,
+                    60, // hardcoded wordwrap width, not great but idk how to fix it
+                    0xFFCCCCCC,
+                    option.label.get());
         }
     }
 
@@ -176,12 +176,13 @@ public class RadialMenu {
 
         for (RadialMenuOption option : new ArrayList<>(options)) {
             boolean isHoveredOver = mouseRadius >= innerRadius && mouseRadius <= outerRadius &&
-                isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
+                    isAngleBetween(mouseTheta, option.startTheta, option.endTheta);
 
             if (isHoveredOver) {
                 if (option.hidden.getAsBoolean()) return true;
 
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 1f, 0.5f));
+                Minecraft.getInstance().getSoundManager()
+                        .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 1f, 0.5f));
 
                 if (option.onClick != null) option.onClick.onClick(this, option, mouseButton, false);
 
@@ -227,7 +228,8 @@ public class RadialMenu {
         return new double[] { mouseRadius, mouseTheta };
     }
 
-    private static void radialText(GuiGraphics graphics, int width, int height, double radius, double theta, int wrapWidth,
+    private static void radialText(GuiGraphics graphics, int width, int height, double radius, double theta,
+                                   int wrapWidth,
                                    int color, String text) {
         Font font = Minecraft.getInstance().font;
 

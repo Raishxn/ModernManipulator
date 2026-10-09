@@ -1,5 +1,17 @@
 package com.raishxn.modern_manipulator.common.networking;
 
+import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
+
 import com.raishxn.modern_manipulator.CommonProxy;
 import com.raishxn.modern_manipulator.GlobalMMConfig.DebugConfig;
 import com.raishxn.modern_manipulator.ModernManipulator;
@@ -13,19 +25,6 @@ import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode
 import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
 import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
-import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
-
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -59,7 +58,8 @@ public enum Messages {
             state.config.placeMode = value;
         }
     }))),
-    SetBlockSelectMode(server(enumPacket(BlockSelectMode.values(), (state, value) -> state.config.blockSelectMode = value))),
+    SetBlockSelectMode(
+            server(enumPacket(BlockSelectMode.values(), (state, value) -> state.config.blockSelectMode = value))),
     SetPendingAction(server(enumPacket(PendingAction.values(), (state, value) -> state.config.action = value))),
     ClearBlocks(server(simple((player, stack, manipulator, state) -> {
         state.config.corners = null;
@@ -107,9 +107,9 @@ public enum Messages {
         if (coordA == null || coordB == null || coordC == null) return;
 
         Vector3i newCoordBVector = new Vector3i(
-            coordC.x + coordB.x - coordA.x,
-            coordC.y + coordB.y - coordA.y,
-            coordC.z + coordB.z - coordA.z);
+                coordC.x + coordB.x - coordA.x,
+                coordC.y + coordB.y - coordA.y,
+                coordC.z + coordB.z - coordA.z);
 
         state.config.coordA = coordC;
         state.config.coordB = new Location(player.level(), newCoordBVector);
@@ -345,10 +345,10 @@ public enum Messages {
     private static final String PROTOCOL = "1";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-        ModernManipulator.id("main"),
-        () -> PROTOCOL,
-        PROTOCOL::equals,
-        PROTOCOL::equals);
+            ModernManipulator.id("main"),
+            () -> PROTOCOL,
+            PROTOCOL::equals,
+            PROTOCOL::equals);
 
     private static boolean registered = false;
 
@@ -357,12 +357,12 @@ public enum Messages {
         registered = true;
 
         CHANNEL.registerMessage(
-            0,
-            MMPacket.class,
-            MMPacket::encode,
-            MMPacket::decode,
-            MMPacket::handle,
-            Optional.empty());
+                0,
+                MMPacket.class,
+                MMPacket::encode,
+                MMPacket::decode,
+                MMPacket::handle,
+                Optional.empty());
     }
 
     // #endregion
@@ -406,8 +406,9 @@ public enum Messages {
         if (world == null) return;
 
         CHANNEL.send(
-            PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(location.x, location.y, location.z, 256, world.dimension())),
-            new MMPacket(this, data));
+                PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(location.x, location.y, location.z,
+                        256, world.dimension())),
+                new MMPacket(this, data));
     }
 
     // #region Packet
@@ -432,7 +433,8 @@ public enum Messages {
 
             Messages[] values = Messages.values();
 
-            if (id < 0 || id >= values.length) throw new IllegalArgumentException("Invalid manipulator packet id " + id);
+            if (id < 0 || id >= values.length)
+                throw new IllegalArgumentException("Invalid manipulator packet id " + id);
 
             Messages message = values[id];
 
@@ -463,7 +465,7 @@ public enum Messages {
         SERVER
     }
 
-    private record SidedHandler<T> (Side side, IPacketHandler<T> handler) {}
+    private record SidedHandler<T>(Side side, IPacketHandler<T> handler) {}
 
     private static <T> SidedHandler<T> server(IPacketHandler<T> handler) {
         return new SidedHandler<>(Side.SERVER, handler);
@@ -503,7 +505,8 @@ public enum Messages {
 
     private interface ICursorStackHandler {
 
-        void handle(Player player, ItemStack stack, ItemMatterManipulator manipulator, MMState state, boolean isSneak, ItemStack hovered);
+        void handle(Player player, ItemStack stack, ItemMatterManipulator manipulator, MMState state, boolean isSneak,
+                    ItemStack hovered);
     }
 
     /**
@@ -534,7 +537,8 @@ public enum Messages {
 
             @Override
             public void handle(Player player, Object value) {
-                withManipulator(player, value, (p, stack, manipulator, state, v) -> handler.handle(p, stack, manipulator, state));
+                withManipulator(player, value,
+                        (p, stack, manipulator, state, v) -> handler.handle(p, stack, manipulator, state));
             }
         };
     }
@@ -631,9 +635,10 @@ public enum Messages {
             @Override
             public void handle(Player player, CursorStack value) {
                 withManipulator(
-                    player,
-                    value,
-                    (p, stack, manipulator, state, v) -> handler.handle(p, stack, manipulator, state, v.isSneak(), v.hovered()));
+                        player,
+                        value,
+                        (p, stack, manipulator, state, v) -> handler.handle(p, stack, manipulator, state, v.isSneak(),
+                                v.hovered()));
             }
         };
     }

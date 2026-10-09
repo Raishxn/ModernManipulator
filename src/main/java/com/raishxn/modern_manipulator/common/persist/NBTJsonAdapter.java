@@ -19,7 +19,8 @@ import java.lang.reflect.Type;
 public class NBTJsonAdapter implements JsonSerializer<CompoundTag>, JsonDeserializer<CompoundTag> {
 
     @Override
-    public CompoundTag deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public CompoundTag deserialize(JsonElement json, Type typeOfT,
+                                   JsonDeserializationContext context) throws JsonParseException {
         try {
             return TagParser.parseTag(json.getAsString());
         } catch (Exception e) {

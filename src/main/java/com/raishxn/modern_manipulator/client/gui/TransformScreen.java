@@ -1,19 +1,5 @@
 package com.raishxn.modern_manipulator.client.gui;
 
-import static net.minecraft.core.Direction.EAST;
-import static net.minecraft.core.Direction.SOUTH;
-import static net.minecraft.core.Direction.UP;
-
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -27,6 +13,15 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMConfig.VoxelAABB;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
+import com.raishxn.modern_manipulator.common.networking.Messages;
+import com.raishxn.modern_manipulator.common.utils.MMUtils;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 
@@ -36,6 +31,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+
+import static net.minecraft.core.Direction.EAST;
+import static net.minecraft.core.Direction.SOUTH;
+import static net.minecraft.core.Direction.UP;
 
 /**
  * The transform/coordinate editor (port of the original TransformWindow).
@@ -341,7 +340,7 @@ public class TransformScreen extends Screen {
             if (state == null) return 1;
 
             VoxelAABB deltas = coord == Coord.Paste ? state.config.getPasteVisualDeltas(null, false) :
-                state.config.getCopyVisualDeltas(null);
+                    state.config.getCopyVisualDeltas(null);
 
             Vector3i size = deltas == null ? new Vector3i(1, 1, 1) : deltas.size();
 
@@ -386,7 +385,7 @@ public class TransformScreen extends Screen {
         MMState state = getState();
 
         if (state != null && state.config.placeMode == PlaceMode.GEOMETRY && state.config.shape == Shape.CYLINDER &&
-            coord == Coord.CopyA && state.config.coordA != null && state.config.coordB != null) {
+                coord == Coord.CopyA && state.config.coordA != null && state.config.coordB != null) {
             Vector3i vecA = state.config.coordA.toVec();
             Vector3i vecB = MMState.pinToPlanes(vecA, state.config.coordB.toVec());
 
@@ -425,7 +424,8 @@ public class TransformScreen extends Screen {
                         }
                     }
                     case CopyA -> {
-                        if (currState.config.coordA == null || currState.config.coordB == null || currState.config.coordC == null) {
+                        if (currState.config.coordA == null || currState.config.coordB == null ||
+                                currState.config.coordC == null) {
                             break;
                         }
 
@@ -463,12 +463,16 @@ public class TransformScreen extends Screen {
 
                 switch (coord) {
                     case Copy, CopyA -> {
-                        if (currState.config.coordA != null) Messages.SetA.sendToServer(currState.config.coordA.toVec());
-                        if (currState.config.coordB != null) Messages.SetB.sendToServer(currState.config.coordB.toVec());
-                        if (currState.config.coordC != null) Messages.SetC.sendToServer(currState.config.coordC.toVec());
+                        if (currState.config.coordA != null)
+                            Messages.SetA.sendToServer(currState.config.coordA.toVec());
+                        if (currState.config.coordB != null)
+                            Messages.SetB.sendToServer(currState.config.coordB.toVec());
+                        if (currState.config.coordC != null)
+                            Messages.SetC.sendToServer(currState.config.coordC.toVec());
                     }
                     case CopyB -> {
-                        if (currState.config.coordB != null) Messages.SetB.sendToServer(currState.config.coordB.toVec());
+                        if (currState.config.coordB != null)
+                            Messages.SetB.sendToServer(currState.config.coordB.toVec());
                     }
                     case Paste -> Messages.SetC.sendToServer(currState.config.coordC.toVec());
                     default -> {}
@@ -494,8 +498,10 @@ public class TransformScreen extends Screen {
 
                 switch (coord) {
                     case Copy -> {
-                        if (currState.config.coordA != null) Messages.SetA.sendToServer(currState.config.coordA.toVec());
-                        if (currState.config.coordB != null) Messages.SetB.sendToServer(currState.config.coordB.toVec());
+                        if (currState.config.coordA != null)
+                            Messages.SetA.sendToServer(currState.config.coordA.toVec());
+                        if (currState.config.coordB != null)
+                            Messages.SetB.sendToServer(currState.config.coordB.toVec());
                     }
                     case CopyA -> Messages.SetA.sendToServer(loc);
                     case CopyB -> Messages.SetB.sendToServer(loc);
@@ -531,25 +537,36 @@ public class TransformScreen extends Screen {
     private void buildCopyMode() {
         // left side: rotation buttons
         leftRows.add(widgetRow(
-            28,
-            Button.builder(Component.translatable("mm.transform.button.rotate_x-"), b -> Transform.sendRotate(EAST, false)).size(62, 18).build(),
-            Button.builder(Component.translatable("mm.transform.button.rotate_x+"), b -> Transform.sendRotate(EAST, true)).size(62, 18).build()));
+                28,
+                Button.builder(Component.translatable("mm.transform.button.rotate_x-"),
+                        b -> Transform.sendRotate(EAST, false)).size(62, 18).build(),
+                Button.builder(Component.translatable("mm.transform.button.rotate_x+"),
+                        b -> Transform.sendRotate(EAST, true)).size(62, 18).build()));
         leftRows.add(widgetRow(
-            28,
-            Button.builder(Component.translatable("mm.transform.button.rotate_y-"), b -> Transform.sendRotate(UP, false)).size(62, 18).build(),
-            Button.builder(Component.translatable("mm.transform.button.rotate_y+"), b -> Transform.sendRotate(UP, true)).size(62, 18).build()));
+                28,
+                Button.builder(Component.translatable("mm.transform.button.rotate_y-"),
+                        b -> Transform.sendRotate(UP, false)).size(62, 18).build(),
+                Button.builder(Component.translatable("mm.transform.button.rotate_y+"),
+                        b -> Transform.sendRotate(UP, true)).size(62, 18).build()));
         leftRows.add(widgetRow(
-            28,
-            Button.builder(Component.translatable("mm.transform.button.rotate_z-"), b -> Transform.sendRotate(SOUTH, false)).size(62, 18).build(),
-            Button.builder(Component.translatable("mm.transform.button.rotate_z+"), b -> Transform.sendRotate(SOUTH, true)).size(62, 18).build()));
+                28,
+                Button.builder(Component.translatable("mm.transform.button.rotate_z-"),
+                        b -> Transform.sendRotate(SOUTH, false)).size(62, 18).build(),
+                Button.builder(Component.translatable("mm.transform.button.rotate_z+"),
+                        b -> Transform.sendRotate(SOUTH, true)).size(62, 18).build()));
         leftRows.add(widgetRow(
-            28,
-            Button.builder(Component.translatable("mm.transform.button.flip_x"), b -> Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_X)).size(40, 18).build(),
-            Button.builder(Component.translatable("mm.transform.button.flip_y"), b -> Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Y)).size(40, 18).build(),
-            Button.builder(Component.translatable("mm.transform.button.flip_z"), b -> Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Z)).size(40, 18).build()));
+                28,
+                Button.builder(Component.translatable("mm.transform.button.flip_x"),
+                        b -> Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_X)).size(40, 18).build(),
+                Button.builder(Component.translatable("mm.transform.button.flip_y"),
+                        b -> Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Y)).size(40, 18).build(),
+                Button.builder(Component.translatable("mm.transform.button.flip_z"),
+                        b -> Messages.ToggleTransformFlip.sendToServer(Transform.FLIP_Z)).size(40, 18).build()));
 
-        Button reset = Button.builder(Component.translatable("mm.transform.button.reset"), b -> Messages.ResetTransform.sendToServer())
-            .size(40, 18).build();
+        Button reset = Button
+                .builder(Component.translatable("mm.transform.button.reset"),
+                        b -> Messages.ResetTransform.sendToServer())
+                .size(40, 18).build();
         addRenderableWidget(reset);
 
         leftRows.add(new Row() {
@@ -587,10 +604,10 @@ public class TransformScreen extends Screen {
                 if (t.flipZ) flips.add("Z");
 
                 String info = I18n.get(
-                    "mm.transform.info",
-                    flips.isEmpty() ? "None" : String.join(", ", flips),
-                    MMUtils.getDirectionDisplayName(t.up),
-                    MMUtils.getDirectionDisplayName(t.forward)).replace("\\n", "\n");
+                        "mm.transform.info",
+                        flips.isEmpty() ? "None" : String.join(", ", flips),
+                        MMUtils.getDirectionDisplayName(t.up),
+                        MMUtils.getDirectionDisplayName(t.forward)).replace("\\n", "\n");
 
                 int lineY = y + 4;
 
@@ -602,8 +619,9 @@ public class TransformScreen extends Screen {
                 DirectionDrawable.draw(graphics, t, x + 18, y + 50, 12);
 
                 graphics.drawString(font, Component.literal("X+ ").withStyle(ChatFormatting.RED)
-                    .append(Component.literal("Y+ ").withStyle(ChatFormatting.GREEN))
-                    .append(Component.literal("Z+").withStyle(ChatFormatting.BLUE)), x + 36, y + 46, 0xFFFFFFFF, false);
+                        .append(Component.literal("Y+ ").withStyle(ChatFormatting.GREEN))
+                        .append(Component.literal("Z+").withStyle(ChatFormatting.BLUE)), x + 36, y + 46, 0xFFFFFFFF,
+                        false);
             }
         });
 
@@ -623,8 +641,9 @@ public class TransformScreen extends Screen {
         List<Row> primary = new ArrayList<>();
         primary.addAll(editorGroup("mm.transform.header.copy", Coord.Copy, XYZ));
         primary.add(widgetRow(
-            28,
-            Button.builder(Component.translatable("mm.transform.button.swap"), b -> Messages.SwapRegion.sendToServer()).size(130, 18).build()));
+                28,
+                Button.builder(Component.translatable("mm.transform.button.swap"),
+                        b -> Messages.SwapRegion.sendToServer()).size(130, 18).build()));
         primary.addAll(editorGroup("mm.transform.header.paste", Coord.Paste, XYZ));
 
         List<Row> secondary = new ArrayList<>();

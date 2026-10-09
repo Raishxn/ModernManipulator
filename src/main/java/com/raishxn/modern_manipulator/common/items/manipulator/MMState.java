@@ -1,8 +1,20 @@
 package com.raishxn.modern_manipulator.common.items.manipulator;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.min;
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.signum;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.annotations.SerializedName;
 import com.raishxn.modern_manipulator.ModernManipulator;
 import com.raishxn.modern_manipulator.common.building.BlockAnalyzer;
 import com.raishxn.modern_manipulator.common.building.BlockAnalyzer.RegionAnalysis;
@@ -21,22 +33,6 @@ import com.raishxn.modern_manipulator.common.persist.NBTJsonAdapter;
 import com.raishxn.modern_manipulator.common.persist.WeightedListJsonAdapter;
 import com.raishxn.modern_manipulator.common.uplink.IUplinkMulti;
 import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.block.state.properties.Property;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
@@ -47,17 +43,20 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.min;
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.signum;
+
 /**
  * The NBT state of a manipulator.
  */
 public class MMState {
 
     static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(CompoundTag.class, new NBTJsonAdapter())
-        .registerTypeAdapter(Direction.class, new DirectionJsonAdapter())
-        .registerTypeAdapter(WeightedSpecList.class, new WeightedListJsonAdapter())
-        .registerTypeAdapter(BitSet.class, new BitSetJsonAdapter())
-        .create();
+            .registerTypeAdapter(CompoundTag.class, new NBTJsonAdapter())
+            .registerTypeAdapter(Direction.class, new DirectionJsonAdapter())
+            .registerTypeAdapter(WeightedSpecList.class, new WeightedListJsonAdapter())
+            .registerTypeAdapter(BitSet.class, new BitSetJsonAdapter())
+            .create();
 
     /** The item tag key that the state is stored in. */
     public static final String TAG_KEY = "mm";
@@ -131,9 +130,7 @@ public class MMState {
         obj.addProperty("jv", version);
     }
 
-    private void migrate() {
-
-    }
+    private void migrate() {}
 
     private void onLoad() {
         for (MMUpgrades upgrade : getInstalledUpgrades()) {
@@ -234,11 +231,13 @@ public class MMState {
         if (!Location.areCompatible(coordA, coordB, coordC) || !coordA.isInWorld(world)) return new ArrayList<>();
 
         // MOVING's result is only used visually since it has a special build algorithm
-        RegionAnalysis analysis = BlockAnalyzer.analyzeRegion(world, coordA, coordB, config.placeMode == PlaceMode.COPYING);
+        RegionAnalysis analysis = BlockAnalyzer.analyzeRegion(world, coordA, coordB,
+                config.placeMode == PlaceMode.COPYING);
 
         if (analysis == null) return new ArrayList<>();
 
-        if (config.placeMode == PlaceMode.COPYING && (config.replaceCribsWithProxies || config.replaceInterfacesWithP2P)) {
+        if (config.placeMode == PlaceMode.COPYING &&
+                (config.replaceCribsWithProxies || config.replaceInterfacesWithP2P)) {
             SmartCopyHandlers.apply(this, world, analysis.blocks, coordA);
         }
 
@@ -369,7 +368,8 @@ public class MMState {
             String name = property.getName();
 
             if (!(property instanceof DirectionProperty || name.contains("facing") || name.equals("axis") ||
-                name.equals("rotation"))) continue;
+                    name.equals("rotation")))
+                continue;
 
             Property<?> target = replacement.getBlock().getStateDefinition().getProperty(name);
 
@@ -379,7 +379,8 @@ public class MMState {
         return replacement;
     }
 
-    private static <T extends Comparable<T>> BlockState copyValue(BlockState from, Property<?> fromProperty, BlockState to,
+    private static <T extends Comparable<T>> BlockState copyValue(BlockState from, Property<?> fromProperty,
+                                                                  BlockState to,
                                                                   Property<T> toProperty) {
         Comparable<?> value = from.getValue(fromProperty);
 
@@ -537,7 +538,8 @@ public class MMState {
         }
     }
 
-    private void iterateCube(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    private void iterateCube(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY,
+                             int maxZ) {
         Random rng = new Random(config.hashCode());
 
         for (int x = minX; x <= maxX; x++) {
@@ -563,7 +565,8 @@ public class MMState {
         }
     }
 
-    private void iterateSphere(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    private void iterateSphere(ArrayList<PendingBlock> pending, int minX, int minY, int minZ, int maxX, int maxY,
+                               int maxZ) {
         Random rng = new Random(config.hashCode());
 
         int sx = maxX - minX + 1;
@@ -591,8 +594,8 @@ public class MMState {
 
                     if (distance <= 1) {
                         PendingBlock block = config.volumes.get(rng)
-                            .instantiate(config.coordA.worldId, x + minX, y + minY, z + minZ)
-                            .setOrders(1, 1);
+                                .instantiate(config.coordA.worldId, x + minX, y + minY, z + minZ)
+                                .setOrders(1, 1);
 
                         present[x + 1][y + 1][z + 1] = true;
                         pending.add(block);
@@ -620,8 +623,9 @@ public class MMState {
 
         for (PendingBlock block : pending) {
             for (Direction dir : directions) {
-                if (!present[block.x - minX + 1 + dir.getStepX()][block.y - minY + 1 + dir.getStepY()][block.z - minZ + 1 +
-                    dir.getStepZ()]) {
+                if (!present[block.x - minX + 1 + dir.getStepX()][block.y - minY + 1 + dir.getStepY()][block.z - minZ +
+                        1 +
+                        dir.getStepZ()]) {
                     block.setBlock(config.faces.get(rng));
                     block.buildOrder = 0;
                     block.renderOrder = 0;
@@ -696,8 +700,8 @@ public class MMState {
                 if (distance <= 1) {
                     for (int h = 0; h < absH; h++) {
                         PendingBlock block = config.volumes.get(rng)
-                            .instantiate(config.coordA.worldId, a, h, b)
-                            .setOrders(2, 0);
+                                .instantiate(config.coordA.worldId, a, h, b)
+                                .setOrders(2, 0);
 
                         present[a + 1][h + 1][b + 1] = true;
                         pending.add(block);

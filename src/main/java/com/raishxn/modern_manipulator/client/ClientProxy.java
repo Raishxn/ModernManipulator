@@ -1,13 +1,5 @@
 package com.raishxn.modern_manipulator.client;
 
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.client.gui.ManipulatorMenus;
-import com.raishxn.modern_manipulator.client.rendering.MMRenderer;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -24,6 +16,14 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.client.gui.ManipulatorMenus;
+import com.raishxn.modern_manipulator.client.rendering.MMRenderer;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.networking.Messages;
 
 import java.util.function.BiConsumer;
 
@@ -76,7 +76,8 @@ public class ClientProxy {
                         level.getModelDataManager().requestRefresh(be);
                     }
 
-                    Minecraft.getInstance().levelRenderer.setBlocksDirty(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+                    Minecraft.getInstance().levelRenderer.setBlocksDirty(pos.getX(), pos.getY(), pos.getZ(), pos.getX(),
+                            pos.getY(), pos.getZ());
                 }
             }
         }
@@ -148,7 +149,8 @@ public class ClientProxy {
 
         if (slot == null || !slot.hasItem()) return;
 
-        Messages.MMBPressedInGUI.sendToServer(new Messages.CursorStack(Screen.hasShiftDown(), slot.getItem().copyWithCount(1)));
+        Messages.MMBPressedInGUI
+                .sendToServer(new Messages.CursorStack(Screen.hasShiftDown(), slot.getItem().copyWithCount(1)));
 
         event.setCanceled(true);
     }

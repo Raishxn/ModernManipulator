@@ -1,9 +1,5 @@
 package com.raishxn.modern_manipulator.common.compat.ae;
 
-import com.raishxn.modern_manipulator.common.building.IBlockApplyContext;
-import com.raishxn.modern_manipulator.common.building.ITileAnalysisIntegration;
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -21,6 +17,9 @@ import appeng.api.parts.IPartHost;
 import appeng.api.parts.IPartItem;
 import appeng.blockentity.AEBaseBlockEntity;
 import appeng.util.SettingsFrom;
+import com.raishxn.modern_manipulator.common.building.IBlockApplyContext;
+import com.raishxn.modern_manipulator.common.building.ITileAnalysisIntegration;
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -76,7 +75,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof AEPartData other && Objects.equals(mPart, other.mPart) && Objects.equals(mSettings, other.mSettings);
+            return o instanceof AEPartData other && Objects.equals(mPart, other.mPart) &&
+                    Objects.equals(mSettings, other.mSettings);
         }
 
         @Override
@@ -184,12 +184,14 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                     }
 
                     if (!host.canAddPart(expected.getStack(), side)) {
-                        ctx.warn(Component.translatable("mm.info.warning.could_not_place_ae_part", expected.getStack().getHoverName()));
+                        ctx.warn(Component.translatable("mm.info.warning.could_not_place_ae_part",
+                                expected.getStack().getHoverName()));
                         continue;
                     }
 
                     if (!ctx.tryConsumeItems(expected.getStack())) {
-                        ctx.warn(Component.translatable("mm.info.warning.could_not_find_ae_part", expected.getStack().getHoverName()));
+                        ctx.warn(Component.translatable("mm.info.warning.could_not_find_ae_part",
+                                expected.getStack().getHoverName()));
                         continue;
                     }
 
@@ -225,9 +227,11 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                     Direction side = Direction.from3DDataValue(i);
 
                     IFacadePart actual = host.getFacadeContainer().getFacade(side);
-                    ItemStack expected = mAEFacades == null || mAEFacades[i] == null ? ItemStack.EMPTY : facadeStack(mAEFacades[i]);
+                    ItemStack expected = mAEFacades == null || mAEFacades[i] == null ? ItemStack.EMPTY :
+                            facadeStack(mAEFacades[i]);
 
-                    if (actual != null && (expected.isEmpty() || !ItemStack.isSameItemSameTags(actual.getItemStack(), expected))) {
+                    if (actual != null &&
+                            (expected.isEmpty() || !ItemStack.isSameItemSameTags(actual.getItemStack(), expected))) {
                         ctx.givePlayerItems(actual.getItemStack().copy());
                         host.getFacadeContainer().removeFacade(host, side);
                         actual = null;
@@ -240,7 +244,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
                             if (ctx.tryConsumeItems(expected.copy())) {
                                 host.getFacadeContainer().addFacade(facade);
                             } else {
-                                ctx.warn(Component.translatable("mm.info.warning.could_not_find_ae_part", expected.getHoverName()));
+                                ctx.warn(Component.translatable("mm.info.warning.could_not_find_ae_part",
+                                        expected.getHoverName()));
                             }
                         }
                     }
@@ -393,7 +398,8 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     @Override
     public boolean equals(Object o) {
         return o instanceof AEAnalysisResult other && Arrays.equals(mAEParts, other.mAEParts) &&
-            Arrays.equals(mAEFacades, other.mAEFacades) && Objects.equals(mAEMachineSettings, other.mAEMachineSettings);
+                Arrays.equals(mAEFacades, other.mAEFacades) &&
+                Objects.equals(mAEMachineSettings, other.mAEMachineSettings);
     }
 
     @Override

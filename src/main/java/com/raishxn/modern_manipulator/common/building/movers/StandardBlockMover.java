@@ -1,7 +1,5 @@
 package com.raishxn.modern_manipulator.common.building.movers;
 
-import com.raishxn.modern_manipulator.common.building.PendingMove;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
@@ -10,13 +8,16 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.raishxn.modern_manipulator.common.building.PendingMove;
+
 public class StandardBlockMover implements BlockMover<StandardBlock> {
 
     public static final StandardBlockMover INSTANCE = new StandardBlockMover();
 
     /** Don't notify neighbours or drop items while the block is in transit. */
-    private static final int MOVE_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS |
-        Block.UPDATE_MOVE_BY_PISTON;
+    private static final int MOVE_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE |
+            Block.UPDATE_SUPPRESS_DROPS |
+            Block.UPDATE_MOVE_BY_PISTON;
 
     @Override
     public boolean canMove(Level world, BlockPos pos) {

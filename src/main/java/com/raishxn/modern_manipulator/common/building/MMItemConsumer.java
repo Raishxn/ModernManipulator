@@ -3,7 +3,6 @@ package com.raishxn.modern_manipulator.common.building;
 import com.raishxn.modern_manipulator.common.building.consumers.DefaultItemConsumer;
 import com.raishxn.modern_manipulator.common.building.consumers.IItemConsumer;
 import com.raishxn.modern_manipulator.common.utils.BigItemStack;
-
 import it.unimi.dsi.fastutil.ints.IntObjectImmutablePair;
 import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
@@ -18,7 +17,8 @@ public class MMItemConsumer {
     private static int counter = 0;
 
     private static final ObjectSortedSet<IntObjectImmutablePair<IItemConsumer>> consumers = new ObjectAVLTreeSet<>(
-        Comparator.comparingInt((IntObjectImmutablePair<IItemConsumer> p) -> p.leftInt()).thenComparingInt(p -> p.right().hashCode()));
+            Comparator.comparingInt((IntObjectImmutablePair<IItemConsumer> p) -> p.leftInt())
+                    .thenComparingInt(p -> p.right().hashCode()));
 
     /**
      * Registers a consumer to be used in MM

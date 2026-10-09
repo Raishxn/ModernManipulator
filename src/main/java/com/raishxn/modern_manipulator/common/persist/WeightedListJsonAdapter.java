@@ -1,8 +1,5 @@
 package com.raishxn.modern_manipulator.common.persist;
 
-import com.raishxn.modern_manipulator.common.building.BlockSpec;
-import com.raishxn.modern_manipulator.common.data.WeightedSpecList;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -11,6 +8,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.raishxn.modern_manipulator.common.building.BlockSpec;
+import com.raishxn.modern_manipulator.common.data.WeightedSpecList;
 import it.unimi.dsi.fastutil.objects.ObjectIntMutablePair;
 
 import java.lang.reflect.Type;
@@ -18,7 +17,8 @@ import java.lang.reflect.Type;
 public class WeightedListJsonAdapter implements JsonSerializer<WeightedSpecList>, JsonDeserializer<WeightedSpecList> {
 
     @Override
-    public WeightedSpecList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public WeightedSpecList deserialize(JsonElement json, Type typeOfT,
+                                        JsonDeserializationContext context) throws JsonParseException {
         WeightedSpecList list = new WeightedSpecList();
 
         for (JsonElement e : json.getAsJsonArray()) {

@@ -1,9 +1,8 @@
 package com.raishxn.modern_manipulator.common.building.providers;
 
-import com.raishxn.modern_manipulator.common.building.PortableItemStack;
-
 import net.minecraft.world.item.ItemStack;
 
+import com.raishxn.modern_manipulator.common.building.PortableItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

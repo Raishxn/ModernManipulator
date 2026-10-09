@@ -1,13 +1,5 @@
 package com.raishxn.modern_manipulator.client;
 
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.client.gui.ManipulatorMenus;
-import com.raishxn.modern_manipulator.client.gui.RadialMenu;
-import com.raishxn.modern_manipulator.client.gui.RadialMenuScreen;
-import com.raishxn.modern_manipulator.client.rendering.RenderHints;
-import com.raishxn.modern_manipulator.common.items.MMItems;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.world.item.ItemStack;
@@ -15,6 +7,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.client.gui.ManipulatorMenus;
+import com.raishxn.modern_manipulator.client.gui.RadialMenu;
+import com.raishxn.modern_manipulator.client.gui.RadialMenuScreen;
+import com.raishxn.modern_manipulator.client.rendering.RenderHints;
+import com.raishxn.modern_manipulator.common.items.MMItems;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
 
 /**
  * Dev-only client smoke test, enabled with -Dmm.clientSmokeTest=true.
@@ -27,7 +27,9 @@ public class ClientSmokeTest {
 
     @SubscribeEvent
     public static void onTick(net.minecraftforge.event.TickEvent.ClientTickEvent event) {
-        if (done || !Boolean.getBoolean("mm.clientSmokeTest") || event.phase != net.minecraftforge.event.TickEvent.Phase.END) return;
+        if (done || !Boolean.getBoolean("mm.clientSmokeTest") ||
+                event.phase != net.minecraftforge.event.TickEvent.Phase.END)
+            return;
 
         Minecraft mc = Minecraft.getInstance();
 
@@ -40,7 +42,8 @@ public class ClientSmokeTest {
         int pages = 0;
 
         try {
-            for (var item : new net.minecraft.world.item.Item[] { MMItems.MK0.get(), MMItems.MK1.get(), MMItems.MK2.get(), MMItems.MK3.get() }) {
+            for (var item : new net.minecraft.world.item.Item[] { MMItems.MK0.get(), MMItems.MK1.get(),
+                    MMItems.MK2.get(), MMItems.MK3.get() }) {
                 ItemMatterManipulator manipulator = (ItemMatterManipulator) item;
 
                 for (var mode : com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode.values()) {

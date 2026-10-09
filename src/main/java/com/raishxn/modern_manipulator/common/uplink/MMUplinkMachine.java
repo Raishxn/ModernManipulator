@@ -1,15 +1,5 @@
 package com.raishxn.modern_manipulator.common.uplink;
 
-import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
-
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.networking.Messages;
-import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
-import com.raishxn.modern_manipulator.common.utils.BigItemStack;
-import com.raishxn.modern_manipulator.common.utils.ItemId;
-import com.raishxn.modern_manipulator.common.utils.MMUtils;
-
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
@@ -48,12 +38,21 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.MEStorage;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.networking.Messages;
+import com.raishxn.modern_manipulator.common.utils.BigFluidStack;
+import com.raishxn.modern_manipulator.common.utils.BigItemStack;
+import com.raishxn.modern_manipulator.common.utils.ItemId;
+import com.raishxn.modern_manipulator.common.utils.MMUtils;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.raishxn.modern_manipulator.common.utils.MMUtils.sendInfoToPlayer;
 
 /**
  * The Matter Manipulator Quantum Uplink.
@@ -63,7 +62,7 @@ import java.util.List;
 public class MMUplinkMachine extends WorkableElectricMultiblockMachine implements IUplinkMulti, IInteractedMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(MMUplinkMachine.class,
-        WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
+            WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
 
     public static final long BASE_PLASMA_EU_COST = 131_072;
 
@@ -127,15 +126,16 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
 
         for (IMultiPart part : getParts()) {
             if (part instanceof MMUplinkMEHatchPartMachine hatch) uplinkHatches.add(hatch);
-            if (part instanceof FluidHatchPartMachine hatch && hatch.tank.getHandlerIO() == IO.IN) inputHatches.add(hatch);
+            if (part instanceof FluidHatchPartMachine hatch && hatch.tank.getHandlerIO() == IO.IN)
+                inputHatches.add(hatch);
 
             for (var handlerList : part.getRecipeHandlers()) {
                 if (!handlerList.getHandlerIO().support(IO.IN)) continue;
 
                 handlerList.getCapability(EURecipeCapability.CAP).stream()
-                    .filter(IEnergyContainer.class::isInstance)
-                    .map(IEnergyContainer.class::cast)
-                    .forEach(energy::add);
+                        .filter(IEnergyContainer.class::isInstance)
+                        .map(IEnergyContainer.class::cast)
+                        .forEach(energy::add);
             }
         }
 
@@ -194,7 +194,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
     }
 
     @Override
-    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
+                                   BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
 
         if (held.getItem() instanceof ItemMatterManipulator manipulator) {
@@ -217,9 +218,12 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
     public void addDisplayText(List<Component> textList) {
         super.addDisplayText(textList);
 
-        textList.add(Component.translatable("mm.uplink.address", Long.toHexString(address)).withStyle(ChatFormatting.GRAY));
-        textList.add(Component.translatable("mm.uplink.stored_plasma", MMUtils.formatNumber(pendingPlasmaEU)).withStyle(ChatFormatting.GRAY));
-        textList.add(Component.translatable("mm.uplink.hatch_plasma", MMUtils.formatNumber(getPlasmaEUInHatches())).withStyle(ChatFormatting.GRAY));
+        textList.add(
+                Component.translatable("mm.uplink.address", Long.toHexString(address)).withStyle(ChatFormatting.GRAY));
+        textList.add(Component.translatable("mm.uplink.stored_plasma", MMUtils.formatNumber(pendingPlasmaEU))
+                .withStyle(ChatFormatting.GRAY));
+        textList.add(Component.translatable("mm.uplink.hatch_plasma", MMUtils.formatNumber(getPlasmaEUInHatches()))
+                .withStyle(ChatFormatting.GRAY));
         textList.add(Component.translatable(switch (getState()) {
             case OFF -> "mm.uplink.state.off";
             case IDLE -> "mm.uplink.state.idle";
@@ -254,7 +258,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
         if (getLevel() != null && getLevel().isClientSide) return clientState;
 
         if (active) {
-            return uplinkHatches.stream().anyMatch(MMUplinkMEHatchPartMachine::hasAnyRequests) ? UplinkState.ACTIVE : UplinkState.IDLE;
+            return uplinkHatches.stream().anyMatch(MMUplinkMEHatchPartMachine::hasAnyRequests) ? UplinkState.ACTIVE :
+                    UplinkState.IDLE;
         } else {
             return UplinkState.OFF;
         }
@@ -287,7 +292,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
     }
 
     @Override
-    public ObjectObjectImmutablePair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems, boolean simulate,
+    public ObjectObjectImmutablePair<UplinkStatus, List<BigItemStack>> tryConsumeItems(List<BigItemStack> requestedItems,
+                                                                                       boolean simulate,
                                                                                        boolean fuzzy) {
         MMUplinkMEHatchPartMachine hatch = getMEHatch();
 
@@ -318,7 +324,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
             for (AEItemKey match : matches) {
                 if (req.getStackSize() == 0) break;
 
-                long available = storage.extract(match, req.getStackSize(), Actionable.SIMULATE, hatch.getRequestSource());
+                long available = storage.extract(match, req.getStackSize(), Actionable.SIMULATE,
+                        hatch.getRequestSource());
 
                 if (available <= 0) continue;
 
@@ -380,7 +387,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
         for (BigFluidStack fluid : fluids) {
             if (fluid == null) continue;
 
-            if (!consumePlasmaEU(MMUtils.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST)) return UplinkStatus.NO_PLASMA;
+            if (!consumePlasmaEU(MMUtils.ceilDiv(fluid.getStackSize(), 1000) * BASE_PLASMA_EU_COST))
+                return UplinkStatus.NO_PLASMA;
 
             AEKey key = AEFluidKey.of(fluid.getFluidStack());
 
@@ -497,7 +505,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
         MMUplinkMEHatchPartMachine hatch = getMEHatch();
 
         if (hatch != null) {
-            String patternName = Component.translatable("mm.info.plan_name", submitter.getGameProfile().getName()).getString();
+            String patternName = Component.translatable("mm.info.plan_name", submitter.getGameProfile().getName())
+                    .getString();
 
             if (details != null && !details.isEmpty()) {
                 patternName += " (" + details + ")";
@@ -507,7 +516,8 @@ public class MMUplinkMachine extends WorkableElectricMultiblockMachine implement
 
             sendInfoToPlayer(submitter, "mm.info.new_virtual_me_pattern", patternName);
         } else {
-            MMUtils.sendErrorToPlayer(submitter, uplinkHatches.isEmpty() ? "mm.uplink.status.no_hatch" : "mm.uplink.status.ae_offline");
+            MMUtils.sendErrorToPlayer(submitter,
+                    uplinkHatches.isEmpty() ? "mm.uplink.status.no_hatch" : "mm.uplink.status.ae_offline");
         }
     }
 

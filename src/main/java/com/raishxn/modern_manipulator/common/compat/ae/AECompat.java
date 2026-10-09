@@ -1,18 +1,5 @@
 package com.raishxn.modern_manipulator.common.compat.ae;
 
-import com.raishxn.modern_manipulator.common.building.BlockSpec;
-import com.raishxn.modern_manipulator.common.building.ImmutableBlockSpec;
-import com.raishxn.modern_manipulator.common.building.InteropConstants;
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-import com.raishxn.modern_manipulator.common.compat.CableHandlers;
-import com.raishxn.modern_manipulator.common.compat.MEConnection;
-import com.raishxn.modern_manipulator.common.compat.TileAnalyzers;
-import com.raishxn.modern_manipulator.common.compat.ae.AEAnalysisResult.AEPartData;
-import com.raishxn.modern_manipulator.common.items.MMItems;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.world.item.Item;
@@ -26,6 +13,18 @@ import appeng.api.implementations.parts.ICablePart;
 import appeng.api.parts.IPart;
 import appeng.api.parts.IPartHost;
 import appeng.api.parts.IPartItem;
+import com.raishxn.modern_manipulator.common.building.BlockSpec;
+import com.raishxn.modern_manipulator.common.building.ImmutableBlockSpec;
+import com.raishxn.modern_manipulator.common.building.InteropConstants;
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
+import com.raishxn.modern_manipulator.common.compat.CableHandlers;
+import com.raishxn.modern_manipulator.common.compat.MEConnection;
+import com.raishxn.modern_manipulator.common.compat.TileAnalyzers;
+import com.raishxn.modern_manipulator.common.compat.ae.AEAnalysisResult.AEPartData;
+import com.raishxn.modern_manipulator.common.items.MMItems;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
@@ -65,14 +64,15 @@ public class AECompat {
             @Override
             public boolean canLink(ItemStack stack) {
                 return stack.getItem() instanceof ItemMatterManipulator &&
-                    ItemMatterManipulator.getState(stack).hasCap(ItemMatterManipulator.CONNECTS_TO_AE);
+                        ItemMatterManipulator.getState(stack).hasCap(ItemMatterManipulator.CONNECTS_TO_AE);
             }
 
             @Override
             public void link(ItemStack stack, GlobalPos pos) {
                 ((ItemMatterManipulator) stack.getItem()).setMELink(
-                    stack,
-                    new Location(pos.dimension().location().toString(), pos.pos().getX(), pos.pos().getY(), pos.pos().getZ()));
+                        stack,
+                        new Location(pos.dimension().location().toString(), pos.pos().getX(), pos.pos().getY(),
+                                pos.pos().getZ()));
             }
 
             @Override
@@ -118,7 +118,7 @@ public class AECompat {
 
             private PendingBlock cableBus(Level world, BlockPos pos, AEAnalysisResult ae) {
                 PendingBlock block = new BlockSpec().setObject(InteropConstants.getAECableBus().defaultBlockState())
-                    .instantiate(world, pos.getX(), pos.getY(), pos.getZ());
+                        .instantiate(world, pos.getX(), pos.getY(), pos.getZ());
 
                 block.ae = ae;
 
@@ -126,8 +126,10 @@ public class AECompat {
             }
 
             @Override
-            public @Nullable PendingBlock instantiateExchange(MMState state, ImmutableBlockSpec replacement, Level world, BlockPos pos) {
-                if (!state.hasCap(ItemMatterManipulator.ALLOW_CABLES) || !isCableItem(replacement.getItem())) return null;
+            public @Nullable PendingBlock instantiateExchange(MMState state, ImmutableBlockSpec replacement,
+                                                              Level world, BlockPos pos) {
+                if (!state.hasCap(ItemMatterManipulator.ALLOW_CABLES) || !isCableItem(replacement.getItem()))
+                    return null;
 
                 AEAnalysisResult ae = existing(world, pos);
                 ae.mAEParts[AEAnalysisResult.CENTER] = new AEPartData(replacement.getItem());

@@ -1,7 +1,5 @@
 package com.raishxn.modern_manipulator.common.building;
 
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Mirror;
@@ -16,6 +14,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.SlabType;
 
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import org.joml.Vector3f;
 
 /**
@@ -58,8 +57,9 @@ public class BlockStateTransformer {
             if (property == BlockStateProperties.AXIS || property == BlockStateProperties.HORIZONTAL_AXIS) {
                 EnumProperty<Direction.Axis> axisProp = (EnumProperty<Direction.Axis>) property;
                 Direction.Axis axis = state.getValue(axisProp);
-                Direction.Axis newAxis = transform.apply(Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE))
-                    .getAxis();
+                Direction.Axis newAxis = transform
+                        .apply(Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE))
+                        .getAxis();
 
                 if (axisProp.getPossibleValues().contains(newAxis)) {
                     state = state.setValue(axisProp, newAxis);
@@ -73,8 +73,8 @@ public class BlockStateTransformer {
                 int rotation = state.getValue(rotProp);
 
                 Vector3f v = new Vector3f(0, 0, 1)
-                    .rotateAxis(rotation * (float) Math.PI * 2f / 16f, 0, 1, 0)
-                    .mulTransposeDirection(transform.getRotation());
+                        .rotateAxis(rotation * (float) Math.PI * 2f / 16f, 0, 1, 0)
+                        .mulTransposeDirection(transform.getRotation());
 
                 double degrees = Math.atan2(v.x, v.z) * 360d / Math.PI / 2d;
                 int newRot = Mth.floor(degrees * 16d / 360d + 0.5);
@@ -86,20 +86,24 @@ public class BlockStateTransformer {
 
             if (flipsVertical) {
                 if (property == BlockStateProperties.HALF) {
-                    state = state.setValue(BlockStateProperties.HALF, state.getValue(BlockStateProperties.HALF) == Half.TOP ? Half.BOTTOM : Half.TOP);
+                    state = state.setValue(BlockStateProperties.HALF,
+                            state.getValue(BlockStateProperties.HALF) == Half.TOP ? Half.BOTTOM : Half.TOP);
                 } else if (property == BlockStateProperties.SLAB_TYPE) {
                     SlabType type = state.getValue(BlockStateProperties.SLAB_TYPE);
                     if (type != SlabType.DOUBLE) {
-                        state = state.setValue(BlockStateProperties.SLAB_TYPE, type == SlabType.TOP ? SlabType.BOTTOM : SlabType.TOP);
+                        state = state.setValue(BlockStateProperties.SLAB_TYPE,
+                                type == SlabType.TOP ? SlabType.BOTTOM : SlabType.TOP);
                     }
                 } else if (property == BlockStateProperties.ATTACH_FACE) {
                     AttachFace face = state.getValue(BlockStateProperties.ATTACH_FACE);
                     if (face != AttachFace.WALL) {
-                        state = state.setValue(BlockStateProperties.ATTACH_FACE, face == AttachFace.FLOOR ? AttachFace.CEILING : AttachFace.FLOOR);
+                        state = state.setValue(BlockStateProperties.ATTACH_FACE,
+                                face == AttachFace.FLOOR ? AttachFace.CEILING : AttachFace.FLOOR);
                     }
-                } else if (property instanceof EnumProperty enumProp && enumProp.getValueClass() == net.minecraft.world.level.block.state.properties.DoubleBlockHalf.class) {
-                    // never flip double block halves, the lower half places the upper half
-                }
+                } else if (property instanceof EnumProperty enumProp && enumProp.getValueClass() ==
+                        net.minecraft.world.level.block.state.properties.DoubleBlockHalf.class) {
+                            // never flip double block halves, the lower half places the upper half
+                        }
             }
         }
 

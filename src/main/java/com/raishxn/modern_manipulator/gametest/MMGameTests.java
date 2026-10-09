@@ -1,23 +1,5 @@
 package com.raishxn.modern_manipulator.gametest;
 
-import com.raishxn.modern_manipulator.ModernManipulator;
-import com.raishxn.modern_manipulator.common.building.BlockSpec;
-import com.raishxn.modern_manipulator.common.building.BlockStateTransformer;
-import com.raishxn.modern_manipulator.common.building.IBuildable;
-import com.raishxn.modern_manipulator.common.building.PendingBlock;
-import com.raishxn.modern_manipulator.common.building.PendingBuild;
-import com.raishxn.modern_manipulator.common.building.PendingMove;
-import com.raishxn.modern_manipulator.common.data.WeightedSpecList;
-import com.raishxn.modern_manipulator.common.items.MMItems;
-import com.raishxn.modern_manipulator.common.items.MMUpgrades;
-import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
-import com.raishxn.modern_manipulator.common.items.manipulator.Location;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
-import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
-import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -35,6 +17,23 @@ import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import com.raishxn.modern_manipulator.ModernManipulator;
+import com.raishxn.modern_manipulator.common.building.BlockSpec;
+import com.raishxn.modern_manipulator.common.building.BlockStateTransformer;
+import com.raishxn.modern_manipulator.common.building.IBuildable;
+import com.raishxn.modern_manipulator.common.building.PendingBlock;
+import com.raishxn.modern_manipulator.common.building.PendingBuild;
+import com.raishxn.modern_manipulator.common.building.PendingMove;
+import com.raishxn.modern_manipulator.common.data.WeightedSpecList;
+import com.raishxn.modern_manipulator.common.items.MMItems;
+import com.raishxn.modern_manipulator.common.items.MMUpgrades;
+import com.raishxn.modern_manipulator.common.items.manipulator.ItemMatterManipulator;
+import com.raishxn.modern_manipulator.common.items.manipulator.Location;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.BlockRemoveMode;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.PlaceMode;
+import com.raishxn.modern_manipulator.common.items.manipulator.MMState.Shape;
+import com.raishxn.modern_manipulator.common.items.manipulator.Transform;
 import org.joml.Vector3i;
 
 import java.util.List;
@@ -150,13 +149,15 @@ public class MMGameTests {
         StringBuilder diff = new StringBuilder();
         for (var field : state.config.getClass().getFields()) {
             try {
-                if (!java.util.Objects.equals(field.get(state.config), field.get(loaded.config))) diff.append(field.getName()).append(' ');
+                if (!java.util.Objects.equals(field.get(state.config), field.get(loaded.config)))
+                    diff.append(field.getName()).append(' ');
             } catch (IllegalAccessException ignored) {}
         }
 
         helper.assertTrue(loaded.config.equals(state.config), "config should survive a save/load round trip: " + diff);
         helper.assertTrue(loaded.hasUpgrade(MMUpgrades.PowerEff), "upgrades should survive a save/load round trip");
-        helper.assertTrue(((ItemMatterManipulator) stack.getItem()).getCharge(stack) > 0, "charged stack should have charge");
+        helper.assertTrue(((ItemMatterManipulator) stack.getItem()).getCharge(stack) > 0,
+                "charged stack should have charge");
 
         helper.succeed();
     }
@@ -184,14 +185,16 @@ public class MMGameTests {
         BlockState stairs = Blocks.OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.NORTH);
         BlockState rotatedStairs = BlockStateTransformer.transform(stairs, transform);
 
-        helper.assertTrue(rotatedStairs.getValue(StairBlock.FACING) == rotated, "stairs should be rotated like the transform");
+        helper.assertTrue(rotatedStairs.getValue(StairBlock.FACING) == rotated,
+                "stairs should be rotated like the transform");
 
         Transform flip = new Transform();
         flip.flipY = true;
 
         BlockState flipped = BlockStateTransformer.transform(stairs, flip);
 
-        helper.assertTrue(flipped.getValue(StairBlock.HALF) != stairs.getValue(StairBlock.HALF), "a Y flip should flip stairs");
+        helper.assertTrue(flipped.getValue(StairBlock.HALF) != stairs.getValue(StairBlock.HALF),
+                "a Y flip should flip stairs");
 
         helper.succeed();
     }
@@ -213,7 +216,8 @@ public class MMGameTests {
         state.config.faces = list(Blocks.STONE.defaultBlockState());
         state.config.volumes = list(Blocks.GLASS.defaultBlockState());
 
-        List<PendingBlock> blocks = state.getPendingBlocks(ItemMatterManipulator.ManipulatorTier.Tier3, helper.getLevel());
+        List<PendingBlock> blocks = state.getPendingBlocks(ItemMatterManipulator.ManipulatorTier.Tier3,
+                helper.getLevel());
 
         helper.assertTrue(blocks.size() == 27, "a 3x3x3 cube should have 27 blocks, got " + blocks.size());
 
@@ -255,8 +259,10 @@ public class MMGameTests {
         }
 
         helper.assertTrue(placed == 5, "survival should only place as many blocks as the player has, placed " + placed);
-        helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "the cobblestone should have been consumed");
-        helper.assertTrue(((ItemMatterManipulator) stack.getItem()).getCharge(stack) < chargeBefore, "building should use EU");
+        helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0,
+                "the cobblestone should have been consumed");
+        helper.assertTrue(((ItemMatterManipulator) stack.getItem()).getCharge(stack) < chargeBefore,
+                "building should use EU");
 
         helper.succeed();
     }
@@ -272,7 +278,8 @@ public class MMGameTests {
         // source: an L shape with a stair
         helper.setBlock(new BlockPos(1, 2, 1), Blocks.STONE);
         helper.setBlock(new BlockPos(2, 2, 1), Blocks.DIRT);
-        helper.setBlock(new BlockPos(1, 2, 2), Blocks.OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.NORTH));
+        helper.setBlock(new BlockPos(1, 2, 2),
+                Blocks.OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.NORTH));
 
         state.config.placeMode = PlaceMode.COPYING;
         state.config.coordA = loc(helper, 1, 2, 1);
@@ -293,7 +300,8 @@ public class MMGameTests {
         BlockState stair = helper.getBlockState(new BlockPos(8 + stairOffset.x, 2 + stairOffset.y, 8 + stairOffset.z));
 
         helper.assertTrue(stair.is(Blocks.OAK_STAIRS), "the stairs should be copied");
-        helper.assertTrue(stair.getValue(StairBlock.FACING) == t.apply(Direction.NORTH), "the stairs should be rotated");
+        helper.assertTrue(stair.getValue(StairBlock.FACING) == t.apply(Direction.NORTH),
+                "the stairs should be rotated");
 
         // the source should be untouched
         helper.assertBlockPresent(Blocks.STONE, new BlockPos(1, 2, 1));
@@ -337,7 +345,8 @@ public class MMGameTests {
         helper.setBlock(new BlockPos(1, 2, 1), Blocks.DIAMOND_BLOCK);
         helper.setBlock(new BlockPos(2, 2, 1), Blocks.CHEST);
 
-        if (helper.getBlockEntity(new BlockPos(2, 2, 1)) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
+        if (helper.getBlockEntity(
+                new BlockPos(2, 2, 1)) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
             chest.setItem(0, new ItemStack(Items.APPLE, 7));
         }
 
@@ -353,8 +362,10 @@ public class MMGameTests {
         helper.assertBlockPresent(Blocks.DIAMOND_BLOCK, new BlockPos(1, 2, 6));
         helper.assertBlockPresent(Blocks.CHEST, new BlockPos(2, 2, 6));
 
-        if (helper.getBlockEntity(new BlockPos(2, 2, 6)) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
-            helper.assertTrue(chest.getItem(0).is(Items.APPLE) && chest.getItem(0).getCount() == 7, "the chest contents should move");
+        if (helper.getBlockEntity(
+                new BlockPos(2, 2, 6)) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
+            helper.assertTrue(chest.getItem(0).is(Items.APPLE) && chest.getItem(0).getCount() == 7,
+                    "the chest contents should move");
         } else {
             helper.fail("the moved chest should have a block entity");
         }
@@ -429,7 +440,8 @@ public class MMGameTests {
 
         int sphere = state.getPendingBlocks(ItemMatterManipulator.ManipulatorTier.Tier3, helper.getLevel()).size();
 
-        helper.assertTrue(sphere > 100 && sphere < 343, "a 7^3 sphere should have between 100 and 343 blocks, got " + sphere);
+        helper.assertTrue(sphere > 100 && sphere < 343,
+                "a 7^3 sphere should have between 100 and 343 blocks, got " + sphere);
 
         state.config.shape = Shape.CYLINDER;
         state.config.coordA = loc(helper, 0, 2, 0);
@@ -449,9 +461,12 @@ public class MMGameTests {
         ItemStack stack = manipulator(ItemMatterManipulator.ManipulatorTier.Tier0);
         MMState state = state(stack);
 
-        helper.assertFalse(state.hasCap(ItemMatterManipulator.ALLOW_REMOVING), "the prototype can't remove blocks by default");
-        helper.assertTrue(state.couldAcceptUpgrade(ItemMatterManipulator.ManipulatorTier.Tier0, MMUpgrades.Mining), "the prototype accepts the mining upgrade");
-        helper.assertFalse(state.couldAcceptUpgrade(ItemMatterManipulator.ManipulatorTier.Tier0, MMUpgrades.PowerP2P), "the prototype doesn't accept the p2p upgrade");
+        helper.assertFalse(state.hasCap(ItemMatterManipulator.ALLOW_REMOVING),
+                "the prototype can't remove blocks by default");
+        helper.assertTrue(state.couldAcceptUpgrade(ItemMatterManipulator.ManipulatorTier.Tier0, MMUpgrades.Mining),
+                "the prototype accepts the mining upgrade");
+        helper.assertFalse(state.couldAcceptUpgrade(ItemMatterManipulator.ManipulatorTier.Tier0, MMUpgrades.PowerP2P),
+                "the prototype doesn't accept the p2p upgrade");
 
         state.installUpgrade(MMUpgrades.Mining);
 
