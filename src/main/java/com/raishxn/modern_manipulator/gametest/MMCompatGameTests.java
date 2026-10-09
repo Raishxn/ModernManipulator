@@ -153,6 +153,46 @@ public class MMCompatGameTests {
     }
 
     @GameTest(template = "empty16")
+    public static void copyControllerSettings(GameTestHelper helper) {
+        clear(helper);
+
+        ServerPlayer player = player(helper);
+        ItemStack stack = ((ItemMatterManipulator) MMItems.MK3.get()).createChargedStack();
+        MMState state = ItemMatterManipulator.getState(stack);
+
+        BlockPos src = new BlockPos(1, 2, 1);
+        helper.setBlock(src, com.gregtechceu.gtceu.common.data.machines.GTMultiMachines.ELECTRIC_BLAST_FURNACE.getBlock().defaultBlockState());
+
+        if (!(helper.getBlockEntity(src) instanceof IMachineBlockEntity mbe &&
+            mbe.getMetaMachine() instanceof com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine controller)) {
+            helper.fail("the EBF should be a workable electric multiblock");
+            return;
+        }
+
+        controller.setVoidingMode(com.gregtechceu.gtceu.api.machine.feature.IVoidable.VoidingMode.VOID_ITEMS);
+        controller.setBatchEnabled(true);
+
+        state.config.placeMode = PlaceMode.COPYING;
+        state.config.coordA = loc(helper, 1, 2, 1);
+        state.config.coordB = loc(helper, 1, 2, 1);
+        state.config.coordC = loc(helper, 6, 2, 6);
+
+        build(helper, stack, state, player);
+
+        if (!(helper.getBlockEntity(new BlockPos(6, 2, 6)) instanceof IMachineBlockEntity copyBe &&
+            copyBe.getMetaMachine() instanceof com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine copy)) {
+            helper.fail("the EBF controller should be copied");
+            return;
+        }
+
+        helper.assertTrue(copy.getVoidingMode() == com.gregtechceu.gtceu.api.machine.feature.IVoidable.VoidingMode.VOID_ITEMS,
+            "the voiding mode should be copied, got " + copy.getVoidingMode());
+        helper.assertTrue(copy.isBatchEnabled(), "batch mode should be copied");
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty16")
     public static void gtCableLine(GameTestHelper helper) {
         clear(helper);
 

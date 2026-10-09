@@ -47,6 +47,10 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
     public boolean mAutoOutputItems, mAutoOutputFluids, mAllowInputFromOutputItems, mAllowInputFromOutputFluids;
     public Boolean mMuffled = null;
     public Boolean mDistinct = null;
+    /** Multiblock controller settings: voiding mode name, batch mode, selected recipe type */
+    public String mVoidingMode = null;
+    public Boolean mBatchEnabled = null;
+    public int mActiveRecipeType = -1;
     /** -1 = no circuit slot, 0 = empty */
     public int mGTGhostCircuit = -1;
     public CoverData[] mCovers = null;
@@ -162,6 +166,18 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             mDistinct = distinct.isDistinct();
         }
 
+        if (machine instanceof com.gregtechceu.gtceu.api.machine.feature.IVoidable voidable) {
+            mVoidingMode = voidable.getVoidingMode().name();
+        }
+
+        if (machine instanceof com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine electric) {
+            mBatchEnabled = electric.isBatchEnabled();
+        }
+
+        if (machine instanceof com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine recipeMachine) {
+            mActiveRecipeType = recipeMachine.getActiveRecipeType();
+        }
+
         if (machine instanceof IHasCircuitSlot circuitMachine && circuitMachine.isCircuitSlotEnabled()) {
             mGTGhostCircuit = IntCircuitBehaviour.getCircuitConfiguration(circuitMachine.getCircuitInventory().getStackInSlot(0));
         }
@@ -235,6 +251,23 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
 
         if (machine instanceof IDistinctPart distinct && mDistinct != null) {
             distinct.setDistinct(mDistinct);
+        }
+
+        if (machine instanceof com.gregtechceu.gtceu.api.machine.feature.IVoidable voidable && mVoidingMode != null) {
+            try {
+                var mode = com.gregtechceu.gtceu.api.machine.feature.IVoidable.VoidingMode.valueOf(mVoidingMode);
+                if (voidable.getVoidingMode() != mode) voidable.setVoidingMode(mode);
+            } catch (IllegalArgumentException ignored) {}
+        }
+
+        if (machine instanceof com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine electric &&
+            mBatchEnabled != null && electric.isBatchEnabled() != mBatchEnabled) {
+            electric.setBatchEnabled(mBatchEnabled);
+        }
+
+        if (machine instanceof com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine recipeMachine && mActiveRecipeType >= 0 &&
+            recipeMachine.getActiveRecipeType() != mActiveRecipeType && mActiveRecipeType < recipeMachine.getRecipeTypes().length) {
+            recipeMachine.setActiveRecipeType(mActiveRecipeType);
         }
 
         if (machine instanceof IHasCircuitSlot circuitMachine && mGTGhostCircuit != -1 && circuitMachine.isCircuitSlotEnabled()) {
@@ -414,6 +447,9 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
         dup.mAllowInputFromOutputFluids = mAllowInputFromOutputFluids;
         dup.mMuffled = mMuffled;
         dup.mDistinct = mDistinct;
+        dup.mVoidingMode = mVoidingMode;
+        dup.mBatchEnabled = mBatchEnabled;
+        dup.mActiveRecipeType = mActiveRecipeType;
         dup.mGTGhostCircuit = mGTGhostCircuit;
 
         if (mCovers != null) {
@@ -437,13 +473,15 @@ public class GTAnalysisResult implements ITileAnalysisIntegration {
             Objects.equals(mWorkingEnabled, other.mWorkingEnabled) && mItemOutput == other.mItemOutput && mFluidOutput == other.mFluidOutput &&
             mAutoOutputItems == other.mAutoOutputItems && mAutoOutputFluids == other.mAutoOutputFluids &&
             mAllowInputFromOutputItems == other.mAllowInputFromOutputItems && mAllowInputFromOutputFluids == other.mAllowInputFromOutputFluids &&
-            Objects.equals(mMuffled, other.mMuffled) && Objects.equals(mDistinct, other.mDistinct) && mGTGhostCircuit == other.mGTGhostCircuit &&
+            Objects.equals(mMuffled, other.mMuffled) && Objects.equals(mDistinct, other.mDistinct) &&
+            Objects.equals(mVoidingMode, other.mVoidingMode) && Objects.equals(mBatchEnabled, other.mBatchEnabled) &&
+            mActiveRecipeType == other.mActiveRecipeType && mGTGhostCircuit == other.mGTGhostCircuit &&
             java.util.Arrays.equals(mCovers, other.mCovers) && Objects.equals(mGTData, other.mGTData);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(mConnections, mBlockedConnections, mGTColour, mWorkingEnabled, mItemOutput, mFluidOutput, mMuffled, mDistinct,
-            mGTGhostCircuit, java.util.Arrays.hashCode(mCovers), mGTData);
+            mVoidingMode, mBatchEnabled, mActiveRecipeType, mGTGhostCircuit, java.util.Arrays.hashCode(mCovers), mGTData);
     }
 }
