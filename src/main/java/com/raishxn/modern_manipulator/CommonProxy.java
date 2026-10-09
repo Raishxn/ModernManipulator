@@ -29,6 +29,10 @@ public class CommonProxy {
             () -> () -> com.raishxn.modern_manipulator.client.rendering.MMRenderer.setStatusHints(errors, warnings));
     }
 
+    public static void rerenderBlocks(LongList positions) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.rerenderBlocks(positions));
+    }
+
     public static void setUplinkState(Location location, int state) {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.raishxn.modern_manipulator.client.ClientProxy.setUplinkState(location, state));
     }

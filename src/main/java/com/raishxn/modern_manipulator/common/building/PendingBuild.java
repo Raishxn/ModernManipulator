@@ -319,8 +319,29 @@ public class PendingBuild extends AbstractBuildable {
 
         BuildHooks.onBlocksPlaced(this, world, toPlace, applyContext);
 
+        sendRerender(world, toPlace);
+
         actuallyGivePlayerStuff();
         playSounds();
+    }
+
+    /**
+     * Tells nearby clients to refresh the blocks that were configured (covers, pipe connections).
+     */
+    private void sendRerender(Level world, List<PendingBlock> placed) {
+        if (placed.isEmpty() || !(world instanceof net.minecraft.server.level.ServerLevel)) return;
+
+        LongArrayList positions = new LongArrayList();
+
+        for (PendingBlock block : placed) {
+            if (block.gt != null || block.ae != null) positions.add(BlockPos.asLong(block.x, block.y, block.z));
+        }
+
+        if (positions.isEmpty()) return;
+
+        PendingBlock first = placed.get(0);
+
+        Messages.RerenderBlocks.sendToPlayersAround(first, positions);
     }
 
     /**

@@ -45,6 +45,45 @@ public class ClientProxy {
         }
     }
 
+    private static final java.util.List<it.unimi.dsi.fastutil.longs.LongList> PENDING_RERENDERS = new java.util.ArrayList<>();
+    private static int rerenderDelay = 0;
+
+    /**
+     * Refreshes the model data and chunk meshes of blocks that were configured in the same tick they were placed
+     * (covers and pipe connections wouldn't show up otherwise). Delayed a few ticks so that the block entity sync
+     * packets arrive first.
+     */
+    public static void rerenderBlocks(it.unimi.dsi.fastutil.longs.LongList positions) {
+        PENDING_RERENDERS.add(positions);
+        rerenderDelay = 5;
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || PENDING_RERENDERS.isEmpty()) return;
+        if (--rerenderDelay > 0) return;
+
+        var level = Minecraft.getInstance().level;
+
+        if (level != null) {
+            for (var list : PENDING_RERENDERS) {
+                for (long packed : list) {
+                    var pos = net.minecraft.core.BlockPos.of(packed);
+                    var be = level.getBlockEntity(pos);
+
+                    if (be != null) {
+                        be.requestModelDataUpdate();
+                        level.getModelDataManager().requestRefresh(be);
+                    }
+
+                    Minecraft.getInstance().levelRenderer.setBlocksDirty(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+                }
+            }
+        }
+
+        PENDING_RERENDERS.clear();
+    }
+
     public static void setUplinkState(Location location, int state) {
         if (uplinkStateHandler != null) uplinkStateHandler.accept(location, state);
 

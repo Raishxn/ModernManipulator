@@ -61,6 +61,8 @@ public class GTCompat {
             }
         });
 
+        PendingBlock.ITEM_PREVIEW_BLOCKS.add(state -> state.getBlock() instanceof PipeBlock<?, ?, ?>);
+
         BlockRemovers.registerOreChecker(state -> state.getBlock() instanceof OreBlock);
 
         BlockRemovers.registerTankBlacklist(te -> te instanceof IMachineBlockEntity mbe &&

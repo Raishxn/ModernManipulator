@@ -30,4 +30,9 @@ public interface ITileAnalysisIntegration {
     default BlockState getPreviewState() {
         return null;
     }
+
+    /** An item to show in the preview instead of the block (ae parts in a cable bus, etc). */
+    default ItemStack getPreviewStack() {
+        return null;
+    }
 }

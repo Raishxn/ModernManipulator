@@ -426,7 +426,7 @@ public class MMRenderer {
                 if (pendingBlock.spec.isAir()) {
                     RenderHints.INSTANCE.addHint(pendingBlock.x, pendingBlock.y, pendingBlock.z, null, tint == WHITE ? ERROR : tint);
                 } else {
-                    RenderHints.INSTANCE.addHint(pendingBlock.x, pendingBlock.y, pendingBlock.z, pendingBlock.getPreviewState(), tint);
+                    RenderHints.INSTANCE.addHint(pendingBlock.x, pendingBlock.y, pendingBlock.z, pendingBlock.getPreviewState(), pendingBlock.getPreviewStack(), tint);
                 }
             }
         }

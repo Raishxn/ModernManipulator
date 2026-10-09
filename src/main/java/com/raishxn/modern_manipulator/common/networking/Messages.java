@@ -299,6 +299,23 @@ public enum Messages {
             CommonProxy.setStatusHints(value.left(), value.right());
         }
     })),
+    RerenderBlocks(client(new IPacketHandler<LongList>() {
+
+        @Override
+        public void encode(LongList value, FriendlyByteBuf buf) {
+            buf.writeLongArray(value.toLongArray());
+        }
+
+        @Override
+        public LongList decode(FriendlyByteBuf buf) {
+            return new LongArrayList(buf.readLongArray());
+        }
+
+        @Override
+        public void handle(Player player, LongList value) {
+            CommonProxy.rerenderBlocks(value);
+        }
+    })),
     UpdateUplinkState(client(new IPacketHandler<Pair<Location, Integer>>() {
 
         @Override

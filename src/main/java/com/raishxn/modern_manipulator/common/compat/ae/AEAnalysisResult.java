@@ -329,6 +329,19 @@ public class AEAnalysisResult implements ITileAnalysisIntegration {
     }
 
     @Override
+    public ItemStack getPreviewStack() {
+        if (mAEParts == null) return null;
+
+        if (mAEParts[CENTER] != null) return mAEParts[CENTER].getStack();
+
+        for (AEPartData part : mAEParts) {
+            if (part != null) return part.getStack();
+        }
+
+        return null;
+    }
+
+    @Override
     public void getItemTag(ItemStack stack) {}
 
     @Override

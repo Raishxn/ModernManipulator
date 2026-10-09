@@ -110,6 +110,33 @@ public class PendingBlock extends Location {
         return spec.getBlockState();
     }
 
+    /** Blocks that look better previewed as their item (pipes, cables). Registered by integrations. */
+    public static final List<java.util.function.Predicate<BlockState>> ITEM_PREVIEW_BLOCKS = new ArrayList<>();
+
+    /**
+     * Gets the item that should be shown in the preview instead of the block, or null to show the block.
+     */
+    public ItemStack getPreviewStack() {
+        for (var integration : getIntegrations()) {
+            ItemStack preview = integration.getPreviewStack();
+            if (preview != null && !preview.isEmpty()) return preview;
+        }
+
+        if (!spec.isBlockSpec()) {
+            ItemStack stack = spec.toStack(1);
+            if (!stack.isEmpty()) return stack;
+        }
+
+        for (var predicate : ITEM_PREVIEW_BLOCKS) {
+            if (predicate.test(spec.getBlockState())) {
+                ItemStack stack = spec.toStack(1);
+                if (!stack.isEmpty()) return stack;
+            }
+        }
+
+        return null;
+    }
+
     public Item getItem() {
         return spec.getItem();
     }
